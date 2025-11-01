@@ -1,0 +1,946 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Focus Timer</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Ensure the video player is a background element */
+        #bg-video {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            min-width: 100%;
+            min-height: 100%;
+            width: auto;
+            height: auto;
+            transform: translateX(-50%) translateY(-50%);
+            z-index: -10;
+            pointer-events: none; /* Allows clicking through the video */
+            object-fit: cover; /* Ensures video covers the screen */
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            overflow: hidden; /* Hide scrollbars */
+        }
+        /* Custom styles for text shadow to make text readable on any background */
+        .text-shadow {
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+        }
+        /* Style for the progress bar */
+        .progress-bar {
+            height: 2px;
+            background-color: rgba(255, 255, 255, 0.3);
+            width: 100%;
+            max-width: 400px;
+            margin: 0 auto;
+            border-radius: 2px;
+            overflow: hidden;
+        }
+        .progress-bar-inner {
+            height: 100%;
+            background-color: white;
+            width: 100%;
+            transition: width 0.5s ease;
+        }
+        
+        /* --- To-Do List Styles --- */
+        #todo-list-container {
+            display: flex;
+            flex-direction: column;
+            scroll-behavior: smooth;
+        }
+        .todo-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem; /* Replaced invalid 'space-x: 3' */
+            background-color: #374151; /* gray-700 */
+            padding: 0.75rem; /* p-3 */
+            border-radius: 0.5rem; /* rounded-lg */
+        }
+        .todo-item input[type="checkbox"] {
+            width: 1.25rem; /* w-5 */
+            height: 1.25rem; /* h-5 */
+            border-radius: 0.25rem; /* rounded */
+            cursor: pointer;
+        }
+        .todo-item label {
+            flex-grow: 1;
+            cursor: pointer;
+        }
+        .todo-item label.completed {
+            text-decoration: line-through;
+            opacity: 0.6;
+        }
+        /* REMOVED .task-time styles */
+
+        /* --- Add/Subtract Time Button Styles --- */
+        #timer-wrapper {
+            position: relative;
+        }
+        .time-adjust-btn {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 3rem;
+            font-weight: 200;
+            color: rgba(255, 255, 255, 0.4);
+            cursor: pointer;
+            padding: 1rem;
+            opacity: 0; /* Hidden by default */
+            transition: opacity 0.2s ease-in-out, color 0.2s ease-in-out;
+            user-select: none; /* Prevent text selection */
+        }
+        .time-adjust-btn:hover {
+            color: rgba(255, 255, 255, 0.8);
+        }
+        #timer-wrapper:hover .time-adjust-btn {
+            opacity: 1; /* Show on hover */
+        }
+        #subtract-time-btn {
+            left: -80px;
+        }
+        #add-time-btn {
+            right: -80px;
+        }
+
+        /* --- New Minimize Styles --- */
+        .control-btn {
+            transition: all 0.3s ease;
+        }
+        .minimized-hide {
+            width: 0 !important;
+            padding-left: 0 !important;
+            padding-right: 0 !important;
+            margin-left: 0 !important;
+            margin-right: 0 !important;
+            opacity: 0 !important;
+            pointer-events: none !important;
+            overflow: hidden !important;
+        }
+
+        /* --- REMOVED Chat Modal Styles --- */
+
+        /* --- Video Seek Bar Styles --- */
+        #video-seek-bar {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 3px;
+            outline: none;
+            cursor: pointer;
+            transition: height 0.2s ease;
+        }
+        #video-seek-bar:hover {
+            height: 10px; /* Make it easier to click */
+        }
+        #video-seek-bar::-webkit-progress-bar {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 3px;
+        }
+        #video-seek-bar::-webkit-progress-value {
+            background: white;
+            border-radius: 3px;
+        }
+        #video-seek-bar::-moz-progress-bar {
+            background: white;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body class="bg-black text-white">
+
+    <!-- 1. Local Video Background -->
+    <video id="bg-video" muted loop playsinline autoplay></video>
+    
+    <!-- Hidden file input for video selection -->
+    <input type="file" id="video-file-input" accept="video/*" class="hidden">
+
+    <!-- 2. Top Right Stats Display -->
+    <div id="stats-display" class="fixed top-4 right-6 z-20 text-right text-shadow transition-opacity duration-300">
+        <div class="text-lg font-semibold">Today's Focus</div>
+        <div id="stats-study" class="text-base">0m 0s</div>
+        <div class="text-lg font-semibold mt-2">Today's Break</div>
+        <div id="stats-break" class="text-base">0m 0s</div>
+    </div>
+
+    <!-- 3. Main Content: Timer and Clock -->
+    <div class="flex flex-col justify-center items-center h-screen w-screen relative z-10">
+        
+        <!-- NEW: Current Mode Display -->
+        <div id="current-mode-display" class="text-3xl font-serif italic text-shadow opacity-80 mb-2">
+            <!-- This will be filled by JavaScript -->
+        </div>
+
+        <!-- Timer Display -->
+        <div id="timer-wrapper" class="relative">
+            <div id="timer-container" class="text-center">
+                <div id="timer-display" class="text-[10rem] font-bold text-shadow tracking-tight">
+                    25:00
+                </div>
+                <div class="progress-bar mt-4">
+                    <div id="progress-bar-inner" class="progress-bar-inner"></div>
+                </div>
+            </div>
+            <!-- Add/Subtract Time Buttons -->
+            <button id="subtract-time-btn" class="time-adjust-btn" title="Subtract 5 minutes">-</button>
+            <button id="add-time-btn" class="time-adjust-btn" title="Add 5 minutes">+</button>
+        </div>
+
+
+        <!-- Real-time Clock Display (initially hidden) -->
+        <div id="clock-container" class="text-center hidden">
+            <div id="clock-time" class="text-8xl font-bold text-shadow">00:00:00</div>
+            <div id="clock-date" class="text-2xl font-medium text-shadow opacity-80 mt-2"></div>
+        </div>
+
+        <!-- NEW: Static Motivation Quote -->
+        <div id="motivation-quote" class="text-2xl font-serif italic text-shadow opacity-70 mt-6 h-12 px-4 text-center max-w-2xl">
+            "Would you rather suffer the pain of discipline or the pain of regret?"
+        </div>
+
+    </div>
+    
+    <!-- Video Controls Container -->
+    <div id="video-controls-container" class="fixed bottom-24 left-1/2 -translate-x-1/2 w-full max-w-xl z-20 hidden">
+        <div class="flex items-center space-x-4 bg-black/30 backdrop-blur-md p-3 rounded-full shadow-lg mx-auto w-full">
+            <span id="video-time-display" class="text-sm text-white/80 font-mono w-28 text-center">00:00 / 00:00</span>
+            <progress id="video-seek-bar" value="0" max="100" class="flex-grow"></progress>
+        </div>
+    </div>
+
+
+    <!-- 4. Bottom Controls -->
+    <div id="controls-bar" class="fixed bottom-0 left-0 w-full flex justify-center p-6 z-20 transition-opacity duration-300">
+        <div class="flex items-center space-x-2 bg-black/30 backdrop-blur-md p-3 rounded-full shadow-lg">
+            <!-- Minimize UI -->
+            <button id="minimize-btn" title="Minimize UI" class="p-3 text-white/80 hover:text-white hover:bg-white/20 rounded-full transition-all">
+                <svg id="minimize-icon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                <svg id="maximize-icon" class="w-6 h-6 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path></svg>
+            </button>
+            <!-- Toggle Clock -->
+            <button id="toggle-timer-clock" title="Toggle Clock/Timer" class="control-btn p-3 text-white/80 hover:text-white hover:bg-white/20 rounded-full transition-all">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            </button>
+            <!-- Set Timer -->
+            <button id="set-timer-btn" title="Set Timers" class="control-btn p-3 text-white/80 hover:text-white hover:bg-white/20 rounded-full transition-all">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826 3.31-2.37 2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+            </button>
+            <!-- Play/Pause -->
+            <button id="play-pause-btn" title="Play/Pause Timer" class="control-btn p-4 bg-white text-black rounded-full shadow-lg transform hover:scale-110 transition-all">
+                <svg id="play-icon" class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"></path></svg>
+                <svg id="pause-icon" class="w-6 h-6 hidden" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8 7a1 1 0 00-1 1v4a1 1 0 001 1h1a1 1 0 001-1V8a1 1 0 00-1-1H8zm5 0a1 1 0 00-1 1v4a1 1 0 001 1h1a1 1 0 001-1V8a1 1 0 00-1-1h-1z" clip-rule="evenodd"></path></svg>
+            </button>
+            <!-- Reset -->
+            <button id="reset-btn" title="Reset Timer" class="control-btn p-3 text-white/80 hover:text-white hover:bg-white/20 rounded-full transition-all">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2.086a8.001 8.001 0 00-11.854-10.49L9.5 6M4 20v-5h.582m15.356-2.086a8.001 8.001 0 01-11.854 10.49L9.5 18"></path></svg>
+            </button>
+            <!-- Toggle Mode (Study/Break) -->
+            <button id="toggle-mode-btn" title="Toggle Study/Break" class="control-btn p-3 text-white/80 hover:text-white hover:bg-white/20 rounded-full transition-all w-24 text-center">
+                Study
+            </button>
+            <!-- Stats History -->
+            <button id="stats-btn" title="View Stats" class="control-btn p-3 text-white/80 hover:text-white hover:bg-white/20 rounded-full transition-all">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2z"></path></svg>
+            </button>
+            <!-- To-Do List -->
+            <button id="todo-btn" title="To-Do List" class="control-btn p-3 text-white/80 hover:text-white hover:bg-white/20 rounded-full transition-all">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
+            </button>
+            <!-- REMOVED Chat Button -->
+            <!-- Video Controls Toggle -->
+            <button id="video-controls-btn" title="Show Video Controls" class="control-btn p-3 text-white/80 hover:text-white hover:bg-white/20 rounded-full transition-all">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+            </button>
+            <!-- Select Video -->
+            <button id="set-video-btn" title="Select Local Video" class="control-btn p-3 text-white/80 hover:text-white hover:bg-white/20 rounded-full transition-all">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+            </button>
+            <!-- Mute -->
+            <button id="toggle-mute-btn" title="Mute/Unmute Video" class="control-btn p-3 text-white/80 hover:text-white hover:bg-white/20 rounded-full transition-all">
+                <svg id="unmute-icon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path></svg>
+                <svg id="mute-icon" class="w-6 h-6 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15zM17 14l4-4m0 4l-4-4"></path></svg>
+            </button>
+        </div>
+    </div>
+
+    <!-- 5. Modals (Hidden by default) -->
+
+    <!-- Set Timer Modal -->
+    <div id="timer-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center z-30 hidden">
+        <div class="bg-gray-900 text-white p-8 rounded-xl shadow-2xl w-full max-w-sm">
+            <h2 class="text-2xl font-bold mb-6 text-center">Set Timers</h2>
+            <p class="text-gray-400 mb-2">Study Duration (minutes):</p>
+            <input id="study-timer-input" type="number" min="1" value="25" class="w-full p-3 bg-gray-800 border border-gray-700 rounded-lg text-white text-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <p class="text-gray-400 mb-2 mt-4">Break Duration (minutes):</p>
+            <input id="break-timer-input" type="number" min="1" value="5" class="w-full p-3 bg-gray-800 border border-gray-700 rounded-lg text-white text-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <div class="flex justify-between space-x-4 mt-6">
+                <button id="timer-modal-cancel" class="w-full p-3 bg-gray-700 hover:bg-gray-600 rounded-lg transition-all">Cancel</button>
+                <button id="timer-modal-ok" class="w-full p-3 bg-blue-600 hover:bg-blue-500 rounded-lg font-semibold transition-all">Set</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- MODIFIED: To-Do List Modal (Manual) -->
+    <div id="todo-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center z-40 hidden">
+        <div class="bg-gray-900 text-white p-6 rounded-xl shadow-2xl w-full max-w-md h-[70vh] flex flex-col">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-2xl font-bold">To-Do List</h2>
+                <button id="todo-modal-close" class="text-gray-400 hover:text-white text-3xl">&times;</button>
+            </div>
+            <!-- To-Do List -->
+            <div id="todo-list-container" class="flex-grow bg-gray-800 rounded-lg p-4 overflow-y-auto mb-4 space-y-3">
+                <!-- To-do items will be rendered here -->
+            </div>
+            <!-- To-Do Input -->
+            <div class="flex space-x-2">
+                <input id="todo-input" type="text" placeholder="Add a new task..." class="flex-grow p-3 bg-gray-700 border border-gray-600 rounded-lg text-white text-base focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <button id="todo-add-btn" class="p-3 bg-blue-600 hover:bg-blue-500 rounded-lg font-semibold transition-all">
+                    Add
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- REMOVED Gemini Chat Modal -->
+
+    <!-- Stats History Modal -->
+    <div id="stats-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center z-40 hidden">
+        <div class="bg-gray-900 text-white p-6 rounded-xl shadow-2xl w-full max-w-md h-[70vh] flex flex-col">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-2xl font-bold">Study History</h2>
+                <button id="stats-modal-close" class="text-gray-400 hover:text-white text-3xl">&times;</button>
+            </div>
+            <!-- Stats History -->
+            <div id="stats-history-container" class="flex-grow bg-gray-800 rounded-lg p-4 overflow-y-auto mb-4 space-y-3">
+                <!-- History will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Bell (for timer end) -->
+    <audio id="alarm-sound" src="https://assets.mixkit.co/sfx/preview/mixkit-clear-announce-tones-2861.mp3" preload="auto"></audio>
+
+    <!-- REMOVED Firebase SDK -->
+    <script type="module">
+        // --- 0. App State & Config ---
+        // REMOVED ALL FIREBASE VARIABLES
+
+        // Timer state
+        let timerInterval = null;
+        let studyDuration = 25 * 60;
+        let breakDuration = 5 * 60;
+        let remainingTime = studyDuration;
+        let isRunning = false;
+        let currentMode = 'study'; // 'study' or 'break'
+
+        // Local stats state
+        let studyTimeToday = 0;
+        let breakTimeToday = 0;
+        let todayDateString = getTodayDateString();
+        let lastSaveTimestamp = 0;
+        let statsHistory = []; // NEW
+
+        // UI state
+        let todoList = [];
+        // REMOVED chatHistory
+        let isMinimized = false;
+
+        // UI Elements
+        const timerDisplay = document.getElementById('timer-display');
+        const progressBar = document.getElementById('progress-bar-inner');
+        const playBtn = document.getElementById('play-pause-btn');
+        const playIcon = document.getElementById('play-icon');
+        const pauseIcon = document.getElementById('pause-icon');
+        const resetBtn = document.getElementById('reset-btn');
+        const alarmSound = document.getElementById('alarm-sound');
+        const currentModeDisplay = document.getElementById('current-mode-display'); // NEW
+        const toggleModeBtn = document.getElementById('toggle-mode-btn');
+
+        // Stats UI
+        const statsDisplay = document.getElementById('stats-display');
+        const statsStudyEl = document.getElementById('stats-study');
+        const statsBreakEl = document.getElementById('stats-break');
+        // REMOVED connectionStatus
+
+        // Minimize UI
+        const controlsBar = document.getElementById('controls-bar');
+        const minimizeBtn = document.getElementById('minimize-btn');
+        const minimizeIcon = document.getElementById('minimize-icon');
+        const maximizeIcon = document.getElementById('maximize-icon');
+        
+        // Time adjust UI
+        const addTimeBtn = document.getElementById('add-time-btn');
+        const subtractTimeBtn = document.getElementById('subtract-time-btn');
+
+        // --- 1. REMOVED Gemini API Configuration ---
+        // REMOVED apiKey, genApiUrl, callGemini
+
+        // --- 2. REMOVED Firebase Section ---
+        
+        // --- 3. Background Video Logic ---
+        const videoPlayer = document.getElementById('bg-video');
+        const videoFileInput = document.getElementById('video-file-input');
+        const setVideoBtn = document.getElementById('set-video-btn');
+        // NEW Video Control UI
+        const videoControlsBtn = document.getElementById('video-controls-btn');
+        const videoControlsContainer = document.getElementById('video-controls-container');
+        const videoTimeDisplay = document.getElementById('video-time-display');
+        const videoSeekBar = document.getElementById('video-seek-bar');
+
+        setVideoBtn.addEventListener('click', () => {
+            videoFileInput.click();
+        });
+        
+        // NEW: Show/Hide video controls
+        videoControlsBtn.addEventListener('click', () => {
+             videoControlsContainer.classList.toggle('hidden');
+        });
+
+        videoFileInput.addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (file) {
+                if (videoPlayer.src) {
+                    URL.revokeObjectURL(videoPlayer.src);
+                }
+                const videoURL = URL.createObjectURL(file);
+                videoPlayer.src = videoURL;
+                videoPlayer.play();
+                
+                isMuted = true;
+                videoPlayer.muted = true;
+                unmuteIcon.classList.remove('hidden');
+                muteIcon.classList.add('hidden');
+            }
+        });
+        
+        // NEW: Helper to format video time
+        function formatVideoTime(timeInSeconds) {
+            if (isNaN(timeInSeconds)) return "00:00";
+            const totalSeconds = Math.floor(timeInSeconds);
+            const minutes = Math.floor(totalSeconds / 60);
+            const seconds = totalSeconds % 60;
+            return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+        }
+
+        // NEW: Update seek bar and time on video play
+        videoPlayer.addEventListener('timeupdate', () => {
+            if (isNaN(videoPlayer.duration)) return;
+            videoSeekBar.value = videoPlayer.currentTime;
+            videoTimeDisplay.textContent = `${formatVideoTime(videoPlayer.currentTime)} / ${formatVideoTime(videoPlayer.duration)}`;
+        });
+        
+        // NEW: Update time display when video data is loaded
+        videoPlayer.addEventListener('loadedmetadata', () => {
+            if (isNaN(videoPlayer.duration)) return;
+            videoSeekBar.max = videoPlayer.duration;
+            videoTimeDisplay.textContent = `00:00 / ${formatVideoTime(videoPlayer.duration)}`;
+        });
+        
+        // NEW: Seek video when progress bar is clicked
+        videoSeekBar.addEventListener('click', (e) => {
+            const rect = videoSeekBar.getBoundingClientRect();
+            const clickX = e.clientX - rect.left;
+            const percentage = clickX / rect.width;
+            videoPlayer.currentTime = percentage * videoPlayer.duration;
+        });
+
+
+        // --- 4. Timer Logic ---
+        function updateTimerDisplay() {
+            const duration = (currentMode === 'study') ? studyDuration : breakDuration;
+            const minutes = Math.floor(remainingTime / 60);
+            const seconds = remainingTime % 60;
+            timerDisplay.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+            
+            // Prevent progress bar from going over 100% if time is added
+            const progress = (remainingTime / duration) * 100;
+            progressBar.style.width = `${Math.min(100, progress)}%`;
+        }
+        
+        function formatTime(totalSeconds) {
+            const minutes = Math.floor(totalSeconds / 60);
+            const seconds = totalSeconds % 60;
+            return `${minutes}m ${seconds}s`;
+        }
+
+        function updateTodayStatsUI() {
+            statsStudyEl.textContent = formatTime(studyTimeToday);
+            statsBreakEl.textContent = formatTime(breakTimeToday);
+        }
+
+        // REMOVED fetchMotivation function
+
+        function startTimer() {
+            if (isRunning) return;
+            isRunning = true;
+            playIcon.classList.add('hidden');
+            pauseIcon.classList.remove('hidden');
+
+            // REMOVED fetchMotivation call
+
+            timerInterval = setInterval(() => {
+                remainingTime--;
+
+                // Increment stats
+                if (currentMode === 'study') {
+                    studyTimeToday++;
+                } else {
+                    breakTimeToday++;
+                }
+                updateTodayStatsUI();
+
+                // Save stats periodically
+                const now = Date.now();
+                if (now - lastSaveTimestamp > 5000) { // Save every 5 seconds
+                    saveStatsToLocalStorage();
+                    lastSaveTimestamp = now;
+                }
+
+                updateTimerDisplay();
+
+                if (remainingTime <= 0) {
+                    clearInterval(timerInterval);
+                    isRunning = false;
+                    playIcon.classList.remove('hidden');
+                    pauseIcon.classList.add('hidden');
+                    alarmSound.play();
+                    
+                    // Save final stats for this session
+                    saveStatsToLocalStorage(); 
+                    
+                    // Switch mode
+                    toggleMode(); 
+                    
+                    setTimeout(() => {
+                        resetTimer(); // Reset the new mode's timer
+                    }, 1000);
+                }
+
+                // REMOVED motivation refresh logic
+
+            }, 1000);
+        }
+
+        function pauseTimer() {
+            if (!isRunning) return;
+            isRunning = false;
+            playIcon.classList.remove('hidden');
+            pauseIcon.classList.add('hidden');
+            clearInterval(timerInterval);
+            
+            // Save progress on pause
+            saveStatsToLocalStorage();
+        }
+
+        function resetTimer() {
+            pauseTimer();
+            remainingTime = (currentMode === 'study') ? studyDuration : breakDuration;
+            updateTimerDisplay();
+            currentModeDisplay.textContent = (currentMode === 'study') ? 'Studying' : 'Break'; // NEW
+        }
+
+        function toggleMode() {
+            pauseTimer();
+            if (currentMode === 'study') {
+                currentMode = 'break';
+                remainingTime = breakDuration;
+                toggleModeBtn.textContent = 'Break';
+                toggleModeBtn.title = "Switch to Study Mode";
+            } else {
+                currentMode = 'study';
+                remainingTime = studyDuration;
+                toggleModeBtn.textContent = 'Study';
+                toggleModeBtn.title = "Switch to Break Mode";
+            }
+            resetTimer();
+        }
+
+        toggleModeBtn.addEventListener('click', toggleMode);
+        playBtn.addEventListener('click', () => {
+            if (isRunning) {
+                pauseTimer();
+            } else {
+                startTimer();
+            }
+        });
+        resetBtn.addEventListener('click', resetTimer);
+        
+        // --- 5. Clock Logic ---
+        const timerView = document.getElementById('timer-container');
+        const clockView = document.getElementById('clock-container');
+        const toggleBtn = document.getElementById('toggle-timer-clock');
+        const clockTimeEl = document.getElementById('clock-time');
+        const clockDateEl = document.getElementById('clock-date');
+        let clockInterval = null;
+
+        function updateClock() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            const dateString = now.toLocaleDateString([], { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+            
+            clockTimeEl.textContent = timeString;
+            clockDateEl.textContent = dateString;
+        }
+
+        toggleBtn.addEventListener('click', () => {
+            if (timerView.classList.contains('hidden')) {
+                timerView.classList.remove('hidden');
+                clockView.classList.add('hidden');
+                if (clockInterval) {
+                    clearInterval(clockInterval);
+                    clockInterval = null;
+                }
+            } else {
+                timerView.classList.add('hidden');
+                clockView.classList.remove('hidden');
+                updateClock();
+                clockInterval = setInterval(updateClock, 1000);
+            }
+        });
+
+
+        // --- 6. Timer Modal Logic ---
+        const timerModal = document.getElementById('timer-modal');
+        const setTimerBtn = document.getElementById('set-timer-btn');
+        const studyTimerInput = document.getElementById('study-timer-input');
+        const breakTimerInput = document.getElementById('break-timer-input');
+        const timerModalOk = document.getElementById('timer-modal-ok');
+        const timerModalCancel = document.getElementById('timer-modal-cancel');
+
+        setTimerBtn.addEventListener('click', () => timerModal.classList.remove('hidden'));
+        timerModalCancel.addEventListener('click', () => timerModal.classList.add('hidden'));
+
+        timerModalOk.addEventListener('click', () => {
+            const studyMinutes = parseInt(studyTimerInput.value);
+            const breakMinutes = parseInt(breakTimerInput.value);
+            
+            if (studyMinutes && studyMinutes > 0) {
+                studyDuration = studyMinutes * 60;
+            }
+            if (breakMinutes && breakMinutes > 0) {
+                breakDuration = breakMinutes * 60;
+            }
+            
+            // Reset timer to apply new duration
+            if (currentMode === 'study') {
+                remainingTime = studyDuration;
+            } else {
+                remainingTime = breakDuration;
+            }
+            resetTimer(); 
+            timerModal.classList.add('hidden');
+        });
+
+        timerModal.addEventListener('click', (e) => {
+            if (e.target === timerModal) timerModal.classList.add('hidden');
+        });
+
+        // --- 7. Mute/Unmute Logic ---
+        const toggleMuteBtn = document.getElementById('toggle-mute-btn');
+        const muteIcon = document.getElementById('mute-icon');
+        const unmuteIcon = document.getElementById('unmute-icon');
+        let isMuted = true; // Starts muted
+
+        toggleMuteBtn.addEventListener('click', () => {
+            if (!videoPlayer.src) return; 
+            
+            if (isMuted) {
+                videoPlayer.muted = false;
+                unmuteIcon.classList.add('hidden');
+                muteIcon.classList.remove('hidden');
+                isMuted = false;
+            } else {
+                videoPlayer.muted = true;
+                unmuteIcon.classList.remove('hidden');
+                muteIcon.classList.add('hidden');
+                isMuted = true;
+            }
+        });
+
+        // --- 8. Manual To-Do List Logic ---
+        const todoBtn = document.getElementById('todo-btn');
+        const todoModal = document.getElementById('todo-modal');
+        const todoModalClose = document.getElementById('todo-modal-close');
+        const todoListContainer = document.getElementById('todo-list-container');
+        const todoInput = document.getElementById('todo-input');
+        const todoAddBtn = document.getElementById('todo-add-btn'); // MODIFIED
+
+        todoBtn.addEventListener('click', () => todoModal.classList.remove('hidden'));
+        todoModalClose.addEventListener('click', () => todoModal.classList.add('hidden'));
+        todoModal.addEventListener('click', (e) => {
+            if (e.target === todoModal) todoModal.classList.add('hidden');
+        });
+        
+        // REMOVED todoJsonSchema
+
+        function renderTodoList() {
+            todoListContainer.innerHTML = ''; // Clear list
+            if (todoList.length === 0) {
+                todoListContainer.innerHTML = `<p class="text-gray-400 text-center">No tasks yet. Add some below!</p>`;
+                return;
+            }
+
+            todoList.forEach((task, index) => {
+                const itemEl = document.createElement('div');
+                itemEl.className = 'todo-item';
+                
+                // REMOVED timeString logic
+
+                itemEl.innerHTML = `
+                    <input type="checkbox" id="task-${index}" data-index="${index}" ${task.completed ? 'checked' : ''}>
+                    <label for="task-${index}" class="${task.completed ? 'completed' : ''}">
+                        <span class="font-medium">${task.taskName}</span>
+                    </label>
+                `;
+                todoListContainer.appendChild(itemEl);
+            });
+
+            // Add event listeners to checkboxes
+            todoListContainer.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+                checkbox.addEventListener('change', (e) => {
+                    const index = e.target.dataset.index;
+                    if (todoList[index]) {
+                        todoList[index].completed = e.target.checked;
+                        saveTodoListToLocalStorage(); // Save on change
+                    }
+                });
+            });
+        }
+
+        // NEW: addTask function (replaces sendTodoRequest)
+        function addTask() {
+            const message = todoInput.value.trim();
+            if (!message) return;
+
+            todoInput.value = '';
+            
+            const newTask = {
+                taskName: message,
+                completed: false,
+                startTime: null, // No longer auto-parsed
+                endTime: null   // No longer auto-parsed
+            };
+            
+            todoList.push(newTask);
+            saveTodoListToLocalStorage();
+        }
+
+        todoAddBtn.addEventListener('click', addTask);
+        todoInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') addTask();
+        });
+
+        // --- 9. Stats History Modal Logic ---
+        const statsBtn = document.getElementById('stats-btn');
+        const statsModal = document.getElementById('stats-modal');
+        const statsModalClose = document.getElementById('stats-modal-close');
+        const statsHistoryContainer = document.getElementById('stats-history-container');
+
+        statsBtn.addEventListener('click', () => {
+            statsModal.classList.remove('hidden');
+            loadStatsHistory(); // Replaced async
+        });
+        statsModalClose.addEventListener('click', () => statsModal.classList.add('hidden'));
+        statsModal.addEventListener('click', (e) => {
+            if (e.target === statsModal) statsModal.classList.add('hidden');
+        });
+
+        function loadStatsHistory() { // Replaced async
+            statsHistoryContainer.innerHTML = '<p class="text-gray-400 text-center">Loading history...</p>';
+            
+            // NEW: Load from localStorage
+            try {
+                statsHistory = JSON.parse(localStorage.getItem('statsHistory') || '[]');
+                
+                // Sort in JavaScript
+                statsHistory.sort((a, b) => b.date.localeCompare(a.date));
+
+                if (statsHistory.length === 0) {
+                    statsHistoryContainer.innerHTML = '<p class="text-gray-400 text-center">No history yet. Complete a study session!</p>';
+                    return;
+                }
+                
+                statsHistoryContainer.innerHTML = ''; // Clear
+                statsHistory.forEach(day => {
+                    const study = day.totalStudy || 0;
+                    const breakTime = day.totalBreak || 0;
+                    const itemEl = document.createElement('div');
+                    itemEl.className = 'bg-gray-700 p-3 rounded-lg';
+                    itemEl.innerHTML = `
+                        <div class="font-semibold text-lg">${day.date}</div>
+                        <div class="text-gray-300">Focus: ${formatTime(study)}</div>
+                        <div class="text-gray-400">Break: ${formatTime(breakTime)}</div>
+                    `;
+                    statsHistoryContainer.appendChild(itemEl);
+                });
+
+            } catch (error) {
+                console.error("Error loading stats history:", error);
+                statsHistoryContainer.innerHTML = '<p class="text-red-400 text-center">Error loading history.</p>';
+            }
+        }
+
+
+        // --- 10. Core Data & Task Logic ---
+        
+        function getTodayDateString(date = new Date()) { // Added param
+            const now = new Date(date.getTime()); // Clone date
+            if (now.getHours() < 5) { // Resets at 5 AM
+                now.setDate(now.getDate() - 1);
+            }
+            return now.toISOString().split('T')[0];
+        }
+
+        // NEW: Load data from localStorage on startup
+        function loadDataFromLocalStorage() {
+            // 1. Load Stats
+            const savedStatsJSON = localStorage.getItem('studyStats');
+            todayDateString = getTodayDateString();
+
+            if (savedStatsJSON) {
+                try {
+                    const savedStats = JSON.parse(savedStatsJSON);
+                    if (savedStats[todayDateString]) {
+                        // It's the same day, load the stats
+                        studyTimeToday = savedStats[todayDateString].totalStudy || 0;
+                        breakTimeToday = savedStats[todayDateString].totalBreak || 0;
+                    }
+                    // If it's a new day, the stats will be reset by saveStatsToLocalStorage()
+                } catch (e) {
+                    console.error("Failed to parse saved stats", e);
+                }
+            }
+            
+            // 2. Load History
+            const savedHistoryJSON = localStorage.getItem('statsHistory');
+            if(savedHistoryJSON) {
+                try {
+                    statsHistory = JSON.parse(savedHistoryJSON);
+                } catch (e) {
+                    console.error("Failed to parse stats history", e);
+                    statsHistory = [];
+                }
+            }
+
+            // 3. Load To-Do List
+            const savedTodoJSON = localStorage.getItem('todoList');
+            if (savedTodoJSON) {
+                try {
+                    todoList = JSON.parse(savedTodoJSON);
+                } catch (e) {
+                    console.error("Failed to parse todo list", e);
+                    todoList = [];
+                }
+            }
+            
+            // 4. Render UI
+            updateTodayStatsUI();
+            renderTodoList();
+            // REMOVED checkCurrentTask();
+        }
+
+        // NEW: Save stats to localStorage
+        function saveStatsToLocalStorage() {
+            const newToday = getTodayDateString();
+            
+            if (newToday !== todayDateString) {
+                // Day has rolled over. Save old day to history.
+                const yesterdayString = todayDateString;
+                const yesterdayStats = {
+                    date: yesterdayString,
+                    totalStudy: studyTimeToday,
+                    totalBreak: breakTimeToday
+                };
+                
+                // Add to history if there was activity
+                if (yesterdayStats.totalStudy > 0 || yesterdayStats.totalBreak > 0) {
+                    statsHistory.push(yesterdayStats);
+                    localStorage.setItem('statsHistory', JSON.stringify(statsHistory));
+                }
+
+                // Reset counters for new day
+                todayDateString = newToday;
+                studyTimeToday = 0;
+                breakTimeToday = 0;
+            }
+            
+            // Save current day's stats
+            const statsData = {
+                [todayDateString]: {
+                    totalStudy: studyTimeToday,
+                    totalBreak: breakTimeToday
+                }
+            };
+            localStorage.setItem('studyStats', JSON.stringify(statsData));
+        }
+        
+        // NEW: Save to-do list to localStorage
+        function saveTodoListToLocalStorage() {
+            try {
+                localStorage.setItem('todoList', JSON.stringify(todoList));
+                renderTodoList(); // Re-render
+                // REMOVED checkCurrentTask();
+            } catch (e) {
+                console.error("Error saving todo list:", e);
+            }
+        }
+
+        // REMOVED checkCurrentTask function
+        // REMOVED setInterval(checkCurrentTask, 30000);
+
+        // --- 11. New UI Logic ---
+
+        // Minimize Button
+        minimizeBtn.addEventListener('click', () => {
+            isMinimized = !isMinimized;
+            
+            // Toggle Stats Display
+            statsDisplay.classList.toggle('opacity-0');
+            statsDisplay.classList.toggle('pointer-events-none');
+
+            // Get all buttons with the class 'control-btn'
+            const buttonsToToggle = document.querySelectorAll('.control-btn');
+
+            buttonsToToggle.forEach(btn => {
+                btn.classList.toggle('minimized-hide');
+            });
+
+            // Toggle minimize/maximize icon
+            if (isMinimized) {
+                minimizeIcon.classList.add('hidden');
+                maximizeIcon.classList.remove('hidden');
+            } else {
+                minimizeIcon.classList.remove('hidden');
+                maximizeIcon.classList.add('hidden');
+            }
+        });
+
+        // Add/Subtract Time Buttons
+        addTimeBtn.addEventListener('click', () => {
+            remainingTime += 300; // Add 5 minutes
+            updateTimerDisplay();
+        });
+
+        subtractTimeBtn.addEventListener('click', () => {
+            remainingTime -= 300; // Subtract 5 minutes
+            if (remainingTime < 0) remainingTime = 0;
+            updateTimerDisplay();
+        });
+        
+        // --- 12. REMOVED Chat Modal Logic ---
+
+        // --- Init ---
+        // REMOVED console logs for API key
+        loadDataFromLocalStorage(); // NEW: Load all data
+        resetTimer(); // MODIFIED: Set initial timer display and mode text
+        // REMOVED renderChatHistory();
+        
+    </script>
+</body>
+</html>
+
