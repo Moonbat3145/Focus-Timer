@@ -7,6 +7,13 @@
     <!-- Load Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
+        /* NEW: Fix for fullscreen white line */
+        html, body {
+            height: 100%;
+            width: 100%;
+            margin: 0;
+            padding: 0;
+        }
         /* Ensure the video player is a background element */
         #bg-video {
             position: fixed;
@@ -877,6 +884,7 @@
         
         // REMOVED: Reset Position Button Logic
         
+
         // --- 15. REMOVED: Draggable Timer Logic (FIXED) ---
         
         
@@ -922,6 +930,4 @@
     </script>
 </body>
 </html>
-
-
 
