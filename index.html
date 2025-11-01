@@ -46,35 +46,7 @@
             transition: width 0.5s ease;
         }
         
-        /* --- To-Do List Styles --- */
-        #todo-list-container {
-            display: flex;
-            flex-direction: column;
-            scroll-behavior: smooth;
-        }
-        .todo-item {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem; /* Replaced invalid 'space-x: 3' */
-            background-color: #374151; /* gray-700 */
-            padding: 0.75rem; /* p-3 */
-            border-radius: 0.5rem; /* rounded-lg */
-        }
-        .todo-item input[type="checkbox"] {
-            width: 1.25rem; /* w-5 */
-            height: 1.25rem; /* h-5 */
-            border-radius: 0.25rem; /* rounded */
-            cursor: pointer;
-        }
-        .todo-item label {
-            flex-grow: 1;
-            cursor: pointer;
-        }
-        .todo-item label.completed {
-            text-decoration: line-through;
-            opacity: 0.6;
-        }
-        /* REMOVED .task-time styles */
+        /* --- REMOVED To-Do List Styles --- */
 
         /* --- Add/Subtract Time Button Styles --- */
         #timer-wrapper {
@@ -106,19 +78,9 @@
             right: -80px;
         }
 
-        /* --- New Minimize Styles --- */
+        /* --- REMOVED Minimize Styles --- */
         .control-btn {
             transition: all 0.3s ease;
-        }
-        .minimized-hide {
-            width: 0 !important;
-            padding-left: 0 !important;
-            padding-right: 0 !important;
-            margin-left: 0 !important;
-            margin-right: 0 !important;
-            opacity: 0 !important;
-            pointer-events: none !important;
-            overflow: hidden !important;
         }
 
         /* --- REMOVED Chat Modal Styles --- */
@@ -150,6 +112,44 @@
             background: white;
             border-radius: 3px;
         }
+        
+        /* --- REMOVED: Draggable Timer Styles --- */
+
+        /* --- Resizable Timer Style --- */
+        #timer-display {
+            /* Use CSS variable for font size, default to 10rem */
+            font-size: var(--timer-font-size, 10rem);
+        }
+
+        /* --- NEW: Editable Subtext Style --- */
+        #custom-text-input {
+            font-size: var(--timer-subtext-font-size, 2rem); /* Default to 2rem */
+            font-family: 'serif'; /* Aesthetic font */
+            font-style: italic;
+            color: white;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+            opacity: 0.8;
+            background-color: transparent;
+            border: none;
+            outline: none;
+            text-align: center;
+            width: 100%;
+            max-width: 600px; /* Limit width */
+            margin-top: 0.5rem; /* Space from progress bar */
+        }
+        #custom-text-input::placeholder {
+            color: rgba(255, 255, 255, 0.4);
+            font-style: italic;
+        }
+
+
+        /* --- UI Hide Style (for Cinema and Minimize) --- */
+        .ui-hide {
+            opacity: 0 !important;
+            pointer-events: none !important;
+            transition: opacity 0.3s ease-out;
+        }
+        
     </style>
 </head>
 <body class="bg-black text-white">
@@ -169,9 +169,10 @@
     </div>
 
     <!-- 3. Main Content: Timer and Clock -->
-    <div class="flex flex-col justify-center items-center h-screen w-screen relative z-10">
+    <!-- MODIFIED: Wrapper div is now centered and no longer draggable -->
+    <div id="timer-ui-container" class="flex flex-col justify-center items-center h-screen w-screen relative z-10">
         
-        <!-- NEW: Current Mode Display -->
+        <!-- Current Mode Display -->
         <div id="current-mode-display" class="text-3xl font-serif italic text-shadow opacity-80 mb-2">
             <!-- This will be filled by JavaScript -->
         </div>
@@ -179,18 +180,20 @@
         <!-- Timer Display -->
         <div id="timer-wrapper" class="relative">
             <div id="timer-container" class="text-center">
-                <div id="timer-display" class="text-[10rem] font-bold text-shadow tracking-tight">
+                <!-- MODIFIED: Removed text-[10rem] class -->
+                <div id="timer-display" class="font-bold text-shadow tracking-tight">
                     25:00
                 </div>
                 <div class="progress-bar mt-4">
                     <div id="progress-bar-inner" class="progress-bar-inner"></div>
                 </div>
+                <!-- NEW: Editable Text Input -->
+                <input type="text" id="custom-text-input" placeholder="What are you working on?">
             </div>
             <!-- Add/Subtract Time Buttons -->
             <button id="subtract-time-btn" class="time-adjust-btn" title="Subtract 5 minutes">-</button>
             <button id="add-time-btn" class="time-adjust-btn" title="Add 5 minutes">+</button>
         </div>
-
 
         <!-- Real-time Clock Display (initially hidden) -->
         <div id="clock-container" class="text-center hidden">
@@ -198,13 +201,20 @@
             <div id="clock-date" class="text-2xl font-medium text-shadow opacity-80 mt-2"></div>
         </div>
 
-        <!-- REMOVED Static Motivation Quote -->
-
+        <!-- REMOVED: Set Position Button -->
+        
     </div>
     
+    <!-- REMOVED: Last Video Reminder -->
+    
     <!-- Video Controls Container -->
-    <div id="video-controls-container" class="fixed bottom-24 left-1/2 -translate-x-1/2 w-full max-w-xl z-20 hidden">
+    <div id="video-controls-container" class="fixed bottom-32 left-1/2 -translate-x-1/2 w-full max-w-xl z-20 hidden">
         <div class="flex items-center space-x-4 bg-black/30 backdrop-blur-md p-3 rounded-full shadow-lg mx-auto w-full">
+            <!-- NEW: Video Play/Pause Button -->
+            <button id="video-play-pause-btn" title="Play/Pause Video" class="p-1 text-white/80 hover:text-white rounded-full transition-all">
+                <svg id="video-play-icon" class="w-6 h-6 hidden" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"></path></svg>
+                <svg id="video-pause-icon" class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8 7a1 1 0 00-1 1v4a1 1 0 001 1h1a1 1 0 001-1V8a1 1 0 00-1-1H8zm5 0a1 1 0 00-1 1v4a1 1 0 001 1h1a1 1 0 001-1V8a1 1 0 00-1-1h-1z" clip-rule="evenodd"></path></svg>
+            </button>
             <span id="video-time-display" class="text-sm text-white/80 font-mono w-28 text-center">00:00 / 00:00</span>
             <progress id="video-seek-bar" value="0" max="100" class="flex-grow"></progress>
         </div>
@@ -215,9 +225,18 @@
     <div id="controls-bar" class="fixed bottom-0 left-0 w-full flex justify-center p-6 z-20 transition-opacity duration-300">
         <div class="flex items-center space-x-2 bg-black/30 backdrop-blur-md p-3 rounded-full shadow-lg">
             <!-- Minimize UI -->
-            <button id="minimize-btn" title="Minimize UI" class="p-3 text-white/80 hover:text-white hover:bg-white/20 rounded-full transition-all">
+            <button id="minimize-btn" title="Minimize UI (Click anywhere to exit)" class="p-3 text-white/80 hover:text-white hover:bg-white/20 rounded-full transition-all">
                 <svg id="minimize-icon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                <svg id="maximize-icon" class="w-6 h-6 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path></svg>
+                <!-- REMOVED Maximize Icon -->
+            </button>
+            <!-- NEW: Cinema Mode Button -->
+            <button id="cinema-mode-btn" title="Cinema Mode (Click anywhere to exit)" class="control-btn p-3 text-white/80 hover:text-white hover:bg-white/20 rounded-full transition-all">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.478 0-8.268-2.943-9.542-7z"></path></svg>
+            </button>
+            <!-- NEW: Fullscreen Button -->
+            <button id="fullscreen-btn" title="Toggle Fullscreen" class="control-btn p-3 text-white/80 hover:text-white hover:bg-white/20 rounded-full transition-all">
+                <svg id="fullscreen-enter-icon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 1v4m0 0h-4m4 0l-5-5"></path></svg>
+                <svg id="fullscreen-exit-icon" class="w-6 h-6 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 4H4m0 0v4M4 4l5 5m1-5h4m0 0v4m0-4l-5 5M8 20H4m0 0v-4m0 4l5-5m1 5h4m0 0v-4m0 4l-5-5"></path></svg>
             </button>
             <!-- Toggle Clock -->
             <button id="toggle-timer-clock" title="Toggle Clock/Timer" class="control-btn p-3 text-white/80 hover:text-white hover:bg-white/20 rounded-full transition-all">
@@ -240,15 +259,13 @@
             <button id="toggle-mode-btn" title="Toggle Study/Break" class="control-btn p-3 text-white/80 hover:text-white hover:bg-white/20 rounded-full transition-all w-24 text-center">
                 Study
             </button>
-            <!-- Stats History -->
-            <button id="stats-btn" title="View Stats" class="control-btn p-3 text-white/80 hover:text-white hover:bg-white/20 rounded-full transition-all">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2z"></path></svg>
+            <!-- REMOVED: Move Timer Button -->
+            <!-- NEW: Resize Timer Button -->
+            <button id="resize-timer-btn" title="Resize Timer" class="control-btn p-3 text-white/80 hover:text-white hover:bg-white/20 rounded-full transition-all">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10M12 7v10M8 7h8M20 7v10M16 7h4"></path></svg>
             </button>
-            <!-- To-Do List -->
-            <button id="todo-btn" title="To-Do List" class="control-btn p-3 text-white/80 hover:text-white hover:bg-white/20 rounded-full transition-all">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
-            </button>
-            <!-- REMOVED Chat Button -->
+            <!-- REMOVED Stats History Button -->
+            <!-- REMOVED To-Do List Button -->
             <!-- Video Controls Toggle -->
             <button id="video-controls-btn" title="Show Video Controls" class="control-btn p-3 text-white/80 hover:text-white hover:bg-white/20 rounded-full transition-all">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
@@ -281,43 +298,23 @@
             </div>
         </div>
     </div>
+
+    <!-- NEW: Resize Timer Modal -->
+    <div id="resize-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center z-30 hidden">
+        <div class="bg-gray-900 text-white p-8 rounded-xl shadow-2xl w-full max-w-sm">
+            <h2 class="text-2xl font-bold mb-6 text-center">Resize Timer</h2>
+            <p class="text-gray-400 mb-2">Timer Size</p>
+            <input id="timer-size-slider" type="range" min="6" max="14" value="10" step="0.5" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer">
+            <div class="flex flex-col space-y-4 mt-6">
+                <!-- REMOVED: Reset Position Button -->
+                <button id="resize-modal-ok" class="w-full p-3 bg-blue-600 hover:bg-blue-500 rounded-lg font-semibold transition-all">Close</button>
+            </div>
+        </div>
+    </div>
     
-    <!-- MODIFIED: To-Do List Modal (Manual) -->
-    <div id="todo-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center z-40 hidden">
-        <div class="bg-gray-900 text-white p-6 rounded-xl shadow-2xl w-full max-w-md h-[70vh] flex flex-col">
-            <div class="flex justify-between items-center mb-4">
-                <h2 class="text-2xl font-bold">To-Do List</h2>
-                <button id="todo-modal-close" class="text-gray-400 hover:text-white text-3xl">&times;</button>
-            </div>
-            <!-- To-Do List -->
-            <div id="todo-list-container" class="flex-grow bg-gray-800 rounded-lg p-4 overflow-y-auto mb-4 space-y-3">
-                <!-- To-do items will be rendered here -->
-            </div>
-            <!-- To-Do Input -->
-            <div class="flex space-x-2">
-                <input id="todo-input" type="text" placeholder="Add a new task..." class="flex-grow p-3 bg-gray-700 border border-gray-600 rounded-lg text-white text-base focus:outline-none focus:ring-2 focus:ring-blue-500">
-                <button id="todo-add-btn" class="p-3 bg-blue-600 hover:bg-blue-500 rounded-lg font-semibold transition-all">
-                    Add
-                </button>
-            </div>
-        </div>
-    </div>
+    <!-- REMOVED To-Do List Modal -->
 
-    <!-- REMOVED Gemini Chat Modal -->
-
-    <!-- Stats History Modal -->
-    <div id="stats-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center z-40 hidden">
-        <div class="bg-gray-900 text-white p-6 rounded-xl shadow-2xl w-full max-w-md h-[70vh] flex flex-col">
-            <div class="flex justify-between items-center mb-4">
-                <h2 class="text-2xl font-bold">Study History</h2>
-                <button id="stats-modal-close" class="text-gray-400 hover:text-white text-3xl">&times;</button>
-            </div>
-            <!-- Stats History -->
-            <div id="stats-history-container" class="flex-grow bg-gray-800 rounded-lg p-4 overflow-y-auto mb-4 space-y-3">
-                <!-- History will be loaded here -->
-            </div>
-        </div>
-    </div>
+    <!-- REMOVED Stats History Modal -->
 
     <!-- Notification Bell (for timer end) -->
     <audio id="alarm-sound" src="https://assets.mixkit.co/sfx/preview/mixkit-clear-announce-tones-2861.mp3" preload="auto"></audio>
@@ -343,7 +340,7 @@
         let statsHistory = []; // NEW
 
         // UI state
-        let todoList = [];
+        // REMOVED todoList
         // REMOVED chatHistory
         let isMinimized = false;
 
@@ -357,6 +354,7 @@
         const alarmSound = document.getElementById('alarm-sound');
         const currentModeDisplay = document.getElementById('current-mode-display'); // NEW
         const toggleModeBtn = document.getElementById('toggle-mode-btn');
+        const customTextInput = document.getElementById('custom-text-input'); // NEW
 
         // Stats UI
         const statsDisplay = document.getElementById('stats-display');
@@ -367,8 +365,7 @@
         // Minimize UI
         const controlsBar = document.getElementById('controls-bar');
         const minimizeBtn = document.getElementById('minimize-btn');
-        const minimizeIcon = document.getElementById('minimize-icon');
-        const maximizeIcon = document.getElementById('maximize-icon');
+        // REMOVED minimizeIcon, maximizeIcon
         
         // Time adjust UI
         const addTimeBtn = document.getElementById('add-time-btn');
@@ -383,19 +380,24 @@
         const videoPlayer = document.getElementById('bg-video');
         const videoFileInput = document.getElementById('video-file-input');
         const setVideoBtn = document.getElementById('set-video-btn');
-        // NEW Video Control UI
         const videoControlsBtn = document.getElementById('video-controls-btn');
         const videoControlsContainer = document.getElementById('video-controls-container');
         const videoTimeDisplay = document.getElementById('video-time-display');
         const videoSeekBar = document.getElementById('video-seek-bar');
+        // REMOVED: const lastVideoReminder
+        // NEW Video Control UI
+        const videoPlayPauseBtn = document.getElementById('video-play-pause-btn');
+        const videoPlayIcon = document.getElementById('video-play-icon');
+        const videoPauseIcon = document.getElementById('video-pause-icon');
+
 
         setVideoBtn.addEventListener('click', () => {
             videoFileInput.click();
         });
         
-        // NEW: Show/Hide video controls
         videoControlsBtn.addEventListener('click', () => {
              videoControlsContainer.classList.toggle('hidden');
+             // REMOVED last video reminder logic
         });
 
         videoFileInput.addEventListener('change', (event) => {
@@ -408,14 +410,18 @@
                 videoPlayer.src = videoURL;
                 videoPlayer.play();
                 
+                // REMOVED Save last video name
+                
                 isMuted = true;
                 videoPlayer.muted = true;
                 unmuteIcon.classList.remove('hidden');
                 muteIcon.classList.add('hidden');
+                
+                videoPlayIcon.classList.add('hidden');
+                videoPauseIcon.classList.remove('hidden');
             }
         });
         
-        // NEW: Helper to format video time
         function formatVideoTime(timeInSeconds) {
             if (isNaN(timeInSeconds)) return "00:00";
             const totalSeconds = Math.floor(timeInSeconds);
@@ -424,26 +430,42 @@
             return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
         }
 
-        // NEW: Update seek bar and time on video play
         videoPlayer.addEventListener('timeupdate', () => {
             if (isNaN(videoPlayer.duration)) return;
             videoSeekBar.value = videoPlayer.currentTime;
             videoTimeDisplay.textContent = `${formatVideoTime(videoPlayer.currentTime)} / ${formatVideoTime(videoPlayer.duration)}`;
         });
         
-        // NEW: Update time display when video data is loaded
         videoPlayer.addEventListener('loadedmetadata', () => {
             if (isNaN(videoPlayer.duration)) return;
             videoSeekBar.max = videoPlayer.duration;
             videoTimeDisplay.textContent = `00:00 / ${formatVideoTime(videoPlayer.duration)}`;
         });
         
-        // NEW: Seek video when progress bar is clicked
         videoSeekBar.addEventListener('click', (e) => {
             const rect = videoSeekBar.getBoundingClientRect();
             const clickX = e.clientX - rect.left;
             const percentage = clickX / rect.width;
             videoPlayer.currentTime = percentage * videoPlayer.duration;
+        });
+
+        // NEW: Video Play/Pause Logic
+        videoPlayPauseBtn.addEventListener('click', () => {
+            if (videoPlayer.paused) {
+                videoPlayer.play();
+            } else {
+                videoPlayer.pause();
+            }
+        });
+
+        videoPlayer.addEventListener('play', () => {
+            videoPlayIcon.classList.add('hidden');
+            videoPauseIcon.classList.remove('hidden');
+        });
+
+        videoPlayer.addEventListener('pause', () => {
+            videoPlayIcon.classList.remove('hidden');
+            videoPauseIcon.classList.add('hidden');
         });
 
 
@@ -659,129 +681,11 @@
             }
         });
 
-        // --- 8. Manual To-Do List Logic ---
-        const todoBtn = document.getElementById('todo-btn');
-        const todoModal = document.getElementById('todo-modal');
-        const todoModalClose = document.getElementById('todo-modal-close');
-        const todoListContainer = document.getElementById('todo-list-container');
-        const todoInput = document.getElementById('todo-input');
-        const todoAddBtn = document.getElementById('todo-add-btn'); // MODIFIED
+        // --- 8. REMOVED Manual To-Do List Logic ---
+        // REMOVED all todo elements and functions
 
-        todoBtn.addEventListener('click', () => todoModal.classList.remove('hidden'));
-        todoModalClose.addEventListener('click', () => todoModal.classList.add('hidden'));
-        todoModal.addEventListener('click', (e) => {
-            if (e.target === todoModal) todoModal.classList.add('hidden');
-        });
-        
-        // REMOVED todoJsonSchema
-
-        function renderTodoList() {
-            todoListContainer.innerHTML = ''; // Clear list
-            if (todoList.length === 0) {
-                todoListContainer.innerHTML = `<p class="text-gray-400 text-center">No tasks yet. Add some below!</p>`;
-                return;
-            }
-
-            todoList.forEach((task, index) => {
-                const itemEl = document.createElement('div');
-                itemEl.className = 'todo-item';
-                
-                // REMOVED timeString logic
-
-                itemEl.innerHTML = `
-                    <input type="checkbox" id="task-${index}" data-index="${index}" ${task.completed ? 'checked' : ''}>
-                    <label for="task-${index}" class="${task.completed ? 'completed' : ''}">
-                        <span class="font-medium">${task.taskName}</span>
-                    </label>
-                `;
-                todoListContainer.appendChild(itemEl);
-            });
-
-            // Add event listeners to checkboxes
-            todoListContainer.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
-                checkbox.addEventListener('change', (e) => {
-                    const index = e.target.dataset.index;
-                    if (todoList[index]) {
-                        todoList[index].completed = e.target.checked;
-                        saveTodoListToLocalStorage(); // Save on change
-                    }
-                });
-            });
-        }
-
-        // NEW: addTask function (replaces sendTodoRequest)
-        function addTask() {
-            const message = todoInput.value.trim();
-            if (!message) return;
-
-            todoInput.value = '';
-            
-            const newTask = {
-                taskName: message,
-                completed: false,
-                startTime: null, // No longer auto-parsed
-                endTime: null   // No longer auto-parsed
-            };
-            
-            todoList.push(newTask);
-            saveTodoListToLocalStorage();
-        }
-
-        todoAddBtn.addEventListener('click', addTask);
-        todoInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') addTask();
-        });
-
-        // --- 9. Stats History Modal Logic ---
-        const statsBtn = document.getElementById('stats-btn');
-        const statsModal = document.getElementById('stats-modal');
-        const statsModalClose = document.getElementById('stats-modal-close');
-        const statsHistoryContainer = document.getElementById('stats-history-container');
-
-        statsBtn.addEventListener('click', () => {
-            statsModal.classList.remove('hidden');
-            loadStatsHistory(); // Replaced async
-        });
-        statsModalClose.addEventListener('click', () => statsModal.classList.add('hidden'));
-        statsModal.addEventListener('click', (e) => {
-            if (e.target === statsModal) statsModal.classList.add('hidden');
-        });
-
-        function loadStatsHistory() { // Replaced async
-            statsHistoryContainer.innerHTML = '<p class="text-gray-400 text-center">Loading history...</p>';
-            
-            // NEW: Load from localStorage
-            try {
-                statsHistory = JSON.parse(localStorage.getItem('statsHistory') || '[]');
-                
-                // Sort in JavaScript
-                statsHistory.sort((a, b) => b.date.localeCompare(a.date));
-
-                if (statsHistory.length === 0) {
-                    statsHistoryContainer.innerHTML = '<p class="text-gray-400 text-center">No history yet. Complete a study session!</p>';
-                    return;
-                }
-                
-                statsHistoryContainer.innerHTML = ''; // Clear
-                statsHistory.forEach(day => {
-                    const study = day.totalStudy || 0;
-                    const breakTime = day.totalBreak || 0;
-                    const itemEl = document.createElement('div');
-                    itemEl.className = 'bg-gray-700 p-3 rounded-lg';
-                    itemEl.innerHTML = `
-                        <div class="font-semibold text-lg">${day.date}</div>
-                        <div class="text-gray-300">Focus: ${formatTime(study)}</div>
-                        <div class="text-gray-400">Break: ${formatTime(breakTime)}</div>
-                    `;
-                    statsHistoryContainer.appendChild(itemEl);
-                });
-
-            } catch (error) {
-                console.error("Error loading stats history:", error);
-                statsHistoryContainer.innerHTML = '<p class="text-red-400 text-center">Error loading history.</p>';
-            }
-        }
-
+        // --- 9. REMOVED Stats History Modal Logic ---
+        // REMOVED all stats modal elements and functions
 
         // --- 10. Core Data & Task Logic ---
         
@@ -824,20 +728,30 @@
                 }
             }
 
-            // 3. Load To-Do List
-            const savedTodoJSON = localStorage.getItem('todoList');
-            if (savedTodoJSON) {
-                try {
-                    todoList = JSON.parse(savedTodoJSON);
-                } catch (e) {
-                    console.error("Failed to parse todo list", e);
-                    todoList = [];
-                }
-            }
+            // 3. REMOVED Load To-Do List
             
-            // 4. Render UI
+            // 4. REMOVED Load last video name
+            
+            // 5. NEW: Load Timer Size
+            const savedTimerSize = localStorage.getItem('timerSize');
+            const savedTimerSubSize = localStorage.getItem('timerSubSize'); // NEW: Load sub size
+            if (savedTimerSize && savedTimerSubSize) { // MODIFIED
+                document.documentElement.style.setProperty('--timer-font-size', `${savedTimerSize}rem`);
+                document.documentElement.style.setProperty('--timer-subtext-font-size', `${savedTimerSubSize}rem`); // NEW: Set sub size
+                document.getElementById('timer-size-slider').value = savedTimerSize;
+            }
+
+            // 6. REMOVED: Load Timer Position
+
+            // 7. NEW: Load Custom Text
+            const savedCustomText = localStorage.getItem('customTimerText');
+            if (savedCustomText) {
+                customTextInput.value = savedCustomText;
+            }
+
+            // 8. Render UI
             updateTodayStatsUI();
-            renderTodoList();
+            // REMOVED renderTodoList();
             // REMOVED checkCurrentTask();
         }
 
@@ -876,46 +790,19 @@
             localStorage.setItem('studyStats', JSON.stringify(statsData));
         }
         
-        // NEW: Save to-do list to localStorage
-        function saveTodoListToLocalStorage() {
-            try {
-                localStorage.setItem('todoList', JSON.stringify(todoList));
-                renderTodoList(); // Re-render
-                // REMOVED checkCurrentTask();
-            } catch (e) {
-                console.error("Error saving todo list:", e);
-            }
-        }
-
+        // REMOVED saveTodoListToLocalStorage function
         // REMOVED checkCurrentTask function
         // REMOVED setInterval(checkCurrentTask, 30000);
 
         // --- 11. New UI Logic ---
-
-        // Minimize Button
+        
+        // MODIFIED: Minimize Button Logic
         minimizeBtn.addEventListener('click', () => {
             isMinimized = !isMinimized;
-            
-            // Toggle Stats Display
-            statsDisplay.classList.toggle('opacity-0');
-            statsDisplay.classList.toggle('pointer-events-none');
-
-            // Get all buttons with the class 'control-btn'
-            const buttonsToToggle = document.querySelectorAll('.control-btn');
-
-            buttonsToToggle.forEach(btn => {
-                btn.classList.toggle('minimized-hide');
-            });
-
-            // Toggle minimize/maximize icon
-            if (isMinimized) {
-                minimizeIcon.classList.add('hidden');
-                maximizeIcon.classList.remove('hidden');
-            } else {
-                minimizeIcon.classList.remove('hidden');
-                maximizeIcon.classList.add('hidden');
-            }
+            statsDisplay.classList.toggle('ui-hide');
+            controlsBar.classList.toggle('ui-hide');
         });
+
 
         // Add/Subtract Time Buttons
         addTimeBtn.addEventListener('click', () => {
@@ -931,6 +818,101 @@
         
         // --- 12. REMOVED Chat Modal Logic ---
 
+        // --- 13. NEW: Cinema Mode Logic ---
+        const cinemaModeBtn = document.getElementById('cinema-mode-btn');
+        const timerUIContainer = document.getElementById('timer-ui-container'); // MODIFIED
+
+        const UIElementsToHide = [
+            statsDisplay,
+            controlsBar,
+            timerUIContainer, // MODIFIED
+            // REMOVED lastVideoReminder,
+            videoControlsContainer
+        ];
+
+        cinemaModeBtn.addEventListener('click', () => {
+            UIElementsToHide.forEach(el => el.classList.add('ui-hide'));
+        });
+
+        // MODIFIED: Click listener for both Cinema and Minimize
+        document.documentElement.addEventListener('click', (e) => {
+            // Check if UI is hidden by Cinema Mode
+            if (controlsBar.classList.contains('ui-hide') && timerUIContainer.classList.contains('ui-hide')) { // MODIFIED
+                // Check if the click was NOT on a button (to avoid double-clicks)
+                if (e.target.tagName !== 'BUTTON' && !e.target.closest('button')) {
+                    UIElementsToHide.forEach(el => el.classList.remove('ui-hide'));
+                }
+            }
+            // Check if UI is hidden by Minimize Mode
+            else if (controlsBar.classList.contains('ui-hide')) {
+                 if (e.target.tagName !== 'BUTTON' && !e.target.closest('button')) {
+                    statsDisplay.classList.remove('ui-hide');
+                    controlsBar.classList.remove('ui-hide');
+                    isMinimized = false;
+                 }
+            }
+        });
+
+        // --- 14. NEW: Resize Timer Logic ---
+        const resizeTimerBtn = document.getElementById('resize-timer-btn');
+        const resizeModal = document.getElementById('resize-modal');
+        const resizeModalOk = document.getElementById('resize-modal-ok');
+        const timerSizeSlider = document.getElementById('timer-size-slider');
+        // REMOVED resetPositionBtn
+
+        resizeTimerBtn.addEventListener('click', () => resizeModal.classList.remove('hidden'));
+        resizeModalOk.addEventListener('click', () => resizeModal.classList.add('hidden'));
+        resizeModal.addEventListener('click', (e) => {
+            if (e.target === resizeModal) resizeModal.classList.add('hidden');
+        });
+
+        timerSizeSlider.addEventListener('input', (e) => {
+            const newSize = e.target.value;
+            const newSubSize = newSize / 5; // NEW: Calculate subtext size
+            document.documentElement.style.setProperty('--timer-font-size', `${newSize}rem`);
+            document.documentElement.style.setProperty('--timer-subtext-font-size', `${newSubSize}rem`); // NEW: Set subtext size
+            localStorage.setItem('timerSize', newSize);
+            localStorage.setItem('timerSubSize', newSubSize); // NEW: Save subtext size
+        });
+        
+        // REMOVED: Reset Position Button Logic
+        
+        // --- 15. REMOVED: Draggable Timer Logic (FIXED) ---
+        
+        
+        // --- 16. NEW: Fullscreen Logic ---
+        const fullscreenBtn = document.getElementById('fullscreen-btn');
+        const fsEnterIcon = document.getElementById('fullscreen-enter-icon');
+        const fsExitIcon = document.getElementById('fullscreen-exit-icon');
+
+        function toggleFullScreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen();
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                }
+            }
+        }
+
+        fullscreenBtn.addEventListener('click', toggleFullScreen);
+        
+        document.addEventListener('fullscreenchange', () => {
+            if (document.fullscreenElement) {
+                fsEnterIcon.classList.add('hidden');
+                fsExitIcon.classList.remove('hidden');
+            } else {
+                fsEnterIcon.classList.remove('hidden');
+                fsExitIcon.classList.add('hidden');
+            }
+        });
+
+        // --- 17. NEW: Custom Text Save Logic ---
+        customTextInput.addEventListener('input', () => {
+            localStorage.setItem('customTimerText', customTextInput.value);
+        });
+
+
         // --- Init ---
         // REMOVED console logs for API key
         loadDataFromLocalStorage(); // NEW: Load all data
@@ -940,3 +922,6 @@
     </script>
 </body>
 </html>
+
+
+
