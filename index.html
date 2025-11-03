@@ -1003,9 +1003,64 @@
             origin: window.location.href,
             },
             events: {
-                onReady: (e) => e.target.playVideo(),
-                onError: (e) => console.error('YouTube Player Error:', e.data)
+                    onReady: (e) => {
+                        e.target.playVideo();
+
+                        // --- show controls ---
+                        document.getElementById('youtube-controls').style.display = 'flex';
+                        const playPauseBtn = document.getElementById('yt-playpause');
+                        const muteBtn = document.getElementById('yt-mute');
+                        const seekBar = document.getElementById('yt-seekbar');
+                        const qualitySelect = document.getElementById('yt-quality');
+
+                        // --- Update seek bar every second ---
+                        setInterval(() => {
+                            if (ytPlayer && ytPlayer.getDuration) {
+                                const progress = (ytPlayer.getCurrentTime() / ytPlayer.getDuration()) * 100;
+                                seekBar.value = progress || 0;
+                            }
+                        }, 1000);
+
+                        // --- Seek when user moves slider ---
+                        seekBar.addEventListener('input', () => {
+                            const newTime = (seekBar.value / 100) * ytPlayer.getDuration();
+                            ytPlayer.seekTo(newTime, true);
+                        });
+
+                        // --- Play/pause toggle ---
+                        playPauseBtn.addEventListener('click', () => {
+                            const state = ytPlayer.getPlayerState();
+                            if (state === YT.PlayerState.PLAYING) {
+                                ytPlayer.pauseVideo();
+                                playPauseBtn.textContent = '▶️';
+                            } else {
+                                ytPlayer.playVideo();
+                                playPauseBtn.textContent = '⏸';
+                            }
+                        });
+
+                        // --- Mute/unmute toggle ---
+                        muteBtn.addEventListener('click', () => {
+                            if (ytPlayer.isMuted()) {
+                                ytPlayer.unMute();
+                                muteBtn.textContent = '🔊';
+                            } else {
+                                ytPlayer.mute();
+                                muteBtn.textContent = '🔇';
+                            }
+                        });
+
+                        // --- Quality change ---
+                        qualitySelect.addEventListener('change', () => {
+                            const level = qualitySelect.value;
+                            if (level === 'auto') ytPlayer.setPlaybackQualityRange();
+                            else ytPlayer.setPlaybackQuality(level);
+                        });
+                    },
+
+                    onError: (e) => console.error('YouTube Player Error:', e.data)
                 }
+
             });
          }
     });  // this closes the setYoutubeBtn click listener
