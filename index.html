@@ -163,6 +163,9 @@
 
     <!-- 1. Local Video Background -->
     <video id="bg-video" muted loop playsinline autoplay></video>
+    <!-- NEW: YouTube Background Container -->
+    <div id="youtube-bg" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);min-width:100%;min-height:100%;z-index:-10;pointer-events:none;"></div>
+
     
     <!-- Hidden file input for video selection -->
     <input type="file" id="video-file-input" accept="video/*" class="hidden">
@@ -286,6 +289,27 @@
                 <svg id="unmute-icon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path></svg>
                 <svg id="mute-icon" class="w-6 h-6 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15zM17 14l4-4m0 4l-4-4"></path></svg>
             </button>
+             <!-- NEW: YouTube Video Button -->
+            <button id="set-youtube-btn" title="Set YouTube Video" class="control-btn p-3 text-white/80 hover:text-white hover:bg-white/20 rounded-full transition-all">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5v14l11-7z"></path>
+                </svg>
+            </button>
+            <!-- NEW: YouTube Controls -->
+            <div id="youtube-controls" style="display:none; align-items:center; gap:10px;">
+            <button id="yt-playpause" title="Play/Pause">⏸</button>
+            <button id="yt-mute" title="Mute/Unmute">🔇</button>
+            <input type="range" id="yt-seekbar" min="0" max="100" value="0" step="1" style="width:100px;">
+            <select id="yt-quality">
+                <option value="auto">Auto</option>
+                <option value="hd1080">1080p</option>
+                <option value="hd720">720p</option>
+                <option value="large">480p</option>
+                <option value="medium">360p</option>
+            </select>
+            </div>
+
+
         </div>
     </div>
 
@@ -926,7 +950,56 @@
         loadDataFromLocalStorage(); // NEW: Load all data
         resetTimer(); // MODIFIED: Set initial timer display and mode text
         // REMOVED renderChatHistory();
-        
+
+    // --- NEW: YouTube Integration ---
+
+        let ytPlayer = null;
+        const youtubeContainer = document.getElementById('youtube-bg');
+        const setYoutubeBtn = document.getElementById('set-youtube-btn');
+
+        // Add YouTube API
+        const ytScript = document.createElement('script');
+        ytScript.src = "https://www.youtube.com/iframe_api";
+        document.body.appendChild(ytScript);
+
+        window.onYouTubeIframeAPIReady = () => {};
+
+        setYoutubeBtn.addEventListener('click', () => {
+        const url = prompt("Enter YouTube video URL:");
+        if (!url) return;
+
+        const idMatch = url.match(/(?:youtube\.com.*(?:\?|&)v=|youtu\.be\/)([^&#]+)/);
+        if (!idMatch) return alert("Invalid YouTube URL");
+        const videoId = idMatch[1];
+
+        // hide local video
+        videoPlayer.pause();
+        videoPlayer.style.display = 'none';
+
+        // show YouTube
+        youtubeContainer.style.display = 'block';
+    
+        if (ytPlayer) {
+            ytPlayer.loadVideoById(videoId);
+        } else {
+            ytPlayer = new YT.Player('youtube-bg', {
+            videoId: videoId,
+            playerVars: {
+                autoplay: 1,
+                loop: 1,
+                playlist: videoId,
+                controls: 0,
+                modestbranding: 1,
+                mute: 1,
+            origin: window.location.origin
+            },
+            events: {
+                onReady: (e) => e.target.playVideo(),
+                onError: (e) => console.error('YouTube Player Error:', e.data)
+                }
+            });
+         }
+    });  // this closes the setYoutubeBtn click listener
     </script>
 </body>
 </html>
