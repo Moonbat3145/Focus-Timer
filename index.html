@@ -968,6 +968,15 @@
         const url = prompt("Enter YouTube video URL:");
         if (!url) return;
 
+        // --- FIX for GitHub Pages YouTube API origin issues ---
+        if (location.hostname.includes('github.io')) {
+        const meta = document.createElement('meta');
+        meta.httpEquiv = "Content-Security-Policy";
+        meta.content = "upgrade-insecure-requests";
+        document.head.appendChild(meta);
+}
+
+
         const idMatch = url.match(/(?:youtube\.com.*(?:\?|&)v=|youtu\.be\/)([^&#]+)/);
         if (!idMatch) return alert("Invalid YouTube URL");
         const videoId = idMatch[1];
@@ -991,7 +1000,7 @@
                 controls: 0,
                 modestbranding: 1,
                 mute: 1,
-            origin: window.location.origin
+            origin: window.location.href,
             },
             events: {
                 onReady: (e) => e.target.playVideo(),
