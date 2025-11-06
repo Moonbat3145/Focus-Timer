@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,12 +9,14 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         /* NEW: Fix for fullscreen white line */
-        html, body {
+        html,
+        body {
             height: 100%;
             width: 100%;
             margin: 0;
             padding: 0;
         }
+
         /* Ensure the video player is a background element */
         #bg-video {
             position: fixed;
@@ -25,17 +28,23 @@
             height: auto;
             transform: translateX(-50%) translateY(-50%);
             z-index: -10;
-            pointer-events: none; /* Allows clicking through the video */
-            object-fit: cover; /* Ensures video covers the screen */
+            pointer-events: none;
+            /* Allows clicking through the video */
+            object-fit: cover;
+            /* Ensures video covers the screen */
         }
+
         body {
             font-family: 'Inter', sans-serif;
-            overflow: hidden; /* Hide scrollbars */
+            overflow: hidden;
+            /* Hide scrollbars */
         }
+
         /* Custom styles for text shadow to make text readable on any background */
         .text-shadow {
             text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
         }
+
         /* Style for the progress bar */
         .progress-bar {
             height: 2px;
@@ -46,19 +55,21 @@
             border-radius: 2px;
             overflow: hidden;
         }
+
         .progress-bar-inner {
             height: 100%;
             background-color: white;
             width: 100%;
             transition: width 0.5s ease;
         }
-        
+
         /* --- REMOVED To-Do List Styles --- */
 
         /* --- Add/Subtract Time Button Styles --- */
         #timer-wrapper {
             position: relative;
         }
+
         .time-adjust-btn {
             position: absolute;
             top: 50%;
@@ -68,19 +79,26 @@
             color: rgba(255, 255, 255, 0.4);
             cursor: pointer;
             padding: 1rem;
-            opacity: 0; /* Hidden by default */
+            opacity: 0;
+            /* Hidden by default */
             transition: opacity 0.2s ease-in-out, color 0.2s ease-in-out;
-            user-select: none; /* Prevent text selection */
+            user-select: none;
+            /* Prevent text selection */
         }
+
         .time-adjust-btn:hover {
             color: rgba(255, 255, 255, 0.8);
         }
+
         #timer-wrapper:hover .time-adjust-btn {
-            opacity: 1; /* Show on hover */
+            opacity: 1;
+            /* Show on hover */
         }
+
         #subtract-time-btn {
             left: -80px;
         }
+
         #add-time-btn {
             right: -80px;
         }
@@ -104,22 +122,27 @@
             cursor: pointer;
             transition: height 0.2s ease;
         }
+
         #video-seek-bar:hover {
-            height: 10px; /* Make it easier to click */
+            height: 10px;
+            /* Make it easier to click */
         }
+
         #video-seek-bar::-webkit-progress-bar {
             background: rgba(255, 255, 255, 0.3);
             border-radius: 3px;
         }
+
         #video-seek-bar::-webkit-progress-value {
             background: white;
             border-radius: 3px;
         }
+
         #video-seek-bar::-moz-progress-bar {
             background: white;
             border-radius: 3px;
         }
-        
+
         /* --- REMOVED: Draggable Timer Styles --- */
 
         /* --- Resizable Timer Style --- */
@@ -130,8 +153,10 @@
 
         /* --- NEW: Editable Subtext Style --- */
         #custom-text-input {
-            font-size: var(--timer-subtext-font-size, 2rem); /* Default to 2rem */
-            font-family: 'serif'; /* Aesthetic font */
+            font-size: var(--timer-subtext-font-size, 2rem);
+            /* Default to 2rem */
+            font-family: 'serif';
+            /* Aesthetic font */
             font-style: italic;
             color: white;
             text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
@@ -141,9 +166,12 @@
             outline: none;
             text-align: center;
             width: 100%;
-            max-width: 600px; /* Limit width */
-            margin-top: 0.5rem; /* Space from progress bar */
+            max-width: 600px;
+            /* Limit width */
+            margin-top: 0.5rem;
+            /* Space from progress bar */
         }
+
         #custom-text-input::placeholder {
             color: rgba(255, 255, 255, 0.4);
             font-style: italic;
@@ -156,17 +184,19 @@
             pointer-events: none !important;
             transition: opacity 0.3s ease-out;
         }
-        
     </style>
 </head>
+
 <body class="bg-black text-white">
 
     <!-- 1. Local Video Background -->
     <video id="bg-video" muted loop playsinline autoplay></video>
     <!-- NEW: YouTube Background Container -->
-    <div id="youtube-bg" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);min-width:100%;min-height:100%;z-index:-10;pointer-events:none;"></div>
+    <div id="youtube-bg"
+        style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);min-width:100%;min-height:100%;z-index:-10;pointer-events:none;">
+    </div>
 
-    
+
     <!-- Hidden file input for video selection -->
     <input type="file" id="video-file-input" accept="video/*" class="hidden">
 
@@ -181,7 +211,7 @@
     <!-- 3. Main Content: Timer and Clock -->
     <!-- MODIFIED: Wrapper div is now centered and no longer draggable -->
     <div id="timer-ui-container" class="flex flex-col justify-center items-center h-full w-full relative z-10">
-        
+
         <!-- Current Mode Display -->
         <div id="current-mode-display" class="text-3xl font-serif italic text-shadow opacity-80 mb-2">
             <!-- This will be filled by JavaScript -->
@@ -212,18 +242,29 @@
         </div>
 
         <!-- REMOVED: Set Position Button -->
-        
+
     </div>
-    
+
     <!-- REMOVED: Last Video Reminder -->
-    
+
     <!-- Video Controls Container -->
     <div id="video-controls-container" class="fixed bottom-32 left-1/2 -translate-x-1/2 w-full max-w-xl z-20 hidden">
         <div class="flex items-center space-x-4 bg-black/30 backdrop-blur-md p-3 rounded-full shadow-lg mx-auto w-full">
             <!-- NEW: Video Play/Pause Button -->
-            <button id="video-play-pause-btn" title="Play/Pause Video" class="p-1 text-white/80 hover:text-white rounded-full transition-all">
-                <svg id="video-play-icon" class="w-6 h-6 hidden" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"></path></svg>
-                <svg id="video-pause-icon" class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8 7a1 1 0 00-1 1v4a1 1 0 001 1h1a1 1 0 001-1V8a1 1 0 00-1-1H8zm5 0a1 1 0 00-1 1v4a1 1 0 001 1h1a1 1 0 001-1V8a1 1 0 00-1-1h-1z" clip-rule="evenodd"></path></svg>
+            <button id="video-play-pause-btn" title="Play/Pause Video"
+                class="p-1 text-white/80 hover:text-white rounded-full transition-all">
+                <svg id="video-play-icon" class="w-6 h-6 hidden" fill="currentColor" viewBox="0 0 20 20"
+                    xmlns="http://www.w3.org/2000/svg">
+                    <path fill-rule="evenodd"
+                        d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z"
+                        clip-rule="evenodd"></path>
+                </svg>
+                <svg id="video-pause-icon" class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"
+                    xmlns="http://www.w3.org/2000/svg">
+                    <path fill-rule="evenodd"
+                        d="M10 18a8 8 0 100-16 8 8 0 000 16zM8 7a1 1 0 00-1 1v4a1 1 0 001 1h1a1 1 0 001-1V8a1 1 0 00-1-1H8zm5 0a1 1 0 00-1 1v4a1 1 0 001 1h1a1 1 0 001-1V8a1 1 0 00-1-1h-1z"
+                        clip-rule="evenodd"></path>
+                </svg>
             </button>
             <span id="video-time-display" class="text-sm text-white/80 font-mono w-28 text-center">00:00 / 00:00</span>
             <progress id="video-seek-bar" value="0" max="100" class="flex-grow"></progress>
@@ -232,81 +273,174 @@
 
 
     <!-- 4. Bottom Controls -->
-    <div id="controls-bar" class="fixed bottom-0 left-0 w-full flex justify-center p-6 z-20 transition-opacity duration-300">
+    <div id="controls-bar"
+        class="fixed bottom-0 left-0 w-full flex justify-center p-6 z-20 transition-opacity duration-300">
         <div class="flex items-center space-x-2 bg-black/30 backdrop-blur-md p-3 rounded-full shadow-lg">
             <!-- Minimize UI -->
-            <button id="minimize-btn" title="Minimize UI (Click anywhere to exit)" class="p-3 text-white/80 hover:text-white hover:bg-white/20 rounded-full transition-all">
-                <svg id="minimize-icon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+            <button id="minimize-btn" title="Minimize UI (Click anywhere to exit)"
+                class="p-3 text-white/80 hover:text-white hover:bg-white/20 rounded-full transition-all">
+                <svg id="minimize-icon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                </svg>
                 <!-- REMOVED Maximize Icon -->
             </button>
             <!-- NEW: Cinema Mode Button -->
-            <button id="cinema-mode-btn" title="Cinema Mode (Click anywhere to exit)" class="control-btn p-3 text-white/80 hover:text-white hover:bg-white/20 rounded-full transition-all">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.478 0-8.268-2.943-9.542-7z"></path></svg>
+            <button id="cinema-mode-btn" title="Cinema Mode (Click anywhere to exit)"
+                class="control-btn p-3 text-white/80 hover:text-white hover:bg-white/20 rounded-full transition-all">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.478 0-8.268-2.943-9.542-7z">
+                    </path>
+                </svg>
             </button>
             <!-- NEW: Fullscreen Button -->
-            <button id="fullscreen-btn" title="Toggle Fullscreen" class="control-btn p-3 text-white/80 hover:text-white hover:bg-white/20 rounded-full transition-all">
-                <svg id="fullscreen-enter-icon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 1v4m0 0h-4m4 0l-5-5"></path></svg>
-                <svg id="fullscreen-exit-icon" class="w-6 h-6 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 4H4m0 0v4M4 4l5 5m1-5h4m0 0v4m0-4l-5 5M8 20H4m0 0v-4m0 4l5-5m1 5h4m0 0v-4m0 4l-5-5"></path></svg>
+            <button id="fullscreen-btn" title="Toggle Fullscreen"
+                class="control-btn p-3 text-white/80 hover:text-white hover:bg-white/20 rounded-full transition-all">
+                <svg id="fullscreen-enter-icon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 1v4m0 0h-4m4 0l-5-5">
+                    </path>
+                </svg>
+                <svg id="fullscreen-exit-icon" class="w-6 h-6 hidden" fill="none" stroke="currentColor"
+                    viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M8 4H4m0 0v4M4 4l5 5m1-5h4m0 0v4m0-4l-5 5M8 20H4m0 0v-4m0 4l5-5m1 5h4m0 0v-4m0 4l-5-5">
+                    </path>
+                </svg>
             </button>
             <!-- Toggle Clock -->
-            <button id="toggle-timer-clock" title="Toggle Clock/Timer" class="control-btn p-3 text-white/80 hover:text-white hover:bg-white/20 rounded-full transition-all">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            <button id="toggle-timer-clock" title="Toggle Clock/Timer"
+                class="control-btn p-3 text-white/80 hover:text-white hover:bg-white/20 rounded-full transition-all">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
             </button>
             <!-- Set Timer -->
-            <button id="set-timer-btn" title="Set Timers" class="control-btn p-3 text-white/80 hover:text-white hover:bg-white/20 rounded-full transition-all">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826 3.31-2.37 2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+            <button id="set-timer-btn" title="Set Timers"
+                class="control-btn p-3 text-white/80 hover:text-white hover:bg-white/20 rounded-full transition-all">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826 3.31-2.37 2.37.996.608 2.296.07 2.572-1.065z">
+                    </path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                </svg>
             </button>
             <!-- Play/Pause -->
-            <button id="play-pause-btn" title="Play/Pause Timer" class="control-btn p-4 bg-white text-black rounded-full shadow-lg transform hover:scale-110 transition-all">
-                <svg id="play-icon" class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"></path></svg>
-                <svg id="pause-icon" class="w-6 h-6 hidden" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8 7a1 1 0 00-1 1v4a1 1 0 001 1h1a1 1 0 001-1V8a1 1 0 00-1-1H8zm5 0a1 1 0 00-1 1v4a1 1 0 001 1h1a1 1 0 001-1V8a1 1 0 00-1-1h-1z" clip-rule="evenodd"></path></svg>
+            <button id="play-pause-btn" title="Play/Pause Timer"
+                class="control-btn p-4 bg-white text-black rounded-full shadow-lg transform hover:scale-110 transition-all">
+                <svg id="play-icon" class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"
+                    xmlns="http://www.w3.org/2000/svg">
+                    <path fill-rule="evenodd"
+                        d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z"
+                        clip-rule="evenodd"></path>
+                </svg>
+                <svg id="pause-icon" class="w-6 h-6 hidden" fill="currentColor" viewBox="0 0 20 20"
+                    xmlns="http://www.w3.org/2000/svg">
+                    <path fill-rule="evenodd"
+                        d="M10 18a8 8 0 100-16 8 8 0 000 16zM8 7a1 1 0 00-1 1v4a1 1 0 001 1h1a1 1 0 001-1V8a1 1 0 00-1-1H8zm5 0a1 1 0 00-1 1v4a1 1 0 001 1h1a1 1 0 001-1V8a1 1 0 00-1-1h-1z"
+                        clip-rule="evenodd"></path>
+                </svg>
             </button>
             <!-- Reset -->
-            <button id="reset-btn" title="Reset Timer" class="control-btn p-3 text-white/80 hover:text-white hover:bg-white/20 rounded-full transition-all">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2.086a8.001 8.001 0 00-11.854-10.49L9.5 6M4 20v-5h.582m15.356-2.086a8.001 8.001 0 01-11.854 10.49L9.5 18"></path></svg>
+            <button id="reset-btn" title="Reset Timer"
+                class="control-btn p-3 text-white/80 hover:text-white hover:bg-white/20 rounded-full transition-all">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M4 4v5h.582m15.356 2.086a8.001 8.001 0 00-11.854-10.49L9.5 6M4 20v-5h.582m15.356-2.086a8.001 8.001 0 01-11.854 10.49L9.5 18">
+                    </path>
+                </svg>
             </button>
-            <!-- Toggle Mode (Study/Break) -->
-            <button id="toggle-mode-btn" title="Toggle Study/Break" class="control-btn p-3 text-white/80 hover:text-white hover:bg-white/20 rounded-full transition-all w-24 text-center">
+
+            <!-- <-- REPLACED original Toggle Study/Break button with two buttons:
+                 1) switch-mode-btn (still toggles Study/Break)
+                 2) timer-type-btn (new: toggles Pomodoro/Stopwatch) -->
+            <button id="switch-mode-btn" title="Toggle Study/Break"
+                class="control-btn p-3 text-white/80 hover:text-white hover:bg-white/20 rounded-full transition-all w-20 text-center">
                 Study
             </button>
+
+            <button id="timer-type-btn" title="Toggle Pomodoro/Stopwatch"
+                class="control-btn p-3 text-white/80 hover:text-white hover:bg-white/20 rounded-full transition-all">
+                Pomodoro
+            </button>
+
             <!-- REMOVED: Move Timer Button -->
             <!-- NEW: Resize Timer Button -->
-            <button id="resize-timer-btn" title="Resize Timer" class="control-btn p-3 text-white/80 hover:text-white hover:bg-white/20 rounded-full transition-all">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10M12 7v10M8 7h8M20 7v10M16 7h4"></path></svg>
+            <button id="resize-timer-btn" title="Resize Timer"
+                class="control-btn p-3 text-white/80 hover:text-white hover:bg-white/20 rounded-full transition-all">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M4 7v10M12 7v10M8 7h8M20 7v10M16 7h4"></path>
+                </svg>
             </button>
             <!-- REMOVED Stats History Button -->
             <!-- REMOVED To-Do List Button -->
             <!-- Video Controls Toggle -->
-            <button id="video-controls-btn" title="Show Video Controls" class="control-btn p-3 text-white/80 hover:text-white hover:bg-white/20 rounded-full transition-all">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+            <button id="video-controls-btn" title="Show Video Controls"
+                class="control-btn p-3 text-white/80 hover:text-white hover:bg-white/20 rounded-full transition-all">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z">
+                    </path>
+                </svg>
             </button>
             <!-- Select Video -->
-            <button id="set-video-btn" title="Select Local Video" class="control-btn p-3 text-white/80 hover:text-white hover:bg-white/20 rounded-full transition-all">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+            <button id="set-video-btn" title="Select Local Video"
+                class="control-btn p-3 text-white/80 hover:text-white hover:bg-white/20 rounded-full transition-all">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
+                </svg>
             </button>
             <!-- Mute -->
-            <button id="toggle-mute-btn" title="Mute/Unmute Video" class="control-btn p-3 text-white/80 hover:text-white hover:bg-white/20 rounded-full transition-all">
-                <svg id="unmute-icon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path></svg>
-                <svg id="mute-icon" class="w-6 h-6 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15zM17 14l4-4m0 4l-4-4"></path></svg>
+            <button id="toggle-mute-btn" title="Mute/Unmute Video"
+                class="control-btn p-3 text-white/80 hover:text-white hover:bg-white/20 rounded-full transition-all">
+                <svg id="unmute-icon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z">
+                    </path>
+                </svg>
+                <svg id="mute-icon" class="w-6 h-6 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15zM17 14l4-4m0 4l-4-4">
+                    </path>
+                </svg>
             </button>
-             <!-- NEW: YouTube Video Button -->
-            <button id="set-youtube-btn" title="Set YouTube Video" class="control-btn p-3 text-white/80 hover:text-white hover:bg-white/20 rounded-full transition-all">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <!-- NEW: YouTube Video Button -->
+            <button id="set-youtube-btn" title="Set YouTube Video"
+                class="control-btn p-3 text-white/80 hover:text-white hover:bg-white/20 rounded-full transition-all">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5v14l11-7z"></path>
                 </svg>
             </button>
             <!-- NEW: YouTube Controls -->
             <div id="youtube-controls" style="display:none; align-items:center; gap:10px;">
-            <button id="yt-playpause" title="Play/Pause">⏸</button>
-            <button id="yt-mute" title="Mute/Unmute">🔇</button>
-            <input type="range" id="yt-seekbar" min="0" max="100" value="0" step="1" style="width:100px;">
-            <select id="yt-quality">
-                <option value="auto">Auto</option>
-                <option value="hd1080">1080p</option>
-                <option value="hd720">720p</option>
-                <option value="large">480p</option>
-                <option value="medium">360p</option>
-            </select>
+                <button id="yt-playpause" title="Play/Pause">⏸</button>
+                <button id="yt-mute" title="Mute/Unmute">🔇</button>
+                <input type="range" id="yt-seekbar" min="0" max="100" value="0" step="1" style="width:100px;">
+                <select id="yt-quality">
+                    <option value="auto">Auto</option>
+                    <option value="hd1080">1080p</option>
+                    <option value="hd720">720p</option>
+                    <option value="large">480p</option>
+                    <option value="medium">360p</option>
+                </select>
             </div>
 
 
@@ -316,39 +450,48 @@
     <!-- 5. Modals (Hidden by default) -->
 
     <!-- Set Timer Modal -->
-    <div id="timer-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center z-30 hidden">
+    <div id="timer-modal"
+        class="fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center z-30 hidden">
         <div class="bg-gray-900 text-white p-8 rounded-xl shadow-2xl w-full max-w-sm">
             <h2 class="text-2xl font-bold mb-6 text-center">Set Timers</h2>
             <p class="text-gray-400 mb-2">Study Duration (minutes):</p>
-            <input id="study-timer-input" type="number" min="1" value="25" class="w-full p-3 bg-gray-800 border border-gray-700 rounded-lg text-white text-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <input id="study-timer-input" type="number" min="1" value="25"
+                class="w-full p-3 bg-gray-800 border border-gray-700 rounded-lg text-white text-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
             <p class="text-gray-400 mb-2 mt-4">Break Duration (minutes):</p>
-            <input id="break-timer-input" type="number" min="1" value="5" class="w-full p-3 bg-gray-800 border border-gray-700 rounded-lg text-white text-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <input id="break-timer-input" type="number" min="1" value="5"
+                class="w-full p-3 bg-gray-800 border border-gray-700 rounded-lg text-white text-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
             <div class="flex justify-between space-x-4 mt-6">
-                <button id="timer-modal-cancel" class="w-full p-3 bg-gray-700 hover:bg-gray-600 rounded-lg transition-all">Cancel</button>
-                <button id="timer-modal-ok" class="w-full p-3 bg-blue-600 hover:bg-blue-500 rounded-lg font-semibold transition-all">Set</button>
+                <button id="timer-modal-cancel"
+                    class="w-full p-3 bg-gray-700 hover:bg-gray-600 rounded-lg transition-all">Cancel</button>
+                <button id="timer-modal-ok"
+                    class="w-full p-3 bg-blue-600 hover:bg-blue-500 rounded-lg font-semibold transition-all">Set</button>
             </div>
         </div>
     </div>
 
     <!-- NEW: Resize Timer Modal -->
-    <div id="resize-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center z-30 hidden">
+    <div id="resize-modal"
+        class="fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center z-30 hidden">
         <div class="bg-gray-900 text-white p-8 rounded-xl shadow-2xl w-full max-w-sm">
             <h2 class="text-2xl font-bold mb-6 text-center">Resize Timer</h2>
             <p class="text-gray-400 mb-2">Timer Size</p>
-            <input id="timer-size-slider" type="range" min="6" max="14" value="10" step="0.5" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer">
+            <input id="timer-size-slider" type="range" min="6" max="14" value="10" step="0.5"
+                class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer">
             <div class="flex flex-col space-y-4 mt-6">
                 <!-- REMOVED: Reset Position Button -->
-                <button id="resize-modal-ok" class="w-full p-3 bg-blue-600 hover:bg-blue-500 rounded-lg font-semibold transition-all">Close</button>
+                <button id="resize-modal-ok"
+                    class="w-full p-3 bg-blue-600 hover:bg-blue-500 rounded-lg font-semibold transition-all">Close</button>
             </div>
         </div>
     </div>
-    
+
     <!-- REMOVED To-Do List Modal -->
 
     <!-- REMOVED Stats History Modal -->
 
     <!-- Notification Bell (for timer end) -->
-    <audio id="alarm-sound" src="https://assets.mixkit.co/sfx/preview/mixkit-clear-announce-tones-2861.mp3" preload="auto"></audio>
+    <audio id="alarm-sound" src="https://assets.mixkit.co/sfx/preview/mixkit-clear-announce-tones-2861.mp3"
+        preload="auto"></audio>
 
     <!-- REMOVED Firebase SDK -->
     <script type="module">
@@ -362,6 +505,10 @@
         let remainingTime = studyDuration;
         let isRunning = false;
         let currentMode = 'study'; // 'study' or 'break'
+
+        // NEW: timer type and stopwatch elapsed
+        let timerType = 'pomodoro'; // 'pomodoro' or 'stopwatch'
+        let elapsedSeconds = 0; // used only in stopwatch mode
 
         // Local stats state
         let studyTimeToday = 0;
@@ -384,7 +531,9 @@
         const resetBtn = document.getElementById('reset-btn');
         const alarmSound = document.getElementById('alarm-sound');
         const currentModeDisplay = document.getElementById('current-mode-display'); // NEW
-        const toggleModeBtn = document.getElementById('toggle-mode-btn');
+        // NOTE: replaced original toggle-mode-btn with switch-mode-btn + timer-type-btn
+        const switchModeBtn = document.getElementById('switch-mode-btn');
+        const timerTypeBtn = document.getElementById('timer-type-btn');
         const customTextInput = document.getElementById('custom-text-input'); // NEW
 
         // Stats UI
@@ -397,7 +546,7 @@
         const controlsBar = document.getElementById('controls-bar');
         const minimizeBtn = document.getElementById('minimize-btn');
         // REMOVED minimizeIcon, maximizeIcon
-        
+
         // Time adjust UI
         const addTimeBtn = document.getElementById('add-time-btn');
         const subtractTimeBtn = document.getElementById('subtract-time-btn');
@@ -406,7 +555,7 @@
         // REMOVED apiKey, genApiUrl, callGemini
 
         // --- 2. REMOVED Firebase Section ---
-        
+
         // --- 3. Background Video Logic ---
         const videoPlayer = document.getElementById('bg-video');
         const videoFileInput = document.getElementById('video-file-input');
@@ -425,10 +574,10 @@
         setVideoBtn.addEventListener('click', () => {
             videoFileInput.click();
         });
-        
+
         videoControlsBtn.addEventListener('click', () => {
-             videoControlsContainer.classList.toggle('hidden');
-             // REMOVED last video reminder logic
+            videoControlsContainer.classList.toggle('hidden');
+            // REMOVED last video reminder logic
         });
 
         videoFileInput.addEventListener('change', (event) => {
@@ -440,19 +589,19 @@
                 const videoURL = URL.createObjectURL(file);
                 videoPlayer.src = videoURL;
                 videoPlayer.play();
-                
+
                 // REMOVED Save last video name
-                
+
                 isMuted = true;
                 videoPlayer.muted = true;
                 unmuteIcon.classList.remove('hidden');
                 muteIcon.classList.add('hidden');
-                
+
                 videoPlayIcon.classList.add('hidden');
                 videoPauseIcon.classList.remove('hidden');
             }
         });
-        
+
         function formatVideoTime(timeInSeconds) {
             if (isNaN(timeInSeconds)) return "00:00";
             const totalSeconds = Math.floor(timeInSeconds);
@@ -466,13 +615,13 @@
             videoSeekBar.value = videoPlayer.currentTime;
             videoTimeDisplay.textContent = `${formatVideoTime(videoPlayer.currentTime)} / ${formatVideoTime(videoPlayer.duration)}`;
         });
-        
+
         videoPlayer.addEventListener('loadedmetadata', () => {
             if (isNaN(videoPlayer.duration)) return;
             videoSeekBar.max = videoPlayer.duration;
             videoTimeDisplay.textContent = `00:00 / ${formatVideoTime(videoPlayer.duration)}`;
         });
-        
+
         videoSeekBar.addEventListener('click', (e) => {
             const rect = videoSeekBar.getBoundingClientRect();
             const clickX = e.clientX - rect.left;
@@ -502,16 +651,29 @@
 
         // --- 4. Timer Logic ---
         function updateTimerDisplay() {
-            const duration = (currentMode === 'study') ? studyDuration : breakDuration;
-            const minutes = Math.floor(remainingTime / 60);
-            const seconds = remainingTime % 60;
-            timerDisplay.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-            
-            // Prevent progress bar from going over 100% if time is added
-            const progress = (remainingTime / duration) * 100;
-            progressBar.style.width = `${Math.min(100, progress)}%`;
+            if (timerType === 'pomodoro') {
+                const duration = (currentMode === 'study') ? studyDuration : breakDuration;
+                const minutes = Math.floor(remainingTime / 60);
+                const seconds = remainingTime % 60;
+                timerDisplay.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+
+                // Prevent progress bar from going over 100% if time is added
+                const progress = (remainingTime / duration) * 100;
+                progressBar.style.width = `${Math.min(100, progress)}%`;
+                progressBar.parentElement.style.display = '';
+            } else {
+                // Stopwatch mode: show HH:MM:SS (hours optional)
+                const hs = Math.floor(elapsedSeconds / 3600);
+                const ms = Math.floor((elapsedSeconds % 3600) / 60);
+                const ss = elapsedSeconds % 60;
+                const hstr = hs > 0 ? `${String(hs).padStart(2, '0')}:` : '';
+                timerDisplay.textContent = `${hstr}${String(ms).padStart(2, '0')}:${String(ss).padStart(2, '0')}`;
+                // hide progress bar for stopwatch
+                progressBar.style.width = `0%`;
+                progressBar.parentElement.style.display = 'none';
+            }
         }
-        
+
         function formatTime(totalSeconds) {
             const minutes = Math.floor(totalSeconds / 60);
             const seconds = totalSeconds % 60;
@@ -533,47 +695,72 @@
 
             // REMOVED fetchMotivation call
 
-            timerInterval = setInterval(() => {
-                remainingTime--;
+            // If Pomodoro: countdown; if Stopwatch: count up
+            if (timerType === 'pomodoro') {
+                timerInterval = setInterval(() => {
+                    remainingTime--;
 
-                // Increment stats
-                if (currentMode === 'study') {
-                    studyTimeToday++;
-                } else {
-                    breakTimeToday++;
-                }
-                updateTodayStatsUI();
+                    // Increment stats
+                    if (currentMode === 'study') {
+                        studyTimeToday++;
+                    } else {
+                        breakTimeToday++;
+                    }
+                    updateTodayStatsUI();
 
-                // Save stats periodically
-                const now = Date.now();
-                if (now - lastSaveTimestamp > 5000) { // Save every 5 seconds
-                    saveStatsToLocalStorage();
-                    lastSaveTimestamp = now;
-                }
+                    // Save stats periodically
+                    const now = Date.now();
+                    if (now - lastSaveTimestamp > 5000) { // Save every 5 seconds
+                        saveStatsToLocalStorage();
+                        lastSaveTimestamp = now;
+                    }
 
-                updateTimerDisplay();
+                    updateTimerDisplay();
 
-                if (remainingTime <= 0) {
-                    clearInterval(timerInterval);
-                    isRunning = false;
-                    playIcon.classList.remove('hidden');
-                    pauseIcon.classList.add('hidden');
-                    alarmSound.play();
-                    
-                    // Save final stats for this session
-                    saveStatsToLocalStorage(); 
-                    
-                    // Switch mode
-                    toggleMode(); 
-                    
-                    setTimeout(() => {
-                        resetTimer(); // Reset the new mode's timer
-                    }, 1000);
-                }
+                    if (remainingTime <= 0) {
+                        clearInterval(timerInterval);
+                        isRunning = false;
+                        playIcon.classList.remove('hidden');
+                        pauseIcon.classList.add('hidden');
+                        alarmSound.play();
 
-                // REMOVED motivation refresh logic
+                        // Save final stats for this session
+                        saveStatsToLocalStorage();
 
-            }, 1000);
+                        // Switch mode
+                        toggleMode();
+
+                        setTimeout(() => {
+                            resetTimer(); // Reset the new mode's timer
+                        }, 1000);
+                    }
+
+                    // REMOVED motivation refresh logic
+
+                }, 1000);
+            } else {
+                // Stopwatch mode
+                timerInterval = setInterval(() => {
+                    elapsedSeconds++;
+
+                    // Increment stats
+                    if (currentMode === 'study') {
+                        studyTimeToday++;
+                    } else {
+                        breakTimeToday++;
+                    }
+                    updateTodayStatsUI();
+
+                    const now = Date.now();
+                    if (now - lastSaveTimestamp > 5000) {
+                        saveStatsToLocalStorage();
+                        lastSaveTimestamp = now;
+                    }
+
+                    updateTimerDisplay();
+                    // no auto-switch or stop
+                }, 1000);
+            }
         }
 
         function pauseTimer() {
@@ -582,35 +769,43 @@
             playIcon.classList.remove('hidden');
             pauseIcon.classList.add('hidden');
             clearInterval(timerInterval);
-            
+
             // Save progress on pause
             saveStatsToLocalStorage();
         }
 
         function resetTimer() {
             pauseTimer();
-            remainingTime = (currentMode === 'study') ? studyDuration : breakDuration;
+            if (timerType === 'pomodoro') {
+                remainingTime = (currentMode === 'study') ? studyDuration : breakDuration;
+            } else {
+                elapsedSeconds = 0;
+            }
             updateTimerDisplay();
             currentModeDisplay.textContent = (currentMode === 'study') ? 'Studying' : 'Break'; // NEW
         }
 
         function toggleMode() {
+            // toggles study <-> break (keeps timerType as-is)
             pauseTimer();
             if (currentMode === 'study') {
                 currentMode = 'break';
                 remainingTime = breakDuration;
-                toggleModeBtn.textContent = 'Break';
-                toggleModeBtn.title = "Switch to Study Mode";
+                switchModeBtn.textContent = 'Break';
+                switchModeBtn.title = "Switch to Study Mode";
             } else {
                 currentMode = 'study';
                 remainingTime = studyDuration;
-                toggleModeBtn.textContent = 'Study';
-                toggleModeBtn.title = "Switch to Break Mode";
+                switchModeBtn.textContent = 'Study';
+                switchModeBtn.title = "Switch to Break Mode";
             }
             resetTimer();
         }
 
-        toggleModeBtn.addEventListener('click', toggleMode);
+        // Wire the switch-mode button (Study/Break)
+        switchModeBtn.addEventListener('click', toggleMode);
+
+        // Update play/pause button behavior
         playBtn.addEventListener('click', () => {
             if (isRunning) {
                 pauseTimer();
@@ -619,7 +814,7 @@
             }
         });
         resetBtn.addEventListener('click', resetTimer);
-        
+
         // --- 5. Clock Logic ---
         const timerView = document.getElementById('timer-container');
         const clockView = document.getElementById('clock-container');
@@ -632,7 +827,7 @@
             const now = new Date();
             const timeString = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
             const dateString = now.toLocaleDateString([], { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-            
+
             clockTimeEl.textContent = timeString;
             clockDateEl.textContent = dateString;
         }
@@ -668,21 +863,21 @@
         timerModalOk.addEventListener('click', () => {
             const studyMinutes = parseInt(studyTimerInput.value);
             const breakMinutes = parseInt(breakTimerInput.value);
-            
+
             if (studyMinutes && studyMinutes > 0) {
                 studyDuration = studyMinutes * 60;
             }
             if (breakMinutes && breakMinutes > 0) {
                 breakDuration = breakMinutes * 60;
             }
-            
+
             // Reset timer to apply new duration
             if (currentMode === 'study') {
                 remainingTime = studyDuration;
             } else {
                 remainingTime = breakDuration;
             }
-            resetTimer(); 
+            resetTimer();
             timerModal.classList.add('hidden');
         });
 
@@ -697,8 +892,8 @@
         let isMuted = true; // Starts muted
 
         toggleMuteBtn.addEventListener('click', () => {
-            if (!videoPlayer.src) return; 
-            
+            if (!videoPlayer.src) return;
+
             if (isMuted) {
                 videoPlayer.muted = false;
                 unmuteIcon.classList.add('hidden');
@@ -719,7 +914,7 @@
         // REMOVED all stats modal elements and functions
 
         // --- 10. Core Data & Task Logic ---
-        
+
         function getTodayDateString(date = new Date()) { // Added param
             const now = new Date(date.getTime()); // Clone date
             if (now.getHours() < 5) { // Resets at 5 AM
@@ -747,10 +942,10 @@
                     console.error("Failed to parse saved stats", e);
                 }
             }
-            
+
             // 2. Load History
             const savedHistoryJSON = localStorage.getItem('statsHistory');
-            if(savedHistoryJSON) {
+            if (savedHistoryJSON) {
                 try {
                     statsHistory = JSON.parse(savedHistoryJSON);
                 } catch (e) {
@@ -760,9 +955,9 @@
             }
 
             // 3. REMOVED Load To-Do List
-            
+
             // 4. REMOVED Load last video name
-            
+
             // 5. NEW: Load Timer Size
             const savedTimerSize = localStorage.getItem('timerSize');
             const savedTimerSubSize = localStorage.getItem('timerSubSize'); // NEW: Load sub size
@@ -789,7 +984,7 @@
         // NEW: Save stats to localStorage
         function saveStatsToLocalStorage() {
             const newToday = getTodayDateString();
-            
+
             if (newToday !== todayDateString) {
                 // Day has rolled over. Save old day to history.
                 const yesterdayString = todayDateString;
@@ -798,7 +993,7 @@
                     totalStudy: studyTimeToday,
                     totalBreak: breakTimeToday
                 };
-                
+
                 // Add to history if there was activity
                 if (yesterdayStats.totalStudy > 0 || yesterdayStats.totalBreak > 0) {
                     statsHistory.push(yesterdayStats);
@@ -810,7 +1005,7 @@
                 studyTimeToday = 0;
                 breakTimeToday = 0;
             }
-            
+
             // Save current day's stats
             const statsData = {
                 [todayDateString]: {
@@ -820,13 +1015,13 @@
             };
             localStorage.setItem('studyStats', JSON.stringify(statsData));
         }
-        
+
         // REMOVED saveTodoListToLocalStorage function
         // REMOVED checkCurrentTask function
         // REMOVED setInterval(checkCurrentTask, 30000);
 
         // --- 11. New UI Logic ---
-        
+
         // MODIFIED: Minimize Button Logic
         minimizeBtn.addEventListener('click', () => {
             isMinimized = !isMinimized;
@@ -837,16 +1032,26 @@
 
         // Add/Subtract Time Buttons
         addTimeBtn.addEventListener('click', () => {
-            remainingTime += 300; // Add 5 minutes
+            // If Pomodoro, adjust remainingTime; if Stopwatch, add to elapsedSeconds
+            if (timerType === 'pomodoro') {
+                remainingTime += 300; // Add 5 minutes
+            } else {
+                elapsedSeconds += 300;
+            }
             updateTimerDisplay();
         });
 
         subtractTimeBtn.addEventListener('click', () => {
-            remainingTime -= 300; // Subtract 5 minutes
-            if (remainingTime < 0) remainingTime = 0;
+            if (timerType === 'pomodoro') {
+                remainingTime -= 300; // Subtract 5 minutes
+                if (remainingTime < 0) remainingTime = 0;
+            } else {
+                elapsedSeconds -= 300;
+                if (elapsedSeconds < 0) elapsedSeconds = 0;
+            }
             updateTimerDisplay();
         });
-        
+
         // --- 12. REMOVED Chat Modal Logic ---
 
         // --- 13. NEW: Cinema Mode Logic ---
@@ -876,11 +1081,11 @@
             }
             // Check if UI is hidden by Minimize Mode
             else if (controlsBar.classList.contains('ui-hide')) {
-                 if (e.target.tagName !== 'BUTTON' && !e.target.closest('button')) {
+                if (e.target.tagName !== 'BUTTON' && !e.target.closest('button')) {
                     statsDisplay.classList.remove('ui-hide');
                     controlsBar.classList.remove('ui-hide');
                     isMinimized = false;
-                 }
+                }
             }
         });
 
@@ -905,13 +1110,13 @@
             localStorage.setItem('timerSize', newSize);
             localStorage.setItem('timerSubSize', newSubSize); // NEW: Save subtext size
         });
-        
+
         // REMOVED: Reset Position Button Logic
-        
+
 
         // --- 15. REMOVED: Draggable Timer Logic (FIXED) ---
-        
-        
+
+
         // --- 16. NEW: Fullscreen Logic ---
         const fullscreenBtn = document.getElementById('fullscreen-btn');
         const fsEnterIcon = document.getElementById('fullscreen-enter-icon');
@@ -928,7 +1133,7 @@
         }
 
         fullscreenBtn.addEventListener('click', toggleFullScreen);
-        
+
         document.addEventListener('fullscreenchange', () => {
             if (document.fullscreenElement) {
                 fsEnterIcon.classList.add('hidden');
@@ -944,14 +1149,50 @@
             localStorage.setItem('customTimerText', customTextInput.value);
         });
 
+        // NEW: Timer Type toggle (Pomodoro <-> Stopwatch)
+        timerTypeBtn.addEventListener('click', () => {
+            // Toggle type
+            if (timerType === 'pomodoro') {
+                timerType = 'stopwatch';
+                timerTypeBtn.textContent = 'Stopwatch';
+                // start stopwatch from zero
+                elapsedSeconds = 0;
+            } else {
+                timerType = 'pomodoro';
+                timerTypeBtn.textContent = 'Pomodoro';
+                // ensure remainingTime corresponds to mode
+                remainingTime = (currentMode === 'study') ? studyDuration : breakDuration;
+            }
+            // visual reset but keep stats
+            resetTimer();
+        });
+
+        // Ensure the switch-mode button label reflects current mode
+        function refreshSwitchModeLabel() {
+            switchModeBtn.textContent = (currentMode === 'study') ? 'Study' : 'Break';
+        }
+
+        // Shortcuts: space toggles play/pause
+        window.addEventListener('keydown', (e) => {
+            if (e.code === 'Space') {
+                e.preventDefault();
+                if (isRunning) pauseTimer(); else startTimer();
+            }
+        });
 
         // --- Init ---
         // REMOVED console logs for API key
         loadDataFromLocalStorage(); // NEW: Load all data
+
+        // Ensure timerType button label matches
+        timerTypeBtn.textContent = (timerType === 'pomodoro') ? 'Pomodoro' : 'Stopwatch';
+        // Ensure switch-mode label
+        refreshSwitchModeLabel();
+
         resetTimer(); // MODIFIED: Set initial timer display and mode text
         // REMOVED renderChatHistory();
 
-    // --- NEW: YouTube Integration ---
+        // --- NEW: YouTube Integration ---
 
         let ytPlayer = null;
         const youtubeContainer = document.getElementById('youtube-bg');
@@ -962,110 +1203,109 @@
         ytScript.src = "https://www.youtube.com/iframe_api";
         document.body.appendChild(ytScript);
 
-        window.onYouTubeIframeAPIReady = () => {};
+        window.onYouTubeIframeAPIReady = () => { };
 
         setYoutubeBtn.addEventListener('click', () => {
-        const url = prompt("Enter YouTube video URL:");
-        if (!url) return;
+            const url = prompt("Enter YouTube video URL:");
+            if (!url) return;
 
-        // --- FIX for GitHub Pages YouTube API origin issues ---
-        if (location.hostname.includes('github.io')) {
-        const meta = document.createElement('meta');
-        meta.httpEquiv = "Content-Security-Policy";
-        meta.content = "upgrade-insecure-requests";
-        document.head.appendChild(meta);
-}
+            // --- FIX for GitHub Pages YouTube API origin issues ---
+            if (location.hostname.includes('github.io')) {
+                const meta = document.createElement('meta');
+                meta.httpEquiv = "Content-Security-Policy";
+                meta.content = "upgrade-insecure-requests";
+                document.head.appendChild(meta);
+            }
 
 
-        const idMatch = url.match(/(?:youtube\.com.*(?:\?|&)v=|youtu\.be\/)([^&#]+)/);
-        if (!idMatch) return alert("Invalid YouTube URL");
-        const videoId = idMatch[1];
+            const idMatch = url.match(/(?:youtube\.com.*(?:\?|&)v=|youtu\.be\/)([^&#]+)/);
+            if (!idMatch) return alert("Invalid YouTube URL");
+            const videoId = idMatch[1];
 
-        // hide local video
-        videoPlayer.pause();
-        videoPlayer.style.display = 'none';
+            // hide local video
+            videoPlayer.pause();
+            videoPlayer.style.display = 'none';
 
-        // show YouTube
-        youtubeContainer.style.display = 'block';
-    
-        if (ytPlayer) {
-            ytPlayer.loadVideoById(videoId);
-        } else {
-            ytPlayer = new YT.Player('youtube-bg', {
-            videoId: videoId,
-            playerVars: {
-                autoplay: 1,
-                loop: 1,
-                playlist: videoId,
-                controls: 0,
-                modestbranding: 1,
-                mute: 1,
-            origin: window.location.href,
-            },
-            events: {
-                    onReady: (e) => {
-                        e.target.playVideo();
+            // show YouTube
+            youtubeContainer.style.display = 'block';
 
-                        // --- show controls ---
-                        document.getElementById('youtube-controls').style.display = 'flex';
-                        const playPauseBtn = document.getElementById('yt-playpause');
-                        const muteBtn = document.getElementById('yt-mute');
-                        const seekBar = document.getElementById('yt-seekbar');
-                        const qualitySelect = document.getElementById('yt-quality');
-
-                        // --- Update seek bar every second ---
-                        setInterval(() => {
-                            if (ytPlayer && ytPlayer.getDuration) {
-                                const progress = (ytPlayer.getCurrentTime() / ytPlayer.getDuration()) * 100;
-                                seekBar.value = progress || 0;
-                            }
-                        }, 1000);
-
-                        // --- Seek when user moves slider ---
-                        seekBar.addEventListener('input', () => {
-                            const newTime = (seekBar.value / 100) * ytPlayer.getDuration();
-                            ytPlayer.seekTo(newTime, true);
-                        });
-
-                        // --- Play/pause toggle ---
-                        playPauseBtn.addEventListener('click', () => {
-                            const state = ytPlayer.getPlayerState();
-                            if (state === YT.PlayerState.PLAYING) {
-                                ytPlayer.pauseVideo();
-                                playPauseBtn.textContent = '▶️';
-                            } else {
-                                ytPlayer.playVideo();
-                                playPauseBtn.textContent = '⏸';
-                            }
-                        });
-
-                        // --- Mute/unmute toggle ---
-                        muteBtn.addEventListener('click', () => {
-                            if (ytPlayer.isMuted()) {
-                                ytPlayer.unMute();
-                                muteBtn.textContent = '🔊';
-                            } else {
-                                ytPlayer.mute();
-                                muteBtn.textContent = '🔇';
-                            }
-                        });
-
-                        // --- Quality change ---
-                        qualitySelect.addEventListener('change', () => {
-                            const level = qualitySelect.value;
-                            if (level === 'auto') ytPlayer.setPlaybackQualityRange();
-                            else ytPlayer.setPlaybackQuality(level);
-                        });
+            if (ytPlayer) {
+                ytPlayer.loadVideoById(videoId);
+            } else {
+                ytPlayer = new YT.Player('youtube-bg', {
+                    videoId: videoId,
+                    playerVars: {
+                        autoplay: 1,
+                        loop: 1,
+                        playlist: videoId,
+                        controls: 0,
+                        modestbranding: 1,
+                        mute: 1,
+                        origin: window.location.href,
                     },
+                    events: {
+                        onReady: (e) => {
+                            e.target.playVideo();
 
-                    onError: (e) => console.error('YouTube Player Error:', e.data)
-                }
+                            // --- show controls ---
+                            document.getElementById('youtube-controls').style.display = 'flex';
+                            const playPauseBtn = document.getElementById('yt-playpause');
+                            const muteBtn = document.getElementById('yt-mute');
+                            const seekBar = document.getElementById('yt-seekbar');
+                            const qualitySelect = document.getElementById('yt-quality');
 
-            });
-         }
-    });  // this closes the setYoutubeBtn click listener
+                            // --- Update seek bar every second ---
+                            setInterval(() => {
+                                if (ytPlayer && ytPlayer.getDuration) {
+                                    const progress = (ytPlayer.getCurrentTime() / ytPlayer.getDuration()) * 100;
+                                    seekBar.value = progress || 0;
+                                }
+                            }, 1000);
+
+                            // --- Seek when user moves slider ---
+                            seekBar.addEventListener('input', () => {
+                                const newTime = (seekBar.value / 100) * ytPlayer.getDuration();
+                                ytPlayer.seekTo(newTime, true);
+                            });
+
+                            // --- Play/pause toggle ---
+                            playPauseBtn.addEventListener('click', () => {
+                                const state = ytPlayer.getPlayerState();
+                                if (state === YT.PlayerState.PLAYING) {
+                                    ytPlayer.pauseVideo();
+                                    playPauseBtn.textContent = '▶️';
+                                } else {
+                                    ytPlayer.playVideo();
+                                    playPauseBtn.textContent = '⏸';
+                                }
+                            });
+
+                            // --- Mute/unmute toggle ---
+                            muteBtn.addEventListener('click', () => {
+                                if (ytPlayer.isMuted()) {
+                                    ytPlayer.unMute();
+                                    muteBtn.textContent = '🔊';
+                                } else {
+                                    ytPlayer.mute();
+                                    muteBtn.textContent = '🔇';
+                                }
+                            });
+
+                            // --- Quality change ---
+                            qualitySelect.addEventListener('change', () => {
+                                const level = qualitySelect.value;
+                                if (level === 'auto') ytPlayer.setPlaybackQualityRange();
+                                else ytPlayer.setPlaybackQuality(level);
+                            });
+                        },
+
+                        onError: (e) => console.error('YouTube Player Error:', e.data)
+                    }
+
+                });
+            }
+        });  // this closes the setYoutubeBtn click listener
     </script>
 </body>
+
 </html>
-
-
