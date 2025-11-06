@@ -45,6 +45,14 @@
             text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
         }
 
+        /* Top-right: time left until next hour */
+        #top-hour-left {}
+
+        #top-hour-left-text {
+            font-size: 0.95rem;
+            color: rgba(255, 255, 255, 0.92);
+        }
+
         /* Style for the progress bar */
         .progress-bar {
             height: 2px;
@@ -206,6 +214,11 @@
         <div id="stats-study" class="text-base">0m 0s</div>
         <div class="text-lg font-semibold mt-2">Today's Break</div>
         <div id="stats-break" class="text-base">0m 0s</div>
+
+        <!-- NEW: Top-right time-left-until-hour -->
+        <div id="top-hour-left" class="mt-3 text-right">
+            <div id="top-hour-left-text" class="text-sm font-medium text-shadow"></div>
+        </div>
     </div>
 
     <!-- 3. Main Content: Timer and Clock -->
@@ -235,11 +248,7 @@
             <button id="add-time-btn" class="time-adjust-btn" title="Add 5 minutes">+</button>
         </div>
 
-        <!-- Real-time Clock Display (initially hidden) -->
-        <div id="clock-container" class="text-center hidden">
-            <div id="clock-time" class="text-8xl font-bold text-shadow">00:00:00</div>
-            <div id="clock-date" class="text-2xl font-medium text-shadow opacity-80 mt-2"></div>
-        </div>
+        <!-- (center clock removed — top-right now displays hour-left) -->
 
         <!-- REMOVED: Set Position Button -->
 
@@ -313,15 +322,7 @@
                     </path>
                 </svg>
             </button>
-            <!-- Toggle Clock -->
-            <button id="toggle-timer-clock" title="Toggle Clock/Timer"
-                class="control-btn p-3 text-white/80 hover:text-white hover:bg-white/20 rounded-full transition-all">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                    xmlns="http://www.w3.org/2000/svg">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                </svg>
-            </button>
+
             <!-- Set Timer -->
             <button id="set-timer-btn" title="Set Timers"
                 class="control-btn p-3 text-white/80 hover:text-white hover:bg-white/20 rounded-full transition-all">
@@ -540,6 +541,8 @@
         const statsDisplay = document.getElementById('stats-display');
         const statsStudyEl = document.getElementById('stats-study');
         const statsBreakEl = document.getElementById('stats-break');
+        // NEW element for hour-left
+        const topHourLeftTextEl = document.getElementById('top-hour-left-text');
         // REMOVED connectionStatus
 
         // Minimize UI
@@ -814,40 +817,6 @@
             }
         });
         resetBtn.addEventListener('click', resetTimer);
-
-        // --- 5. Clock Logic ---
-        const timerView = document.getElementById('timer-container');
-        const clockView = document.getElementById('clock-container');
-        const toggleBtn = document.getElementById('toggle-timer-clock');
-        const clockTimeEl = document.getElementById('clock-time');
-        const clockDateEl = document.getElementById('clock-date');
-        let clockInterval = null;
-
-        function updateClock() {
-            const now = new Date();
-            const timeString = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-            const dateString = now.toLocaleDateString([], { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-
-            clockTimeEl.textContent = timeString;
-            clockDateEl.textContent = dateString;
-        }
-
-        toggleBtn.addEventListener('click', () => {
-            if (timerView.classList.contains('hidden')) {
-                timerView.classList.remove('hidden');
-                clockView.classList.add('hidden');
-                if (clockInterval) {
-                    clearInterval(clockInterval);
-                    clockInterval = null;
-                }
-            } else {
-                timerView.classList.add('hidden');
-                clockView.classList.remove('hidden');
-                updateClock();
-                clockInterval = setInterval(updateClock, 1000);
-            }
-        });
-
 
         // --- 6. Timer Modal Logic ---
         const timerModal = document.getElementById('timer-modal');
@@ -1188,6 +1157,25 @@
         timerTypeBtn.textContent = (timerType === 'pomodoro') ? 'Pomodoro' : 'Stopwatch';
         // Ensure switch-mode label
         refreshSwitchModeLabel();
+
+        // --- NEW: Top-right "time left until the hour" updater ---
+        function updateTopHourLeft() {
+            try {
+                const now = new Date();
+                const minutes = now.getMinutes();
+                const seconds = now.getSeconds();
+                const totalSecondsLeft = (59 - minutes) * 60 + (60 - seconds);
+                const minsLeft = Math.floor(totalSecondsLeft / 60);
+                const secsLeft = totalSecondsLeft % 60;
+                if (topHourLeftTextEl) {
+                    topHourLeftTextEl.textContent = `${minsLeft}m ${String(secsLeft).padStart(2, '0')}s left this hour`;
+                }
+            } catch (e) {
+                // silent
+            }
+        }
+        updateTopHourLeft();
+        setInterval(updateTopHourLeft, 1000);
 
         resetTimer(); // MODIFIED: Set initial timer display and mode text
         // REMOVED renderChatHistory();
