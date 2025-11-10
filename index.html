@@ -420,21 +420,8 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5v14l11-7z"></path>
                 </svg>
             </button>
-            <div id="youtube-controls" style="display:none; align-items:center; gap:10px;">
-                <button id="yt-playpause" title="Play/Pause">⏸</button>
-                <button id="yt-mute" title="Mute/Unmute">🔇</button>
-                <input type="range" id="yt-seekbar" min="0" max="100" value="0" step="1" style="width:100px;">
-                <select id="yt-quality">
-                    <option value="auto">Auto</option>
-                    <option value="hd1080">1080p</option>
-                    <option value="hd720">720p</option>
-                    <option value="large">480p</option>
-                    <option value="medium">360p</option>
-                </select>
+            
             </div>
-
-
-        </div>
     </div>
 
     <div id="timer-modal"
@@ -560,6 +547,13 @@
         // NEW Question Counter State
         let questionCountToday = 0;
 
+        // NEW: YouTube + Video Player State
+        let activePlayer = 'local'; // 'local' or 'youtube'
+        let isYouTubeApiReady = false;
+        let videoIdToLoad = null;
+        let ytPlayer = null;
+        let ytSeekBarInterval = null;
+
         // UI Elements
         const timerDisplay = document.getElementById('timer-display');
         const progressBar = document.getElementById('progress-bar-inner');
@@ -620,14 +614,16 @@
         const videoFileInput = document.getElementById('video-file-input');
         const setVideoBtn = document.getElementById('set-video-btn');
         const videoControlsBtn = document.getElementById('video-controls-btn');
+        // SHARED CONTROLS
         const videoControlsContainer = document.getElementById('video-controls-container');
         const videoTimeDisplay = document.getElementById('video-time-display');
         const videoSeekBar = document.getElementById('video-seek-bar');
-        // REMOVED: const lastVideoReminder
-        // NEW Video Control UI
         const videoPlayPauseBtn = document.getElementById('video-play-pause-btn');
         const videoPlayIcon = document.getElementById('video-play-icon');
         const videoPauseIcon = document.getElementById('video-pause-icon');
+        // YOUTUBE
+        const youtubeContainer = document.getElementById('youtube-bg');
+        const setYoutubeBtn = document.getElementById('set-youtube-btn');
 
 
         setVideoBtn.addEventListener('click', () => {
@@ -636,7 +632,6 @@
 
         videoControlsBtn.addEventListener('click', () => {
             videoControlsContainer.classList.toggle('hidden');
-            // REMOVED last video reminder logic
         });
 
         videoFileInput.addEventListener('change', (event) => {
@@ -649,15 +644,22 @@
                 videoPlayer.src = videoURL;
                 videoPlayer.play();
 
-                // REMOVED Save last video name
-
                 isMuted = true;
                 videoPlayer.muted = true;
                 unmuteIcon.classList.remove('hidden');
                 muteIcon.classList.add('hidden');
 
-                videoPlayIcon.classList.add('hidden');
-                videoPauseIcon.classList.remove('hidden');
+                // NEW: Set active player and switch UI
+                activePlayer = 'local';
+                videoPlayer.style.display = 'block';
+                if (ytPlayer) ytPlayer.pauseVideo();
+                youtubeContainer.style.display = 'none';
+
+                // Show shared controls
+                videoControlsContainer.classList.remove('hidden');
+
+                // Wire controls for local player
+                rewireControlsForLocalPlayer();
             }
         });
 
@@ -669,45 +671,121 @@
             return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
         }
 
-        videoPlayer.addEventListener('timeupdate', () => {
+        // --- REFACTORED: Video Control Listeners ---
+
+        // --- Local Video Listeners ---
+        function localVideoTimeUpdate() {
             if (isNaN(videoPlayer.duration)) return;
             videoSeekBar.value = videoPlayer.currentTime;
+            videoSeekBar.max = videoPlayer.duration; // Ensure max is set
             videoTimeDisplay.textContent = `${formatVideoTime(videoPlayer.currentTime)} / ${formatVideoTime(videoPlayer.duration)}`;
-        });
-
-        videoPlayer.addEventListener('loadedmetadata', () => {
+        }
+        function localVideoLoadedMetadata() {
             if (isNaN(videoPlayer.duration)) return;
             videoSeekBar.max = videoPlayer.duration;
             videoTimeDisplay.textContent = `00:00 / ${formatVideoTime(videoPlayer.duration)}`;
-        });
-
-        videoSeekBar.addEventListener('click', (e) => {
+        }
+        function localVideoSeekClick(e) {
             const rect = videoSeekBar.getBoundingClientRect();
             const clickX = e.clientX - rect.left;
             const percentage = clickX / rect.width;
             videoPlayer.currentTime = percentage * videoPlayer.duration;
-        });
-
-        // NEW: Video Play/Pause Logic
-        videoPlayPauseBtn.addEventListener('click', () => {
-            if (videoPlayer.paused) {
-                videoPlayer.play();
-            } else {
-                videoPlayer.pause();
-            }
-        });
-
-        videoPlayer.addEventListener('play', () => {
+        }
+        function localVideoPlayPauseClick() {
+            if (videoPlayer.paused) videoPlayer.play(); else videoPlayer.pause();
+        }
+        function localVideoPlayEvent() {
             videoPlayIcon.classList.add('hidden');
             videoPauseIcon.classList.remove('hidden');
-        });
-
-        videoPlayer.addEventListener('pause', () => {
+        }
+        function localVideoPauseEvent() {
             videoPlayIcon.classList.remove('hidden');
             videoPauseIcon.classList.add('hidden');
-        });
+        }
 
+        // --- YouTube Listeners ---
+        function youtubeVideoSeekUpdate() {
+            if (ytPlayer && ytPlayer.getDuration) {
+                const duration = ytPlayer.getDuration();
+                const currentTime = ytPlayer.getCurrentTime();
+                videoSeekBar.max = duration; // Set max for clicking
+                videoSeekBar.value = currentTime;
+                videoTimeDisplay.textContent = `${formatVideoTime(currentTime)} / ${formatVideoTime(duration)}`;
+            }
+        }
+        function youtubeVideoSeekClick(e) {
+            const rect = videoSeekBar.getBoundingClientRect();
+            const clickX = e.clientX - rect.left;
+            const percentage = clickX / rect.width;
+            const newTime = percentage * ytPlayer.getDuration();
+            ytPlayer.seekTo(newTime, true);
+        }
+        function youtubeVideoPlayPauseClick() {
+            if (!ytPlayer || typeof ytPlayer.getPlayerState !== 'function') return;
+            const state = ytPlayer.getPlayerState();
+            if (state === YT.PlayerState.PLAYING) {
+                ytPlayer.pauseVideo();
+            } else {
+                ytPlayer.playVideo();
+            }
+        }
+        function youtubeVideoStateChange(event) {
+            if (event.data === YT.PlayerState.PLAYING) {
+                videoPlayIcon.classList.add('hidden');
+                videoPauseIcon.classList.remove('hidden');
+            } else {
+                videoPlayIcon.classList.remove('hidden');
+                videoPauseIcon.classList.add('hidden');
+            }
+        }
 
+        // --- Wiring Functions ---
+        function rewireControlsForLocalPlayer() {
+            if (ytSeekBarInterval) clearInterval(ytSeekBarInterval); // Stop YT updater
+
+            // Remove YT Listeners
+            videoSeekBar.removeEventListener('click', youtubeVideoSeekClick);
+            videoPlayPauseBtn.removeEventListener('click', youtubeVideoPlayPauseClick);
+
+            // Add Local Listeners
+            videoPlayer.addEventListener('timeupdate', localVideoTimeUpdate);
+            videoPlayer.addEventListener('loadedmetadata', localVideoLoadedMetadata);
+            videoSeekBar.addEventListener('click', localVideoSeekClick);
+            videoPlayPauseBtn.addEventListener('click', localVideoPlayPauseClick);
+            videoPlayer.addEventListener('play', localVideoPlayEvent);
+            videoPlayer.addEventListener('pause', localVideoPauseEvent);
+
+            // Sync UI
+            if (videoPlayer.paused) localVideoPauseEvent(); else localVideoPlayEvent();
+            localVideoTimeUpdate(); // Update time display immediately
+        }
+
+        function rewireControlsForYouTubePlayer() {
+            if (ytSeekBarInterval) clearInterval(ytSeekBarInterval); // Clear just in case
+
+            // Remove Local Listeners
+            videoPlayer.removeEventListener('timeupdate', localVideoTimeUpdate);
+            videoPlayer.removeEventListener('loadedmetadata', localVideoLoadedMetadata);
+            videoSeekBar.removeEventListener('click', localVideoSeekClick);
+            videoPlayPauseBtn.removeEventListener('click', localVideoPlayPauseClick);
+            videoPlayer.removeEventListener('play', localVideoPlayEvent);
+            videoPlayer.removeEventListener('pause', localVideoPauseEvent);
+
+            // Add YT Listeners
+            videoSeekBar.addEventListener('click', youtubeVideoSeekClick);
+            videoPlayPauseBtn.addEventListener('click', youtubeVideoPlayPauseClick);
+
+            // Start YT seekbar interval
+            ytSeekBarInterval = setInterval(youtubeVideoSeekUpdate, 500); // 500ms update
+
+            // Sync UI
+            if (ytPlayer && typeof ytPlayer.getPlayerState === 'function') {
+                youtubeVideoStateChange({ data: ytPlayer.getPlayerState() });
+            }
+        }
+        
+        // --- END REFACTORED Video Control Listeners ---
+        
         // --- 4. Timer Logic ---
         function updateTimerDisplay() {
             if (timerType === 'pomodoro') {
@@ -857,12 +935,12 @@
             playIcon.classList.remove('hidden');
             pauseIcon.classList.add('hidden');
             clearInterval(timerInterval);
-            
+
             // --- NEW: Recalculate time passed on pause ---
             // This captures any final fractions of a second
             const now = Date.now();
             const deltaSeconds = (now - lastTickTime) / 1000.0;
-            
+
             if (timerType === 'pomodoro') {
                 // remainingTime is already being calculated from pomodoroEndTime
                 // but we need to update stats
@@ -884,7 +962,7 @@
                     breakTimeToday += deltaSeconds;
                 }
             }
-            
+
             // Round stats for saving
             studyTimeToday = Math.round(studyTimeToday);
             breakTimeToday = Math.round(breakTimeToday);
@@ -902,14 +980,14 @@
             } else {
                 elapsedSeconds = 0;
             }
-            
+
             // Round stats just in case
             studyTimeToday = Math.round(studyTimeToday);
             breakTimeToday = Math.round(breakTimeToday);
-            
+
             updateTimerDisplay();
             updateTodayStatsUI();
-            
+
             currentModeDisplay.textContent = (currentMode === 'study') ? 'Studying' : 'Break'; // NEW
         }
 
@@ -986,20 +1064,31 @@
         let isMuted = true; // Starts muted
 
         toggleMuteBtn.addEventListener('click', () => {
-            if (!videoPlayer.src) return;
+            // REFACTORED: Mute/Unmute both players
+            if (activePlayer === 'local') {
+                if (!videoPlayer.src) return;
+                videoPlayer.muted = !videoPlayer.muted;
+                isMuted = videoPlayer.muted;
+            } else if (activePlayer === 'youtube' && ytPlayer) {
+                if (ytPlayer.isMuted()) {
+                    ytPlayer.unMute();
+                    isMuted = false;
+                } else {
+                    ytPlayer.mute();
+                    isMuted = true;
+                }
+            }
 
+            // Sync icon
             if (isMuted) {
-                videoPlayer.muted = false;
-                unmuteIcon.classList.add('hidden');
-                muteIcon.classList.remove('hidden');
-                isMuted = false;
-            } else {
-                videoPlayer.muted = true;
                 unmuteIcon.classList.remove('hidden');
                 muteIcon.classList.add('hidden');
-                isMuted = true;
+            } else {
+                unmuteIcon.classList.add('hidden');
+                muteIcon.classList.remove('hidden');
             }
         });
+
 
         // --- 8. REMOVED Manual To-Do List Logic ---
         // REMOVED all todo elements and functions
@@ -1500,23 +1589,69 @@
         }
         updateTopHourLeft();
         setInterval(updateTopHourLeft, 1000);
+        
+        // NEW: Set initial video control state
+        rewireControlsForLocalPlayer();
 
         resetTimer(); // MODIFIED: Set initial timer display and mode text
         // REMOVED renderChatHistory();
 
         // --- NEW: YouTube Integration ---
 
-        let ytPlayer = null;
-        const youtubeContainer = document.getElementById('youtube-bg');
-        const setYoutubeBtn = document.getElementById('set-youtube-btn');
-
         // Add YouTube API
         const ytScript = document.createElement('script');
         ytScript.src = "https://www.youtube.com/iframe_api";
         document.body.appendChild(ytScript);
 
-        window.onYouTubeIframeAPIReady = () => { };
+        // MODIFIED: Properly handle API ready state
+        window.onYouTubeIframeAPIReady = () => {
+            isYouTubeApiReady = true;
+            if (videoIdToLoad) {
+                createYouTubePlayer(videoIdToLoad);
+                videoIdToLoad = null;
+            }
+        };
 
+        // NEW: Function to create player (fixes race condition)
+        function createYouTubePlayer(videoId) {
+            if (ytPlayer) { // If player exists, just load video and rewire
+                activePlayer = 'youtube';
+                ytPlayer.loadVideoById(videoId);
+                rewireControlsForYouTubePlayer(); // Ensure controls are wired
+                return;
+            }
+
+            // If player doesn't exist, create it
+            ytPlayer = new YT.Player('youtube-bg', {
+                videoId: videoId,
+                playerVars: {
+                    autoplay: 1,
+                    loop: 1,
+                    playlist: videoId,
+                    controls: 0,
+                    modestbranding: 1,
+                    mute: 1, // Start muted
+                    origin: window.location.href,
+                },
+                events: {
+                    onReady: (e) => {
+                        activePlayer = 'youtube';
+                        e.target.playVideo();
+                        rewireControlsForYouTubePlayer(); // Wire controls on ready
+                        // Sync mute state
+                        isMuted = true;
+                        unmuteIcon.classList.remove('hidden');
+                        muteIcon.classList.add('hidden');
+                    },
+                    onStateChange: (e) => {
+                        youtubeVideoStateChange(e); // Update play/pause icon
+                    },
+                    onError: (e) => console.error('YouTube Player Error:', e.data)
+                }
+            });
+        }
+
+        // MODIFIED: setYoutubeBtn listener
         setYoutubeBtn.addEventListener('click', () => {
             const url = prompt("Enter YouTube video URL:");
             if (!url) return;
@@ -1529,94 +1664,28 @@
                 document.head.appendChild(meta);
             }
 
-
             const idMatch = url.match(/(?:youtube\.com.*(?:\?|&)v=|youtu\.be\/)([^&#]+)/);
             if (!idMatch) return alert("Invalid YouTube URL");
             const videoId = idMatch[1];
 
-            // hide local video
+            // Switch UI
             videoPlayer.pause();
             videoPlayer.style.display = 'none';
-
-            // show YouTube
             youtubeContainer.style.display = 'block';
+            videoControlsContainer.classList.remove('hidden'); // Show shared controls
 
             if (ytPlayer) {
+                activePlayer = 'youtube';
                 ytPlayer.loadVideoById(videoId);
+                rewireControlsForYouTubePlayer(); // Re-wire
             } else {
-                ytPlayer = new YT.Player('youtube-bg', {
-                    videoId: videoId,
-                    playerVars: {
-                        autoplay: 1,
-                        loop: 1,
-                        playlist: videoId,
-                        controls: 0,
-                        modestbranding: 1,
-                        mute: 1,
-                        origin: window.location.href,
-                    },
-                    events: {
-                        onReady: (e) => {
-                            e.target.playVideo();
-
-                            // --- show controls ---
-                            document.getElementById('youtube-controls').style.display = 'flex';
-                            const playPauseBtn = document.getElementById('yt-playpause');
-                            const muteBtn = document.getElementById('yt-mute');
-                            const seekBar = document.getElementById('yt-seekbar');
-                            const qualitySelect = document.getElementById('yt-quality');
-
-                            // --- Update seek bar every second ---
-                            setInterval(() => {
-                                if (ytPlayer && ytPlayer.getDuration) {
-                                    const progress = (ytPlayer.getCurrentTime() / ytPlayer.getDuration()) * 100;
-                                    seekBar.value = progress || 0;
-                                }
-                            }, 1000);
-
-                            // --- Seek when user moves slider ---
-                            seekBar.addEventListener('input', () => {
-                                const newTime = (seekBar.value / 100) * ytPlayer.getDuration();
-                                ytPlayer.seekTo(newTime, true);
-                            });
-
-                            // --- Play/pause toggle ---
-                            playPauseBtn.addEventListener('click', () => {
-                                const state = ytPlayer.getPlayerState();
-                                if (state === YT.PlayerState.PLAYING) {
-                                    ytPlayer.pauseVideo();
-                                    playPauseBtn.textContent = '▶️';
-                                } else {
-                                    ytPlayer.playVideo();
-                                    playPauseBtn.textContent = '⏸';
-                                }
-                            });
-
-                            // --- Mute/unmute toggle ---
-                            muteBtn.addEventListener('click', () => {
-                                if (ytPlayer.isMuted()) {
-                                    ytPlayer.unMute();
-                                    muteBtn.textContent = '🔊';
-                                } else {
-                                    ytPlayer.mute();
-                                    muteBtn.textContent = '🔇';
-                                }
-                            });
-
-                            // --- Quality change ---
-                            qualitySelect.addEventListener('change', () => {
-                                const level = qualitySelect.value;
-                                if (level === 'auto') ytPlayer.setPlaybackQualityRange();
-                                else ytPlayer.setPlaybackQuality(level);
-D                            });
-                        },
-
-                        onError: (e) => console.error('YouTube Player Error:', e.data)
-                    }
-
-                });
+                if (isYouTubeApiReady) {
+                    createYouTubePlayer(videoId);
+                } else {
+                    videoIdToLoad = videoId; // Will be picked up by onYouTubeIframeAPIReady
+                }
             }
-        });  // this closes the setYoutubeBtn click listener
+        });
     </script>
 </body>
 
