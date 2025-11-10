@@ -5,7 +5,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Focus Timer</title>
-    <!-- Load Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         /* NEW: Fix for fullscreen white line */
@@ -197,69 +196,60 @@
 
 <body class="bg-black text-white">
 
-    <!-- 1. Local Video Background -->
     <video id="bg-video" muted loop playsinline autoplay></video>
-    <!-- NEW: YouTube Background Container -->
     <div id="youtube-bg"
         style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);min-width:100%;min-height:100%;z-index:-10;pointer-events:none;">
     </div>
 
 
-    <!-- Hidden file input for video selection -->
     <input type="file" id="video-file-input" accept="video/*" class="hidden">
 
-    <!-- 2. Top Right Stats Display -->
     <div id="stats-display" class="fixed top-4 right-6 z-20 text-right text-shadow transition-opacity duration-300">
         <div class="text-lg font-semibold">Today's Focus</div>
         <div id="stats-study" class="text-base">0m 0s</div>
         <div class="text-lg font-semibold mt-2">Today's Break</div>
         <div id="stats-break" class="text-base">0m 0s</div>
 
-        <!-- NEW: Top-right time-left-until-hour -->
         <div id="top-hour-left" class="mt-3 text-right">
             <div id="top-hour-left-text" class="text-sm font-medium text-shadow"></div>
         </div>
     </div>
 
-    <!-- 3. Main Content: Timer and Clock -->
-    <!-- MODIFIED: Wrapper div is now centered and no longer draggable -->
+    <div id="question-counter-display"
+        class="fixed top-4 left-6 z-20 text-left text-shadow transition-opacity duration-300 hidden">
+        <div class="text-lg font-semibold">Questions Solved Today</div>
+        <div class="flex items-center space-x-2 mt-1">
+            <button id="question-subtract-btn"
+                class="p-1 rounded-full text-white/80 hover:bg-white/20 transition-all">-</button>
+            <span id="question-count-el" class="text-xl font-bold">0</span>
+            <button id="question-add-btn"
+                class="p-1 rounded-full text-white/80 hover:bg-white/20 transition-all">+</button>
+        </div>
+    </div>
+
     <div id="timer-ui-container" class="flex flex-col justify-center items-center h-full w-full relative z-10">
 
-        <!-- Current Mode Display -->
         <div id="current-mode-display" class="text-3xl font-serif italic text-shadow opacity-80 mb-2">
-            <!-- This will be filled by JavaScript -->
-        </div>
+            </div>
 
-        <!-- Timer Display -->
         <div id="timer-wrapper" class="relative">
             <div id="timer-container" class="text-center">
-                <!-- MODIFIED: Removed text-[10rem] class -->
                 <div id="timer-display" class="font-bold text-shadow tracking-tight">
                     25:00
                 </div>
                 <div class="progress-bar mt-4">
                     <div id="progress-bar-inner" class="progress-bar-inner"></div>
                 </div>
-                <!-- NEW: Editable Text Input -->
                 <input type="text" id="custom-text-input" placeholder="What are you working on?">
             </div>
-            <!-- Add/Subtract Time Buttons -->
             <button id="subtract-time-btn" class="time-adjust-btn" title="Subtract 5 minutes">-</button>
             <button id="add-time-btn" class="time-adjust-btn" title="Add 5 minutes">+</button>
         </div>
 
-        <!-- (center clock removed — top-right now displays hour-left) -->
+        </div>
 
-        <!-- REMOVED: Set Position Button -->
-
-    </div>
-
-    <!-- REMOVED: Last Video Reminder -->
-
-    <!-- Video Controls Container -->
     <div id="video-controls-container" class="fixed bottom-32 left-1/2 -translate-x-1/2 w-full max-w-xl z-20 hidden">
         <div class="flex items-center space-x-4 bg-black/30 backdrop-blur-md p-3 rounded-full shadow-lg mx-auto w-full">
-            <!-- NEW: Video Play/Pause Button -->
             <button id="video-play-pause-btn" title="Play/Pause Video"
                 class="p-1 text-white/80 hover:text-white rounded-full transition-all">
                 <svg id="video-play-icon" class="w-6 h-6 hidden" fill="currentColor" viewBox="0 0 20 20"
@@ -281,20 +271,16 @@
     </div>
 
 
-    <!-- 4. Bottom Controls -->
     <div id="controls-bar"
         class="fixed bottom-0 left-0 w-full flex justify-center p-6 z-20 transition-opacity duration-300">
         <div class="flex items-center space-x-2 bg-black/30 backdrop-blur-md p-3 rounded-full shadow-lg">
-            <!-- Minimize UI -->
             <button id="minimize-btn" title="Minimize UI (Click anywhere to exit)"
                 class="p-3 text-white/80 hover:text-white hover:bg-white/20 rounded-full transition-all">
                 <svg id="minimize-icon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"
                     xmlns="http://www.w3.org/2000/svg">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                 </svg>
-                <!-- REMOVED Maximize Icon -->
-            </button>
-            <!-- NEW: Cinema Mode Button -->
+                </button>
             <button id="cinema-mode-btn" title="Cinema Mode (Click anywhere to exit)"
                 class="control-btn p-3 text-white/80 hover:text-white hover:bg-white/20 rounded-full transition-all">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"
@@ -306,7 +292,6 @@
                     </path>
                 </svg>
             </button>
-            <!-- NEW: Fullscreen Button -->
             <button id="fullscreen-btn" title="Toggle Fullscreen"
                 class="control-btn p-3 text-white/80 hover:text-white hover:bg-white/20 rounded-full transition-all">
                 <svg id="fullscreen-enter-icon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"
@@ -323,7 +308,6 @@
                 </svg>
             </button>
 
-            <!-- Set Timer -->
             <button id="set-timer-btn" title="Set Timers"
                 class="control-btn p-3 text-white/80 hover:text-white hover:bg-white/20 rounded-full transition-all">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"
@@ -335,7 +319,6 @@
                         d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
                 </svg>
             </button>
-            <!-- Play/Pause -->
             <button id="play-pause-btn" title="Play/Pause Timer"
                 class="control-btn p-4 bg-white text-black rounded-full shadow-lg transform hover:scale-110 transition-all">
                 <svg id="play-icon" class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"
@@ -351,7 +334,6 @@
                         clip-rule="evenodd"></path>
                 </svg>
             </button>
-            <!-- Reset -->
             <button id="reset-btn" title="Reset Timer"
                 class="control-btn p-3 text-white/80 hover:text-white hover:bg-white/20 rounded-full transition-all">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"
@@ -362,9 +344,6 @@
                 </svg>
             </button>
 
-            <!-- <-- REPLACED original Toggle Study/Break button with two buttons:
-                 1) switch-mode-btn (still toggles Study/Break)
-                 2) timer-type-btn (new: toggles Pomodoro/Stopwatch) -->
             <button id="switch-mode-btn" title="Toggle Study/Break"
                 class="control-btn p-3 text-white/80 hover:text-white hover:bg-white/20 rounded-full transition-all w-20 text-center">
                 Study
@@ -375,8 +354,6 @@
                 Pomodoro
             </button>
 
-            <!-- REMOVED: Move Timer Button -->
-            <!-- NEW: Resize Timer Button -->
             <button id="resize-timer-btn" title="Resize Timer"
                 class="control-btn p-3 text-white/80 hover:text-white hover:bg-white/20 rounded-full transition-all">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"
@@ -388,25 +365,31 @@
 
             <button id="journal-btn" title="Journal"
                 class="control-btn p-3 text-white/80 hover:text-white hover:bg-white/20 rounded-full transition-all">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M12 6.253v11.494m-9-11.494v11.494H3v-11.494M12 6.253H3.75m8.25 0H20.25V17.747H12">
                     </path>
                 </svg>
             </button>
-            <!-- REMOVED Stats History Button -->
-            <!-- REMOVED To-Do List Button -->
-            <!-- Video Controls Toggle -->
+
+            <button id="toggle-question-counter-btn" title="Toggle Question Counter"
+                class="control-btn p-3 text-white/80 hover:text-white hover:bg-white/20 rounded-full transition-all">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M7 20l4-16m2 16l4-16M5 9h14M4 15h14"></path>
+                </svg>
+            </button>
+
             <button id="video-controls-btn" title="Show Video Controls"
                 class="control-btn p-3 text-white/80 hover:text-white hover:bg-white/20 rounded-full transition-all">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"
                     xmlns="http://www.w3.org/2000/svg">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z">
-                    </path>
-                </svg>
+                        </th_svg>
             </button>
-            <!-- Select Video -->
             <button id="set-video-btn" title="Select Local Video"
                 class="control-btn p-3 text-white/80 hover:text-white hover:bg-white/20 rounded-full transition-all">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"
@@ -415,7 +398,6 @@
                         d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
                 </svg>
             </button>
-            <!-- Mute -->
             <button id="toggle-mute-btn" title="Mute/Unmute Video"
                 class="control-btn p-3 text-white/80 hover:text-white hover:bg-white/20 rounded-full transition-all">
                 <svg id="unmute-icon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"
@@ -431,7 +413,6 @@
                     </path>
                 </svg>
             </button>
-            <!-- NEW: YouTube Video Button -->
             <button id="set-youtube-btn" title="Set YouTube Video"
                 class="control-btn p-3 text-white/80 hover:text-white hover:bg-white/20 rounded-full transition-all">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"
@@ -439,7 +420,6 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5v14l11-7z"></path>
                 </svg>
             </button>
-            <!-- NEW: YouTube Controls -->
             <div id="youtube-controls" style="display:none; align-items:center; gap:10px;">
                 <button id="yt-playpause" title="Play/Pause">⏸</button>
                 <button id="yt-mute" title="Mute/Unmute">🔇</button>
@@ -457,9 +437,6 @@
         </div>
     </div>
 
-    <!-- 5. Modals (Hidden by default) -->
-
-    <!-- Set Timer Modal -->
     <div id="timer-modal"
         class="fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center z-30 hidden">
         <div class="bg-gray-900 text-white p-8 rounded-xl shadow-2xl w-full max-w-sm">
@@ -479,7 +456,6 @@
         </div>
     </div>
 
-    <!-- NEW: Resize Timer Modal -->
     <div id="resize-modal"
         class="fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center z-30 hidden">
         <div class="bg-gray-900 text-white p-8 rounded-xl shadow-2xl w-full max-w-sm">
@@ -488,17 +464,18 @@
             <input id="timer-size-slider" type="range" min="6" max="14" value="10" step="0.5"
                 class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer">
             <div class="flex flex-col space-y-4 mt-6">
-                <!-- REMOVED: Reset Position Button -->
                 <button id="resize-modal-ok"
                     class="w-full p-3 bg-blue-600 hover:bg-blue-500 rounded-lg font-semibold transition-all">Close</button>
             </div>
         </div>
     </div>
 
-    <div id="journal-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center z-30 hidden">
-        <div class="bg-gray-900 text-white p-6 rounded-xl shadow-2xl w-full max-w-3xl h-full max-h-[80vh] flex flex-col">
+    <div id="journal-modal"
+        class="fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center z-30 hidden">
+        <div
+            class="bg-gray-900 text-white p-6 rounded-xl shadow-2xl w-full max-w-3xl h-full max-h-[80vh] flex flex-col">
             <h2 class="text-2xl font-bold mb-4 text-center">Mood Journal</h2>
-    
+
             <div class="flex-grow grid grid-cols-1 md:grid-cols-3 gap-6 overflow-y-auto">
                 <div class="md:col-span-1 flex flex-col space-y-4">
                     <div class="bg-gray-800 p-4 rounded-lg">
@@ -525,7 +502,7 @@
                         </button>
                     </div>
                 </div>
-    
+
                 <div class="md:col-span-2 h-full">
                     <div class="bg-gray-800 p-4 rounded-lg h-full flex flex-col">
                         <h3 class="text-lg font-semibold mb-3 text-gray-300">Past Entries</h3>
@@ -534,7 +511,7 @@
                     </div>
                 </div>
             </div>
-    
+
             <div class="flex justify-end mt-4">
                 <button id="journal-modal-close"
                     class="w-full md:w-auto p-3 bg-gray-700 hover:bg-gray-600 rounded-lg transition-all">Close</button>
@@ -542,15 +519,9 @@
         </div>
     </div>
 
-    <!-- REMOVED To-Do List Modal -->
-
-    <!-- REMOVED Stats History Modal -->
-
-    <!-- Notification Bell (for timer end) -->
     <audio id="alarm-sound" src="https://assets.mixkit.co/sfx/preview/mixkit-clear-announce-tones-2861.mp3"
         preload="auto"></audio>
 
-    <!-- REMOVED Firebase SDK -->
     <script type="module">
         // --- 0. App State & Config ---
         // REMOVED ALL FIREBASE VARIABLES
@@ -566,6 +537,8 @@
         // NEW: timer type and stopwatch elapsed
         let timerType = 'pomodoro'; // 'pomodoro' or 'stopwatch'
         let elapsedSeconds = 0; // used only in stopwatch mode
+        let pomodoroEndTime = 0; // NEW: For countdown correction
+        let lastTickTime = 0;    // NEW: For stopwatch/stats correction
 
         // Local stats state
         let studyTimeToday = 0;
@@ -580,9 +553,12 @@
         let isMinimized = false;
 
         // ... after let isMinimized = false; ...
-            // NEW Journal State
-            let journalEntries = [];
-            let selectedMood = '😐'; // Default
+        // NEW Journal State
+        let journalEntries = [];
+        let selectedMood = '😐'; // Default
+
+        // NEW Question Counter State
+        let questionCountToday = 0;
 
         // UI Elements
         const timerDisplay = document.getElementById('timer-display');
@@ -599,14 +575,21 @@
         const customTextInput = document.getElementById('custom-text-input'); // NEW
 
         // ... after const customTextInput ...
-            // NEW Journal UI
-            const journalBtn = document.getElementById('journal-btn');
-            const journalModal = document.getElementById('journal-modal');
-            const journalModalClose = document.getElementById('journal-modal-close');
-            const journalSaveBtn = document.getElementById('journal-save-btn');
-            const journalTextArea = document.getElementById('journal-text-area');
-            const journalEntriesContainer = document.getElementById('journal-entries-container');
-            const moodButtons = document.querySelectorAll('.mood-btn');
+        // NEW Journal UI
+        const journalBtn = document.getElementById('journal-btn');
+        const journalModal = document.getElementById('journal-modal');
+        const journalModalClose = document.getElementById('journal-modal-close');
+        const journalSaveBtn = document.getElementById('journal-save-btn');
+        const journalTextArea = document.getElementById('journal-text-area');
+        const journalEntriesContainer = document.getElementById('journal-entries-container');
+        const moodButtons = document.querySelectorAll('.mood-btn');
+
+        // NEW Question Counter UI
+        const toggleQuestionCounterBtn = document.getElementById('toggle-question-counter-btn');
+        const questionCounterDisplay = document.getElementById('question-counter-display');
+        const questionCountEl = document.getElementById('question-count-el');
+        const questionAddBtn = document.getElementById('question-add-btn');
+        const questionSubtractBtn = document.getElementById('question-subtract-btn');
 
         // Stats UI
         const statsDisplay = document.getElementById('stats-display');
@@ -616,7 +599,7 @@
         const topHourLeftTextEl = document.getElementById('top-hour-left-text');
         // REMOVED connectionStatus
 
-        
+
 
         // Minimize UI
         const controlsBar = document.getElementById('controls-bar');
@@ -729,19 +712,23 @@
         function updateTimerDisplay() {
             if (timerType === 'pomodoro') {
                 const duration = (currentMode === 'study') ? studyDuration : breakDuration;
-                const minutes = Math.floor(remainingTime / 60);
-                const seconds = remainingTime % 60;
+                // Use Math.round for display to avoid flickering
+                const displayTime = Math.round(remainingTime);
+                const minutes = Math.floor(displayTime / 60);
+                const seconds = displayTime % 60;
                 timerDisplay.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
 
                 // Prevent progress bar from going over 100% if time is added
-                const progress = (remainingTime / duration) * 100;
+                const progress = (displayTime / duration) * 100;
                 progressBar.style.width = `${Math.min(100, progress)}%`;
                 progressBar.parentElement.style.display = '';
             } else {
                 // Stopwatch mode: show HH:MM:SS (hours optional)
-                const hs = Math.floor(elapsedSeconds / 3600);
-                const ms = Math.floor((elapsedSeconds % 3600) / 60);
-                const ss = elapsedSeconds % 60;
+                // Use Math.round for display
+                const displayTime = Math.round(elapsedSeconds);
+                const hs = Math.floor(displayTime / 3600);
+                const ms = Math.floor((displayTime % 3600) / 60);
+                const ss = displayTime % 60;
                 const hstr = hs > 0 ? `${String(hs).padStart(2, '0')}:` : '';
                 timerDisplay.textContent = `${hstr}${String(ms).padStart(2, '0')}:${String(ss).padStart(2, '0')}`;
                 // hide progress bar for stopwatch
@@ -757,8 +744,9 @@
         }
 
         function updateTodayStatsUI() {
-            statsStudyEl.textContent = formatTime(studyTimeToday);
-            statsBreakEl.textContent = formatTime(breakTimeToday);
+            // NEW: Round the stats for display
+            statsStudyEl.textContent = formatTime(Math.round(studyTimeToday));
+            statsBreakEl.textContent = formatTime(Math.round(breakTimeToday));
         }
 
         // REMOVED fetchMotivation function
@@ -769,29 +757,43 @@
             playIcon.classList.add('hidden');
             pauseIcon.classList.remove('hidden');
 
-            // REMOVED fetchMotivation call
+            // NEW: Set reference time for delta calculation
+            lastTickTime = Date.now();
 
             // If Pomodoro: countdown; if Stopwatch: count up
             if (timerType === 'pomodoro') {
-                timerInterval = setInterval(() => {
-                    remainingTime--;
+                // NEW: Set the target end time
+                pomodoroEndTime = Date.now() + (remainingTime * 1000);
 
-                    // Increment stats
+                timerInterval = setInterval(() => {
+                    // --- REVISED Pomodoro Logic ---
+                    const now = Date.now();
+                    // Get float seconds passed since last tick
+                    const deltaSeconds = (now - lastTickTime) / 1000.0;
+                    lastTickTime = now;
+
+                    // Update stats with actual time passed
                     if (currentMode === 'study') {
-                        studyTimeToday++;
+                        studyTimeToday += deltaSeconds;
                     } else {
-                        breakTimeToday++;
+                        breakTimeToday += deltaSeconds;
                     }
-                    updateTodayStatsUI();
+
+                    // Calculate new remaining time from the *absolute* end time
+                    // This is now a float
+                    remainingTime = (pomodoroEndTime - now) / 1000.0;
+
+                    if (remainingTime < 0) {
+                        remainingTime = 0;
+                    }
+
+                    updateTimerDisplay(); // Update display with new remaining time
 
                     // Save stats periodically
-                    const now = Date.now();
-                    if (now - lastSaveTimestamp > 5000) { // Save every 5 seconds
-                        saveStatsToLocalStorage();
+                    if (now - lastSaveTimestamp > 5000) {
+                        saveAllDataToLocalStorage();
                         lastSaveTimestamp = now;
                     }
-
-                    updateTimerDisplay();
 
                     if (remainingTime <= 0) {
                         clearInterval(timerInterval);
@@ -800,44 +802,54 @@
                         pauseIcon.classList.add('hidden');
                         alarmSound.play();
 
-                        // Save final stats for this session
-                        saveStatsToLocalStorage();
+                        // Force stats to be whole numbers at the end of a session
+                        studyTimeToday = Math.round(studyTimeToday);
+                        breakTimeToday = Math.round(breakTimeToday);
 
-                        // Switch mode
+                        saveAllDataToLocalStorage();
+                        updateTodayStatsUI(); // Update UI with rounded stats
+
                         toggleMode();
-
                         setTimeout(() => {
-                            resetTimer(); // Reset the new mode's timer
+                            resetTimer();
                         }, 1000);
+                    } else {
+                        // Update stats UI continuously
+                        updateTodayStatsUI();
                     }
-
-                    // REMOVED motivation refresh logic
-
+                    // --- END REVISED Logic ---
                 }, 1000);
             } else {
                 // Stopwatch mode
                 timerInterval = setInterval(() => {
-                    elapsedSeconds++;
-
-                    // Increment stats
-                    if (currentMode === 'study') {
-                        studyTimeToday++;
-                    } else {
-                        breakTimeToday++;
-                    }
-                    updateTodayStatsUI();
-
+                    // --- REVISED Stopwatch Logic ---
                     const now = Date.now();
+                    // Get float seconds passed since last tick
+                    const deltaSeconds = (now - lastTickTime) / 1000.0;
+                    lastTickTime = now;
+
+                    elapsedSeconds += deltaSeconds;
+
+                    // Increment stats with actual time passed
+                    if (currentMode === 'study') {
+                        studyTimeToday += deltaSeconds;
+                    } else {
+                        breakTimeToday += deltaSeconds;
+                    }
+                    updateTodayStatsUI(); // Update stats UI continuously
+
+                    // Save stats periodically
                     if (now - lastSaveTimestamp > 5000) {
-                        saveStatsToLocalStorage();
+                        saveAllDataToLocalStorage();
                         lastSaveTimestamp = now;
                     }
 
                     updateTimerDisplay();
-                    // no auto-switch or stop
+                    // --- END REVISED Logic ---
                 }, 1000);
             }
         }
+
 
         function pauseTimer() {
             if (!isRunning) return;
@@ -845,9 +857,42 @@
             playIcon.classList.remove('hidden');
             pauseIcon.classList.add('hidden');
             clearInterval(timerInterval);
+            
+            // --- NEW: Recalculate time passed on pause ---
+            // This captures any final fractions of a second
+            const now = Date.now();
+            const deltaSeconds = (now - lastTickTime) / 1000.0;
+            
+            if (timerType === 'pomodoro') {
+                // remainingTime is already being calculated from pomodoroEndTime
+                // but we need to update stats
+                if (currentMode === 'study') {
+                    studyTimeToday += deltaSeconds;
+                } else {
+                    breakTimeToday += deltaSeconds;
+                }
+                // Recalculate exact remaining time on pause
+                remainingTime = (pomodoroEndTime - now) / 1000.0;
+                if (remainingTime < 0) remainingTime = 0;
+
+            } else {
+                // stopwatch
+                elapsedSeconds += deltaSeconds;
+                if (currentMode === 'study') {
+                    studyTimeToday += deltaSeconds;
+                } else {
+                    breakTimeToday += deltaSeconds;
+                }
+            }
+            
+            // Round stats for saving
+            studyTimeToday = Math.round(studyTimeToday);
+            breakTimeToday = Math.round(breakTimeToday);
 
             // Save progress on pause
-            saveStatsToLocalStorage();
+            saveAllDataToLocalStorage();
+            updateTodayStatsUI();
+            updateTimerDisplay(); // Update display with precise paused time
         }
 
         function resetTimer() {
@@ -857,7 +902,14 @@
             } else {
                 elapsedSeconds = 0;
             }
+            
+            // Round stats just in case
+            studyTimeToday = Math.round(studyTimeToday);
+            breakTimeToday = Math.round(breakTimeToday);
+            
             updateTimerDisplay();
+            updateTodayStatsUI();
+            
             currentModeDisplay.textContent = (currentMode === 'study') ? 'Studying' : 'Break'; // NEW
         }
 
@@ -979,7 +1031,7 @@
                         studyTimeToday = savedStats[todayDateString].totalStudy || 0;
                         breakTimeToday = savedStats[todayDateString].totalBreak || 0;
                     }
-                    // If it's a new day, the stats will be reset by saveStatsToLocalStorage()
+                    // If it's a new day, the stats will be reset by saveAllDataToLocalStorage()
                 } catch (e) {
                     console.error("Failed to parse saved stats", e);
                 }
@@ -1010,7 +1062,7 @@
             }
 
             // 6. REMOVED: Load Timer Position
-            
+
             // ... inside loadDataFromLocalStorage() ...
 
             // 7. NEW: Load Custom Text
@@ -1030,19 +1082,29 @@
                 }
             }
 
-            // 9. Render UI
-            updateTodayStatsUI();
-            // REMOVED renderTodoList();
-            // REMOVED checkCurrentTask();
+            // 9. NEW: Load Question Count
+            const savedQuestionCountJSON = localStorage.getItem('questionCount');
+            if (savedQuestionCountJSON) {
+                try {
+                    const savedQuestionCount = JSON.parse(savedQuestionCountJSON);
+                    if (savedQuestionCount[todayDateString]) {
+                        questionCountToday = savedQuestionCount[todayDateString] || 0;
+                    }
+                } catch (e) {
+                    console.error("Failed to parse question count", e);
+                    questionCountToday = 0;
+                }
+            }
 
-            // 8. Render UI
+            // 10. Render UI
             updateTodayStatsUI();
+            questionCountEl.textContent = questionCountToday; // NEW
             // REMOVED renderTodoList();
             // REMOVED checkCurrentTask();
         }
 
-        // NEW: Save stats to localStorage
-        function saveStatsToLocalStorage() {
+        // REVISED function (was saveStatsToLocalStorage)
+        function saveAllDataToLocalStorage() {
             const newToday = getTodayDateString();
 
             if (newToday !== todayDateString) {
@@ -1050,8 +1112,8 @@
                 const yesterdayString = todayDateString;
                 const yesterdayStats = {
                     date: yesterdayString,
-                    totalStudy: studyTimeToday,
-                    totalBreak: breakTimeToday
+                    totalStudy: Math.round(studyTimeToday), // Round on save
+                    totalBreak: Math.round(breakTimeToday) // Round on save
                 };
 
                 // Add to history if there was activity
@@ -1064,17 +1126,28 @@
                 todayDateString = newToday;
                 studyTimeToday = 0;
                 breakTimeToday = 0;
+                questionCountToday = 0; // NEW: Reset question count
             }
 
             // Save current day's stats
             const statsData = {
                 [todayDateString]: {
-                    totalStudy: studyTimeToday,
-                    totalBreak: breakTimeToday
+                    totalStudy: Math.round(studyTimeToday), // Round on save
+                    totalBreak: Math.round(breakTimeToday) // Round on save
                 }
             };
             localStorage.setItem('studyStats', JSON.stringify(statsData));
+
+            // NEW: Save question count
+            const questionData = {
+                [todayDateString]: questionCountToday
+            };
+            localStorage.setItem('questionCount', JSON.stringify(questionData));
+
+            // NEW: Update question counter UI
+            questionCountEl.textContent = questionCountToday;
         }
+
 
         // REMOVED saveTodoListToLocalStorage function
         // REMOVED checkCurrentTask function
@@ -1087,6 +1160,7 @@
             isMinimized = !isMinimized;
             statsDisplay.classList.toggle('ui-hide');
             controlsBar.classList.toggle('ui-hide');
+            // NOTE: questionCounterDisplay is *not* hidden on minimize
         });
 
 
@@ -1095,6 +1169,9 @@
             // If Pomodoro, adjust remainingTime; if Stopwatch, add to elapsedSeconds
             if (timerType === 'pomodoro') {
                 remainingTime += 300; // Add 5 minutes
+                if (isRunning) { // NEW: Adjust end time if running
+                    pomodoroEndTime += 300 * 1000;
+                }
             } else {
                 elapsedSeconds += 300;
             }
@@ -1105,12 +1182,16 @@
             if (timerType === 'pomodoro') {
                 remainingTime -= 300; // Subtract 5 minutes
                 if (remainingTime < 0) remainingTime = 0;
+                if (isRunning) { // NEW: Adjust end time if running
+                    pomodoroEndTime -= 300 * 1000;
+                }
             } else {
                 elapsedSeconds -= 300;
                 if (elapsedSeconds < 0) elapsedSeconds = 0;
             }
             updateTimerDisplay();
         });
+
 
         // --- 12. REMOVED Chat Modal Logic ---
 
@@ -1123,7 +1204,8 @@
             controlsBar,
             timerUIContainer, // MODIFIED
             // REMOVED lastVideoReminder,
-            videoControlsContainer
+            videoControlsContainer,
+            questionCounterDisplay // NEW
         ];
 
         cinemaModeBtn.addEventListener('click', () => {
@@ -1212,127 +1294,146 @@
 
         // --- 18. NEW: Journal Logic ---
 
-            function getTodayJournalDateString() {
-                return new Date().toISOString().split('T')[0];
+        function getTodayJournalDateString() {
+            return new Date().toISOString().split('T')[0];
+        }
+
+        function renderJournalEntries() {
+            // Sort newest first
+            journalEntries.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+            journalEntriesContainer.innerHTML = ''; // Clear existing
+
+            if (journalEntries.length === 0) {
+                // This matches the style of your screenshot
+                journalEntriesContainer.innerHTML = `<p class="text-gray-400 italic text-center mt-8">No entries yet!</p>`;
+                return;
             }
 
-            function renderJournalEntries() {
-                // Sort newest first
-                journalEntries.sort((a, b) => new Date(b.date) - new Date(a.date));
+            journalEntries.forEach(entry => {
+                const entryDate = new Date(entry.date);
+                // Use a nice date format
+                const displayDate = entryDate.toLocaleDateString(undefined, {
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                });
 
-                journalEntriesContainer.innerHTML = ''; // Clear existing
-
-                if (journalEntries.length === 0) {
-                    // This matches the style of your screenshot
-                    journalEntriesContainer.innerHTML = `<p class="text-gray-400 italic text-center mt-8">No entries yet!</p>`;
-                    return;
-                }
-
-                journalEntries.forEach(entry => {
-                    const entryDate = new Date(entry.date);
-                    // Use a nice date format
-                    const displayDate = entryDate.toLocaleDateString(undefined, {
-                        weekday: 'long',
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric'
-                    });
-
-                    const entryEl = document.createElement('div');
-                    entryEl.className = 'bg-gray-700 p-4 rounded-lg';
-                    entryEl.innerHTML = `
+                const entryEl = document.createElement('div');
+                entryEl.className = 'bg-gray-700 p-4 rounded-lg';
+                entryEl.innerHTML = `
             <div class="flex justify-between items-center mb-2">
                 <span class="text-2xl">${entry.mood}</span>
                 <span class="text-sm font-medium text-gray-400">${displayDate}</span>
             </div>
             <p class="text-gray-300 whitespace-pre-wrap">${entry.text}</p>
         `;
-                    journalEntriesContainer.appendChild(entryEl);
-                });
+                journalEntriesContainer.appendChild(entryEl);
+            });
+        }
+
+        function saveJournalEntry() {
+            const entryText = journalTextArea.value.trim();
+            const today = getTodayJournalDateString();
+
+            if (entryText === "") {
+                alert("Please write something in your journal entry.");
+                return;
             }
 
-            function saveJournalEntry() {
-                const entryText = journalTextArea.value.trim();
-                const today = getTodayJournalDateString();
+            // Find if an entry for today already exists
+            const existingEntryIndex = journalEntries.findIndex(entry => entry.date === today);
 
-                if (entryText === "") {
-                    alert("Please write something in your journal entry.");
-                    return;
-                }
-
-                // Find if an entry for today already exists
-                const existingEntryIndex = journalEntries.findIndex(entry => entry.date === today);
-
-                if (existingEntryIndex > -1) {
-                    // Update existing entry
-                    journalEntries[existingEntryIndex].text = entryText;
-                    journalEntries[existingEntryIndex].mood = selectedMood;
-                } else {
-                    // Add new entry
-                    const newEntry = {
-                        date: today,
-                        mood: selectedMood,
-                        text: entryText
-                    };
-                    journalEntries.push(newEntry);
-                }
-
-                // Save to localStorage
-                localStorage.setItem('journalEntries', JSON.stringify(journalEntries));
-                // Re-render the list
-                renderJournalEntries();
-                // Show a saved confirmation
-                journalSaveBtn.textContent = 'Saved!';
-                setTimeout(() => {
-                    journalSaveBtn.textContent = "Save Today's Entry";
-                }, 1500);
+            if (existingEntryIndex > -1) {
+                // Update existing entry
+                journalEntries[existingEntryIndex].text = entryText;
+                journalEntries[existingEntryIndex].mood = selectedMood;
+            } else {
+                // Add new entry
+                const newEntry = {
+                    date: today,
+                    mood: selectedMood,
+                    text: entryText
+                };
+                journalEntries.push(newEntry);
             }
 
-            // --- Event Listeners for Journal ---
+            // Save to localStorage
+            localStorage.setItem('journalEntries', JSON.stringify(journalEntries));
+            // Re-render the list
+            renderJournalEntries();
+            // Show a saved confirmation
+            journalSaveBtn.textContent = 'Saved!';
+            setTimeout(() => {
+                journalSaveBtn.textContent = "Save Today's Entry";
+            }, 1500);
+        }
 
-            journalBtn.addEventListener('click', () => {
-                // 1. Render all past entries
-                renderJournalEntries();
+        // --- Event Listeners for Journal ---
 
-                // 2. Check if there is an entry for today
-                const today = getTodayJournalDateString();
-                const todayEntry = journalEntries.find(entry => entry.date === today);
+        journalBtn.addEventListener('click', () => {
+            // 1. Render all past entries
+            renderJournalEntries();
 
-                if (todayEntry) {
-                    // If so, load it into the editor
-                    journalTextArea.value = todayEntry.text;
-                    selectedMood = todayEntry.mood;
-                } else {
-                    // If not, clear the editor
-                    journalTextArea.value = '';
-                    selectedMood = '😐'; // Reset to default
-                }
+            // 2. Check if there is an entry for today
+            const today = getTodayJournalDateString();
+            const todayEntry = journalEntries.find(entry => entry.date === today);
 
-                // 3. Set the active mood button
-                moodButtons.forEach(b => {
-                    b.classList.toggle('bg-blue-600', b.dataset.mood === selectedMood);
-                });
+            if (todayEntry) {
+                // If so, load it into the editor
+                journalTextArea.value = todayEntry.text;
+                selectedMood = todayEntry.mood;
+            } else {
+                // If not, clear the editor
+                journalTextArea.value = '';
+                selectedMood = '😐'; // Reset to default
+            }
 
-                // 4. Show the modal
-                journalModal.classList.remove('hidden');
+            // 3. Set the active mood button
+            moodButtons.forEach(b => {
+                b.classList.toggle('bg-blue-600', b.dataset.mood === selectedMood);
             });
 
-            journalModalClose.addEventListener('click', () => journalModal.classList.add('hidden'));
-            journalModal.addEventListener('click', (e) => {
-                if (e.target === journalModal) journalModal.classList.add('hidden');
-            });
+            // 4. Show the modal
+            journalModal.classList.remove('hidden');
+        });
 
-            moodButtons.forEach(btn => {
-                btn.addEventListener('click', () => {
-                    // Remove selected style from all
-                    moodButtons.forEach(b => b.classList.remove('bg-blue-600'));
-                    // Add to clicked one
-                    btn.classList.add('bg-blue-600');
-                    selectedMood = btn.dataset.mood;
-                });
-            });
+        journalModalClose.addEventListener('click', () => journalModal.classList.add('hidden'));
+        journalModal.addEventListener('click', (e) => {
+            if (e.target === journalModal) journalModal.classList.add('hidden');
+        });
 
-            journalSaveBtn.addEventListener('click', saveJournalEntry);
+        moodButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                // Remove selected style from all
+                moodButtons.forEach(b => b.classList.remove('bg-blue-600'));
+                // Add to clicked one
+                btn.classList.add('bg-blue-600');
+                selectedMood = btn.dataset.mood;
+            });
+        });
+
+        journalSaveBtn.addEventListener('click', saveJournalEntry);
+
+        // --- 19. NEW: Question Counter Logic ---
+        toggleQuestionCounterBtn.addEventListener('click', () => {
+            questionCounterDisplay.classList.toggle('hidden');
+        });
+
+        questionAddBtn.addEventListener('click', () => {
+            questionCountToday++;
+            questionCountEl.textContent = questionCountToday;
+            saveAllDataToLocalStorage(); // Save on change
+        });
+
+        questionSubtractBtn.addEventListener('click', () => {
+            if (questionCountToday > 0) {
+                questionCountToday--;
+                questionCountEl.textContent = questionCountToday;
+                saveAllDataToLocalStorage(); // Save on change
+            }
+        });
 
         // NEW: Timer Type toggle (Pomodoro <-> Stopwatch)
         timerTypeBtn.addEventListener('click', () => {
@@ -1359,7 +1460,14 @@
 
         // Shortcuts: space toggles play/pause
         window.addEventListener('keydown', (e) => {
-            if (e.code === 'Space') {
+            // Only trigger if no modal is open and not typing in an input
+            const isModalOpen = !timerModal.classList.contains('hidden') ||
+                !resizeModal.classList.contains('hidden') ||
+                !journalModal.classList.contains('hidden');
+            const isTyping = document.activeElement.tagName === 'INPUT' ||
+                document.activeElement.tagName === 'TEXTAREA';
+
+            if (e.code === 'Space' && !isModalOpen && !isTyping) {
                 e.preventDefault();
                 if (isRunning) pauseTimer(); else startTimer();
             }
@@ -1500,7 +1608,7 @@
                                 const level = qualitySelect.value;
                                 if (level === 'auto') ytPlayer.setPlaybackQualityRange();
                                 else ytPlayer.setPlaybackQuality(level);
-                            });
+D                            });
                         },
 
                         onError: (e) => console.error('YouTube Player Error:', e.data)
