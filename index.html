@@ -873,11 +873,10 @@
                         lastSaveTimestamp = now;
                     }
 
+                    // --- MODIFICATION START ---
                     if (remainingTime <= 0) {
                         clearInterval(timerInterval);
                         isRunning = false;
-                        playIcon.classList.remove('hidden');
-                        pauseIcon.classList.add('hidden');
                         alarmSound.play();
 
                         // Force stats to be whole numbers at the end of a session
@@ -887,14 +886,19 @@
                         saveAllDataToLocalStorage();
                         updateTodayStatsUI(); // Update UI with rounded stats
 
-                        toggleMode();
+                        toggleMode(); // This switches the mode (e.g., study to break) and resets the timer
+
+                        // Automatically start the new timer after a 1-second delay
                         setTimeout(() => {
-                            resetTimer();
-                        }, 1000);
+                            startTimer();
+                        }, 1000); 
+                        
                     } else {
                         // Update stats UI continuously
                         updateTodayStatsUI();
                     }
+                    // --- MODIFICATION END ---
+                    
                     // --- END REVISED Logic ---
                 }, 1000);
             } else {
