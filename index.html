@@ -7,7 +7,7 @@
     <title>Focus Timer</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* NEW: Fix for fullscreen white line */
+        /* Fix for fullscreen white line */
         html,
         body {
             height: 100%;
@@ -28,9 +28,34 @@
             transform: translateX(-50%) translateY(-50%);
             z-index: -10;
             pointer-events: none;
-            /* Allows clicking through the video */
             object-fit: cover;
-            /* Ensures video covers the screen */
+        }
+
+        /* Background Image Style */
+        #bg-image {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: -5;
+            /* Above video (-10) but behind effects */
+            display: none;
+            /* Hidden by default */
+        }
+
+        /* Animation Canvas (Snow/Rain) */
+        #effect-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            /* Allows clicking through */
+            z-index: 5;
+            /* Above background, below UI */
         }
 
         body {
@@ -42,14 +67,6 @@
         /* Custom styles for text shadow to make text readable on any background */
         .text-shadow {
             text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
-        }
-
-        /* Top-right: time left until next hour */
-        #top-hour-left {}
-
-        #top-hour-left-text {
-            font-size: 0.95rem;
-            color: rgba(255, 255, 255, 0.92);
         }
 
         /* Style for the progress bar */
@@ -70,8 +87,6 @@
             transition: width 0.5s ease;
         }
 
-        /* --- REMOVED To-Do List Styles --- */
-
         /* --- Add/Subtract Time Button Styles --- */
         #timer-wrapper {
             position: relative;
@@ -87,10 +102,8 @@
             cursor: pointer;
             padding: 1rem;
             opacity: 0;
-            /* Hidden by default */
             transition: opacity 0.2s ease-in-out, color 0.2s ease-in-out;
             user-select: none;
-            /* Prevent text selection */
         }
 
         .time-adjust-btn:hover {
@@ -99,7 +112,6 @@
 
         #timer-wrapper:hover .time-adjust-btn {
             opacity: 1;
-            /* Show on hover */
         }
 
         #subtract-time-btn {
@@ -110,12 +122,9 @@
             right: -80px;
         }
 
-        /* --- REMOVED Minimize Styles --- */
         .control-btn {
             transition: all 0.3s ease;
         }
-
-        /* --- REMOVED Chat Modal Styles --- */
 
         /* --- Video Seek Bar Styles --- */
         #video-seek-bar {
@@ -132,7 +141,6 @@
 
         #video-seek-bar:hover {
             height: 10px;
-            /* Make it easier to click */
         }
 
         #video-seek-bar::-webkit-progress-bar {
@@ -150,20 +158,15 @@
             border-radius: 3px;
         }
 
-        /* --- REMOVED: Draggable Timer Styles --- */
-
         /* --- Resizable Timer Style --- */
         #timer-display {
-            /* Use CSS variable for font size, default to 10rem */
             font-size: var(--timer-font-size, 10rem);
         }
 
-        /* --- NEW: Editable Subtext Style --- */
+        /* --- Editable Subtext Style --- */
         #custom-text-input {
             font-size: var(--timer-subtext-font-size, 2rem);
-            /* Default to 2rem */
             font-family: 'serif';
-            /* Aesthetic font */
             font-style: italic;
             color: white;
             text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
@@ -174,16 +177,13 @@
             text-align: center;
             width: 100%;
             max-width: 600px;
-            /* Limit width */
             margin-top: 0.5rem;
-            /* Space from progress bar */
         }
 
         #custom-text-input::placeholder {
             color: rgba(255, 255, 255, 0.4);
             font-style: italic;
         }
-
 
         /* --- UI Hide Style (for Cinema and Minimize) --- */
         .ui-hide {
@@ -196,24 +196,15 @@
 
 <body class="bg-black text-white">
 
+    <img id="bg-image" alt="Background">
+    <canvas id="effect-canvas"></canvas>
     <video id="bg-video" muted loop playsinline autoplay></video>
     <div id="youtube-bg"
         style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);min-width:100%;min-height:100%;z-index:-10;pointer-events:none;">
     </div>
 
-
     <input type="file" id="video-file-input" accept="video/*" class="hidden">
-
-    <div id="stats-display" class="fixed top-4 right-6 z-20 text-right text-shadow transition-opacity duration-300">
-        <div class="text-lg font-semibold">Today's Focus</div>
-        <div id="stats-study" class="text-base">0m 0s</div>
-        <div class="text-lg font-semibold mt-2">Today's Break</div>
-        <div id="stats-break" class="text-base">0m 0s</div>
-
-        <div id="top-hour-left" class="mt-3 text-right">
-            <div id="top-hour-left-text" class="text-sm font-medium text-shadow"></div>
-        </div>
-    </div>
+    <input type="file" id="image-file-input" accept="image/*" class="hidden">
 
     <div id="question-counter-display"
         class="fixed top-4 left-6 z-20 text-left text-shadow transition-opacity duration-300 hidden">
@@ -230,7 +221,7 @@
     <div id="timer-ui-container" class="flex flex-col justify-center items-center h-full w-full relative z-10">
 
         <div id="current-mode-display" class="text-3xl font-serif italic text-shadow opacity-80 mb-2">
-            </div>
+        </div>
 
         <div id="timer-wrapper" class="relative">
             <div id="timer-container" class="text-center">
@@ -241,12 +232,14 @@
                     <div id="progress-bar-inner" class="progress-bar-inner"></div>
                 </div>
                 <input type="text" id="custom-text-input" placeholder="What are you working on?">
+                <div id="top-hour-left-text" class="mt-3 text-sm font-medium text-white/60 text-shadow tracking-wide">
+                </div>
             </div>
             <button id="subtract-time-btn" class="time-adjust-btn" title="Subtract 5 minutes">-</button>
             <button id="add-time-btn" class="time-adjust-btn" title="Add 5 minutes">+</button>
         </div>
 
-        </div>
+    </div>
 
     <div id="video-controls-container" class="fixed bottom-32 left-1/2 -translate-x-1/2 w-full max-w-xl z-20 hidden">
         <div class="flex items-center space-x-4 bg-black/30 backdrop-blur-md p-3 rounded-full shadow-lg mx-auto w-full">
@@ -270,7 +263,6 @@
         </div>
     </div>
 
-
     <div id="controls-bar"
         class="fixed bottom-0 left-0 w-full flex justify-center p-6 z-20 transition-opacity duration-300">
         <div class="flex items-center space-x-2 bg-black/30 backdrop-blur-md p-3 rounded-full shadow-lg">
@@ -280,7 +272,7 @@
                     xmlns="http://www.w3.org/2000/svg">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                 </svg>
-                </button>
+            </button>
             <button id="cinema-mode-btn" title="Cinema Mode (Click anywhere to exit)"
                 class="control-btn p-3 text-white/80 hover:text-white hover:bg-white/20 rounded-full transition-all">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"
@@ -388,7 +380,8 @@
                     xmlns="http://www.w3.org/2000/svg">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z">
-                        </th_svg>
+                    </path>
+                </svg>
             </button>
             <button id="set-video-btn" title="Select Local Video"
                 class="control-btn p-3 text-white/80 hover:text-white hover:bg-white/20 rounded-full transition-all">
@@ -420,8 +413,38 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5v14l11-7z"></path>
                 </svg>
             </button>
-            
-            </div>
+
+            <button id="set-image-btn" title="Set Background Image"
+                class="control-btn p-3 text-white/80 hover:text-white hover:bg-white/20 rounded-full transition-all">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z">
+                    </path>
+                </svg>
+            </button>
+
+            <button id="toggle-snow-btn" title="Toggle Snow"
+                class="control-btn p-3 text-white/80 hover:text-white hover:bg-white/20 rounded-full transition-all">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z">
+                    </path>
+                </svg>
+            </button>
+
+            <button id="toggle-rain-btn" title="Toggle Rain"
+                class="control-btn p-3 text-white/80 hover:text-white hover:bg-white/20 rounded-full transition-all">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M19 14l-7 7m0 0l-7-7m7 7V3">
+                    </path>
+                </svg>
+            </button>
+
+        </div>
     </div>
 
     <div id="timer-modal"
@@ -511,8 +534,6 @@
 
     <script type="module">
         // --- 0. App State & Config ---
-        // REMOVED ALL FIREBASE VARIABLES
-
         // Timer state
         let timerInterval = null;
         let studyDuration = 25 * 60;
@@ -521,33 +542,30 @@
         let isRunning = false;
         let currentMode = 'study'; // 'study' or 'break'
 
-        // NEW: timer type and stopwatch elapsed
+        // timer type and stopwatch elapsed
         let timerType = 'pomodoro'; // 'pomodoro' or 'stopwatch'
         let elapsedSeconds = 0; // used only in stopwatch mode
-        let pomodoroEndTime = 0; // NEW: For countdown correction
-        let lastTickTime = 0;    // NEW: For stopwatch/stats correction
+        let pomodoroEndTime = 0;
+        let lastTickTime = 0;
 
         // Local stats state
         let studyTimeToday = 0;
         let breakTimeToday = 0;
         let todayDateString = getTodayDateString();
         let lastSaveTimestamp = 0;
-        let statsHistory = []; // NEW
+        let statsHistory = [];
 
         // UI state
-        // REMOVED todoList
-        // REMOVED chatHistory
         let isMinimized = false;
 
-        // ... after let isMinimized = false; ...
-        // NEW Journal State
+        // Journal State
         let journalEntries = [];
         let selectedMood = '😐'; // Default
 
-        // NEW Question Counter State
+        // Question Counter State
         let questionCountToday = 0;
 
-        // NEW: YouTube + Video Player State
+        // YouTube + Video Player State
         let activePlayer = 'local'; // 'local' or 'youtube'
         let isYouTubeApiReady = false;
         let videoIdToLoad = null;
@@ -562,14 +580,12 @@
         const pauseIcon = document.getElementById('pause-icon');
         const resetBtn = document.getElementById('reset-btn');
         const alarmSound = document.getElementById('alarm-sound');
-        const currentModeDisplay = document.getElementById('current-mode-display'); // NEW
-        // NOTE: replaced original toggle-mode-btn with switch-mode-btn + timer-type-btn
+        const currentModeDisplay = document.getElementById('current-mode-display');
         const switchModeBtn = document.getElementById('switch-mode-btn');
         const timerTypeBtn = document.getElementById('timer-type-btn');
-        const customTextInput = document.getElementById('custom-text-input'); // NEW
+        const customTextInput = document.getElementById('custom-text-input');
 
-        // ... after const customTextInput ...
-        // NEW Journal UI
+        // Journal UI
         const journalBtn = document.getElementById('journal-btn');
         const journalModal = document.getElementById('journal-modal');
         const journalModalClose = document.getElementById('journal-modal-close');
@@ -578,38 +594,30 @@
         const journalEntriesContainer = document.getElementById('journal-entries-container');
         const moodButtons = document.querySelectorAll('.mood-btn');
 
-        // NEW Question Counter UI
+        // Question Counter UI
         const toggleQuestionCounterBtn = document.getElementById('toggle-question-counter-btn');
         const questionCounterDisplay = document.getElementById('question-counter-display');
         const questionCountEl = document.getElementById('question-count-el');
         const questionAddBtn = document.getElementById('question-add-btn');
         const questionSubtractBtn = document.getElementById('question-subtract-btn');
 
-        // Stats UI
-        const statsDisplay = document.getElementById('stats-display');
-        const statsStudyEl = document.getElementById('stats-study');
-        const statsBreakEl = document.getElementById('stats-break');
-        // NEW element for hour-left
+        // Stats UI (Elements removed from HTML, setting to null)
+        const statsDisplay = null;
+        const statsStudyEl = null;
+        const statsBreakEl = null;
+
+        // Re-targeted to new element inside timer container
         const topHourLeftTextEl = document.getElementById('top-hour-left-text');
-        // REMOVED connectionStatus
-
-
 
         // Minimize UI
         const controlsBar = document.getElementById('controls-bar');
         const minimizeBtn = document.getElementById('minimize-btn');
-        // REMOVED minimizeIcon, maximizeIcon
 
         // Time adjust UI
         const addTimeBtn = document.getElementById('add-time-btn');
         const subtractTimeBtn = document.getElementById('subtract-time-btn');
 
-        // --- 1. REMOVED Gemini API Configuration ---
-        // REMOVED apiKey, genApiUrl, callGemini
-
-        // --- 2. REMOVED Firebase Section ---
-
-        // --- 3. Background Video Logic ---
+        // --- Background Video Logic ---
         const videoPlayer = document.getElementById('bg-video');
         const videoFileInput = document.getElementById('video-file-input');
         const setVideoBtn = document.getElementById('set-video-btn');
@@ -624,6 +632,13 @@
         // YOUTUBE
         const youtubeContainer = document.getElementById('youtube-bg');
         const setYoutubeBtn = document.getElementById('set-youtube-btn');
+
+        // --- NEW: Image & Animation Elements ---
+        const imageFileInput = document.getElementById('image-file-input');
+        const bgImageEl = document.getElementById('bg-image');
+        const setImageBtn = document.getElementById('set-image-btn');
+        const toggleSnowBtn = document.getElementById('toggle-snow-btn');
+        const toggleRainBtn = document.getElementById('toggle-rain-btn');
 
 
         setVideoBtn.addEventListener('click', () => {
@@ -649,9 +664,10 @@
                 unmuteIcon.classList.remove('hidden');
                 muteIcon.classList.add('hidden');
 
-                // NEW: Set active player and switch UI
+                // Set active player and switch UI
                 activePlayer = 'local';
                 videoPlayer.style.display = 'block';
+                bgImageEl.style.display = 'none'; // Hide image
                 if (ytPlayer) ytPlayer.pauseVideo();
                 youtubeContainer.style.display = 'none';
 
@@ -671,13 +687,11 @@
             return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
         }
 
-        // --- REFACTORED: Video Control Listeners ---
-
-        // --- Local Video Listeners ---
+        // --- Video Control Listeners ---
         function localVideoTimeUpdate() {
             if (isNaN(videoPlayer.duration)) return;
             videoSeekBar.value = videoPlayer.currentTime;
-            videoSeekBar.max = videoPlayer.duration; // Ensure max is set
+            videoSeekBar.max = videoPlayer.duration;
             videoTimeDisplay.textContent = `${formatVideoTime(videoPlayer.currentTime)} / ${formatVideoTime(videoPlayer.duration)}`;
         }
         function localVideoLoadedMetadata() {
@@ -708,7 +722,7 @@
             if (ytPlayer && ytPlayer.getDuration) {
                 const duration = ytPlayer.getDuration();
                 const currentTime = ytPlayer.getCurrentTime();
-                videoSeekBar.max = duration; // Set max for clicking
+                videoSeekBar.max = duration;
                 videoSeekBar.value = currentTime;
                 videoTimeDisplay.textContent = `${formatVideoTime(currentTime)} / ${formatVideoTime(duration)}`;
             }
@@ -741,13 +755,10 @@
 
         // --- Wiring Functions ---
         function rewireControlsForLocalPlayer() {
-            if (ytSeekBarInterval) clearInterval(ytSeekBarInterval); // Stop YT updater
-
-            // Remove YT Listeners
+            if (ytSeekBarInterval) clearInterval(ytSeekBarInterval);
             videoSeekBar.removeEventListener('click', youtubeVideoSeekClick);
             videoPlayPauseBtn.removeEventListener('click', youtubeVideoPlayPauseClick);
 
-            // Add Local Listeners
             videoPlayer.addEventListener('timeupdate', localVideoTimeUpdate);
             videoPlayer.addEventListener('loadedmetadata', localVideoLoadedMetadata);
             videoSeekBar.addEventListener('click', localVideoSeekClick);
@@ -755,15 +766,12 @@
             videoPlayer.addEventListener('play', localVideoPlayEvent);
             videoPlayer.addEventListener('pause', localVideoPauseEvent);
 
-            // Sync UI
             if (videoPlayer.paused) localVideoPauseEvent(); else localVideoPlayEvent();
-            localVideoTimeUpdate(); // Update time display immediately
+            localVideoTimeUpdate();
         }
 
         function rewireControlsForYouTubePlayer() {
-            if (ytSeekBarInterval) clearInterval(ytSeekBarInterval); // Clear just in case
-
-            // Remove Local Listeners
+            if (ytSeekBarInterval) clearInterval(ytSeekBarInterval);
             videoPlayer.removeEventListener('timeupdate', localVideoTimeUpdate);
             videoPlayer.removeEventListener('loadedmetadata', localVideoLoadedMetadata);
             videoSeekBar.removeEventListener('click', localVideoSeekClick);
@@ -771,45 +779,35 @@
             videoPlayer.removeEventListener('play', localVideoPlayEvent);
             videoPlayer.removeEventListener('pause', localVideoPauseEvent);
 
-            // Add YT Listeners
             videoSeekBar.addEventListener('click', youtubeVideoSeekClick);
             videoPlayPauseBtn.addEventListener('click', youtubeVideoPlayPauseClick);
 
-            // Start YT seekbar interval
-            ytSeekBarInterval = setInterval(youtubeVideoSeekUpdate, 500); // 500ms update
+            ytSeekBarInterval = setInterval(youtubeVideoSeekUpdate, 500);
 
-            // Sync UI
             if (ytPlayer && typeof ytPlayer.getPlayerState === 'function') {
                 youtubeVideoStateChange({ data: ytPlayer.getPlayerState() });
             }
         }
-        
-        // --- END REFACTORED Video Control Listeners ---
-        
-        // --- 4. Timer Logic ---
+
+        // --- Timer Logic ---
         function updateTimerDisplay() {
             if (timerType === 'pomodoro') {
                 const duration = (currentMode === 'study') ? studyDuration : breakDuration;
-                // Use Math.round for display to avoid flickering
                 const displayTime = Math.round(remainingTime);
                 const minutes = Math.floor(displayTime / 60);
                 const seconds = displayTime % 60;
                 timerDisplay.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
 
-                // Prevent progress bar from going over 100% if time is added
                 const progress = (displayTime / duration) * 100;
                 progressBar.style.width = `${Math.min(100, progress)}%`;
                 progressBar.parentElement.style.display = '';
             } else {
-                // Stopwatch mode: show HH:MM:SS (hours optional)
-                // Use Math.round for display
                 const displayTime = Math.round(elapsedSeconds);
                 const hs = Math.floor(displayTime / 3600);
                 const ms = Math.floor((displayTime % 3600) / 60);
                 const ss = displayTime % 60;
                 const hstr = hs > 0 ? `${String(hs).padStart(2, '0')}:` : '';
                 timerDisplay.textContent = `${hstr}${String(ms).padStart(2, '0')}:${String(ss).padStart(2, '0')}`;
-                // hide progress bar for stopwatch
                 progressBar.style.width = `0%`;
                 progressBar.parentElement.style.display = 'none';
             }
@@ -822,12 +820,9 @@
         }
 
         function updateTodayStatsUI() {
-            // NEW: Round the stats for display
-            statsStudyEl.textContent = formatTime(Math.round(studyTimeToday));
-            statsBreakEl.textContent = formatTime(Math.round(breakTimeToday));
+            if (statsStudyEl) statsStudyEl.textContent = formatTime(Math.round(studyTimeToday));
+            if (statsBreakEl) statsBreakEl.textContent = formatTime(Math.round(breakTimeToday));
         }
-
-        // REMOVED fetchMotivation function
 
         function startTimer() {
             if (isRunning) return;
@@ -835,99 +830,77 @@
             playIcon.classList.add('hidden');
             pauseIcon.classList.remove('hidden');
 
-            // NEW: Set reference time for delta calculation
             lastTickTime = Date.now();
 
-            // If Pomodoro: countdown; if Stopwatch: count up
             if (timerType === 'pomodoro') {
-                // NEW: Set the target end time
                 pomodoroEndTime = Date.now() + (remainingTime * 1000);
 
                 timerInterval = setInterval(() => {
-                    // --- REVISED Pomodoro Logic ---
                     const now = Date.now();
-                    // Get float seconds passed since last tick
                     const deltaSeconds = (now - lastTickTime) / 1000.0;
                     lastTickTime = now;
 
-                    // Update stats with actual time passed
                     if (currentMode === 'study') {
                         studyTimeToday += deltaSeconds;
                     } else {
                         breakTimeToday += deltaSeconds;
                     }
 
-                    // Calculate new remaining time from the *absolute* end time
-                    // This is now a float
                     remainingTime = (pomodoroEndTime - now) / 1000.0;
 
                     if (remainingTime < 0) {
                         remainingTime = 0;
                     }
 
-                    updateTimerDisplay(); // Update display with new remaining time
+                    updateTimerDisplay();
 
-                    // Save stats periodically
                     if (now - lastSaveTimestamp > 5000) {
                         saveAllDataToLocalStorage();
                         lastSaveTimestamp = now;
                     }
 
-                    // --- MODIFICATION START ---
                     if (remainingTime <= 0) {
                         clearInterval(timerInterval);
                         isRunning = false;
                         alarmSound.play();
 
-                        // Force stats to be whole numbers at the end of a session
                         studyTimeToday = Math.round(studyTimeToday);
                         breakTimeToday = Math.round(breakTimeToday);
 
                         saveAllDataToLocalStorage();
-                        updateTodayStatsUI(); // Update UI with rounded stats
+                        updateTodayStatsUI();
 
-                        toggleMode(); // This switches the mode (e.g., study to break) and resets the timer
+                        toggleMode();
 
-                        // Automatically start the new timer after a 1-second delay
                         setTimeout(() => {
                             startTimer();
-                        }, 1000); 
-                        
+                        }, 1000);
+
                     } else {
-                        // Update stats UI continuously
                         updateTodayStatsUI();
                     }
-                    // --- MODIFICATION END ---
-                    
-                    // --- END REVISED Logic ---
                 }, 1000);
             } else {
-                // Stopwatch mode
                 timerInterval = setInterval(() => {
-                    // --- REVISED Stopwatch Logic ---
                     const now = Date.now();
-                    // Get float seconds passed since last tick
                     const deltaSeconds = (now - lastTickTime) / 1000.0;
                     lastTickTime = now;
 
                     elapsedSeconds += deltaSeconds;
 
-                    // Increment stats with actual time passed
                     if (currentMode === 'study') {
                         studyTimeToday += deltaSeconds;
                     } else {
                         breakTimeToday += deltaSeconds;
                     }
-                    updateTodayStatsUI(); // Update stats UI continuously
+                    updateTodayStatsUI();
 
-                    // Save stats periodically
                     if (now - lastSaveTimestamp > 5000) {
                         saveAllDataToLocalStorage();
                         lastSaveTimestamp = now;
                     }
 
                     updateTimerDisplay();
-                    // --- END REVISED Logic ---
                 }, 1000);
             }
         }
@@ -940,25 +913,19 @@
             pauseIcon.classList.add('hidden');
             clearInterval(timerInterval);
 
-            // --- NEW: Recalculate time passed on pause ---
-            // This captures any final fractions of a second
             const now = Date.now();
             const deltaSeconds = (now - lastTickTime) / 1000.0;
 
             if (timerType === 'pomodoro') {
-                // remainingTime is already being calculated from pomodoroEndTime
-                // but we need to update stats
                 if (currentMode === 'study') {
                     studyTimeToday += deltaSeconds;
                 } else {
                     breakTimeToday += deltaSeconds;
                 }
-                // Recalculate exact remaining time on pause
                 remainingTime = (pomodoroEndTime - now) / 1000.0;
                 if (remainingTime < 0) remainingTime = 0;
 
             } else {
-                // stopwatch
                 elapsedSeconds += deltaSeconds;
                 if (currentMode === 'study') {
                     studyTimeToday += deltaSeconds;
@@ -967,14 +934,12 @@
                 }
             }
 
-            // Round stats for saving
             studyTimeToday = Math.round(studyTimeToday);
             breakTimeToday = Math.round(breakTimeToday);
 
-            // Save progress on pause
             saveAllDataToLocalStorage();
             updateTodayStatsUI();
-            updateTimerDisplay(); // Update display with precise paused time
+            updateTimerDisplay();
         }
 
         function resetTimer() {
@@ -985,18 +950,16 @@
                 elapsedSeconds = 0;
             }
 
-            // Round stats just in case
             studyTimeToday = Math.round(studyTimeToday);
             breakTimeToday = Math.round(breakTimeToday);
 
             updateTimerDisplay();
             updateTodayStatsUI();
 
-            currentModeDisplay.textContent = (currentMode === 'study') ? 'Studying' : 'Break'; // NEW
+            currentModeDisplay.textContent = (currentMode === 'study') ? 'Studying' : 'Break';
         }
 
         function toggleMode() {
-            // toggles study <-> break (keeps timerType as-is)
             pauseTimer();
             if (currentMode === 'study') {
                 currentMode = 'break';
@@ -1012,10 +975,8 @@
             resetTimer();
         }
 
-        // Wire the switch-mode button (Study/Break)
         switchModeBtn.addEventListener('click', toggleMode);
 
-        // Update play/pause button behavior
         playBtn.addEventListener('click', () => {
             if (isRunning) {
                 pauseTimer();
@@ -1025,7 +986,7 @@
         });
         resetBtn.addEventListener('click', resetTimer);
 
-        // --- 6. Timer Modal Logic ---
+        // --- Timer Modal Logic ---
         const timerModal = document.getElementById('timer-modal');
         const setTimerBtn = document.getElementById('set-timer-btn');
         const studyTimerInput = document.getElementById('study-timer-input');
@@ -1047,7 +1008,6 @@
                 breakDuration = breakMinutes * 60;
             }
 
-            // Reset timer to apply new duration
             if (currentMode === 'study') {
                 remainingTime = studyDuration;
             } else {
@@ -1061,14 +1021,13 @@
             if (e.target === timerModal) timerModal.classList.add('hidden');
         });
 
-        // --- 7. Mute/Unmute Logic ---
+        // --- Mute/Unmute Logic ---
         const toggleMuteBtn = document.getElementById('toggle-mute-btn');
         const muteIcon = document.getElementById('mute-icon');
         const unmuteIcon = document.getElementById('unmute-icon');
-        let isMuted = true; // Starts muted
+        let isMuted = true;
 
         toggleMuteBtn.addEventListener('click', () => {
-            // REFACTORED: Mute/Unmute both players
             if (activePlayer === 'local') {
                 if (!videoPlayer.src) return;
                 videoPlayer.muted = !videoPlayer.muted;
@@ -1083,7 +1042,6 @@
                 }
             }
 
-            // Sync icon
             if (isMuted) {
                 unmuteIcon.classList.remove('hidden');
                 muteIcon.classList.add('hidden');
@@ -1093,26 +1051,16 @@
             }
         });
 
-
-        // --- 8. REMOVED Manual To-Do List Logic ---
-        // REMOVED all todo elements and functions
-
-        // --- 9. REMOVED Stats History Modal Logic ---
-        // REMOVED all stats modal elements and functions
-
-        // --- 10. Core Data & Task Logic ---
-
-        function getTodayDateString(date = new Date()) { // Added param
-            const now = new Date(date.getTime()); // Clone date
-            if (now.getHours() < 5) { // Resets at 5 AM
+        // --- Core Data & Task Logic ---
+        function getTodayDateString(date = new Date()) {
+            const now = new Date(date.getTime());
+            if (now.getHours() < 5) {
                 now.setDate(now.getDate() - 1);
             }
             return now.toISOString().split('T')[0];
         }
 
-        // NEW: Load data from localStorage on startup
         function loadDataFromLocalStorage() {
-            // 1. Load Stats
             const savedStatsJSON = localStorage.getItem('studyStats');
             todayDateString = getTodayDateString();
 
@@ -1120,17 +1068,14 @@
                 try {
                     const savedStats = JSON.parse(savedStatsJSON);
                     if (savedStats[todayDateString]) {
-                        // It's the same day, load the stats
                         studyTimeToday = savedStats[todayDateString].totalStudy || 0;
                         breakTimeToday = savedStats[todayDateString].totalBreak || 0;
                     }
-                    // If it's a new day, the stats will be reset by saveAllDataToLocalStorage()
                 } catch (e) {
                     console.error("Failed to parse saved stats", e);
                 }
             }
 
-            // 2. Load History
             const savedHistoryJSON = localStorage.getItem('statsHistory');
             if (savedHistoryJSON) {
                 try {
@@ -1141,30 +1086,19 @@
                 }
             }
 
-            // 3. REMOVED Load To-Do List
-
-            // 4. REMOVED Load last video name
-
-            // 5. NEW: Load Timer Size
             const savedTimerSize = localStorage.getItem('timerSize');
-            const savedTimerSubSize = localStorage.getItem('timerSubSize'); // NEW: Load sub size
-            if (savedTimerSize && savedTimerSubSize) { // MODIFIED
+            const savedTimerSubSize = localStorage.getItem('timerSubSize');
+            if (savedTimerSize && savedTimerSubSize) {
                 document.documentElement.style.setProperty('--timer-font-size', `${savedTimerSize}rem`);
-                document.documentElement.style.setProperty('--timer-subtext-font-size', `${savedTimerSubSize}rem`); // NEW: Set sub size
+                document.documentElement.style.setProperty('--timer-subtext-font-size', `${savedTimerSubSize}rem`);
                 document.getElementById('timer-size-slider').value = savedTimerSize;
             }
 
-            // 6. REMOVED: Load Timer Position
-
-            // ... inside loadDataFromLocalStorage() ...
-
-            // 7. NEW: Load Custom Text
             const savedCustomText = localStorage.getItem('customTimerText');
             if (savedCustomText) {
                 customTextInput.value = savedCustomText;
             }
 
-            // 8. NEW: Load Journal
             const savedJournalJSON = localStorage.getItem('journalEntries');
             if (savedJournalJSON) {
                 try {
@@ -1175,7 +1109,6 @@
                 }
             }
 
-            // 9. NEW: Load Question Count
             const savedQuestionCountJSON = localStorage.getItem('questionCount');
             if (savedQuestionCountJSON) {
                 try {
@@ -1189,80 +1122,60 @@
                 }
             }
 
-            // 10. Render UI
             updateTodayStatsUI();
-            questionCountEl.textContent = questionCountToday; // NEW
-            // REMOVED renderTodoList();
-            // REMOVED checkCurrentTask();
+            questionCountEl.textContent = questionCountToday;
         }
 
-        // REVISED function (was saveStatsToLocalStorage)
         function saveAllDataToLocalStorage() {
             const newToday = getTodayDateString();
 
             if (newToday !== todayDateString) {
-                // Day has rolled over. Save old day to history.
                 const yesterdayString = todayDateString;
                 const yesterdayStats = {
                     date: yesterdayString,
-                    totalStudy: Math.round(studyTimeToday), // Round on save
-                    totalBreak: Math.round(breakTimeToday) // Round on save
+                    totalStudy: Math.round(studyTimeToday),
+                    totalBreak: Math.round(breakTimeToday)
                 };
 
-                // Add to history if there was activity
                 if (yesterdayStats.totalStudy > 0 || yesterdayStats.totalBreak > 0) {
                     statsHistory.push(yesterdayStats);
                     localStorage.setItem('statsHistory', JSON.stringify(statsHistory));
                 }
 
-                // Reset counters for new day
                 todayDateString = newToday;
                 studyTimeToday = 0;
                 breakTimeToday = 0;
-                questionCountToday = 0; // NEW: Reset question count
+                questionCountToday = 0;
             }
 
-            // Save current day's stats
             const statsData = {
                 [todayDateString]: {
-                    totalStudy: Math.round(studyTimeToday), // Round on save
-                    totalBreak: Math.round(breakTimeToday) // Round on save
+                    totalStudy: Math.round(studyTimeToday),
+                    totalBreak: Math.round(breakTimeToday)
                 }
             };
             localStorage.setItem('studyStats', JSON.stringify(statsData));
 
-            // NEW: Save question count
             const questionData = {
                 [todayDateString]: questionCountToday
             };
             localStorage.setItem('questionCount', JSON.stringify(questionData));
 
-            // NEW: Update question counter UI
             questionCountEl.textContent = questionCountToday;
         }
 
-
-        // REMOVED saveTodoListToLocalStorage function
-        // REMOVED checkCurrentTask function
-        // REMOVED setInterval(checkCurrentTask, 30000);
-
-        // --- 11. New UI Logic ---
-
-        // MODIFIED: Minimize Button Logic
+        // --- UI Logic ---
         minimizeBtn.addEventListener('click', () => {
             isMinimized = !isMinimized;
-            statsDisplay.classList.toggle('ui-hide');
+            if (statsDisplay) statsDisplay.classList.toggle('ui-hide'); // Check for null
             controlsBar.classList.toggle('ui-hide');
-            // NOTE: questionCounterDisplay is *not* hidden on minimize
         });
 
 
-        // Add/Subtract Time Buttons
         addTimeBtn.addEventListener('click', () => {
-            // If Pomodoro, adjust remainingTime; if Stopwatch, add to elapsedSeconds
             if (timerType === 'pomodoro') {
-                remainingTime += 300; // Add 5 minutes
-                if (isRunning) { // NEW: Adjust end time if running
+                remainingTime += 300;
+                if (isRunning) {
                     pomodoroEndTime += 300 * 1000;
                 }
             } else {
@@ -1273,9 +1186,9 @@
 
         subtractTimeBtn.addEventListener('click', () => {
             if (timerType === 'pomodoro') {
-                remainingTime -= 300; // Subtract 5 minutes
+                remainingTime -= 300;
                 if (remainingTime < 0) remainingTime = 0;
-                if (isRunning) { // NEW: Adjust end time if running
+                if (isRunning) {
                     pomodoroEndTime -= 300 * 1000;
                 }
             } else {
@@ -1285,51 +1198,42 @@
             updateTimerDisplay();
         });
 
-
-        // --- 12. REMOVED Chat Modal Logic ---
-
-        // --- 13. NEW: Cinema Mode Logic ---
+        // --- Cinema Mode Logic ---
         const cinemaModeBtn = document.getElementById('cinema-mode-btn');
-        const timerUIContainer = document.getElementById('timer-ui-container'); // MODIFIED
+        const timerUIContainer = document.getElementById('timer-ui-container');
 
         const UIElementsToHide = [
             statsDisplay,
             controlsBar,
-            timerUIContainer, // MODIFIED
-            // REMOVED lastVideoReminder,
+            timerUIContainer,
             videoControlsContainer,
-            questionCounterDisplay // NEW
-        ];
+            questionCounterDisplay
+        ].filter(el => el !== null); // Filter out any null elements
 
         cinemaModeBtn.addEventListener('click', () => {
             UIElementsToHide.forEach(el => el.classList.add('ui-hide'));
         });
 
-        // MODIFIED: Click listener for both Cinema and Minimize
         document.documentElement.addEventListener('click', (e) => {
-            // Check if UI is hidden by Cinema Mode
-            if (controlsBar.classList.contains('ui-hide') && timerUIContainer.classList.contains('ui-hide')) { // MODIFIED
-                // Check if the click was NOT on a button (to avoid double-clicks)
+            if (controlsBar.classList.contains('ui-hide') && timerUIContainer.classList.contains('ui-hide')) {
                 if (e.target.tagName !== 'BUTTON' && !e.target.closest('button')) {
                     UIElementsToHide.forEach(el => el.classList.remove('ui-hide'));
                 }
             }
-            // Check if UI is hidden by Minimize Mode
             else if (controlsBar.classList.contains('ui-hide')) {
                 if (e.target.tagName !== 'BUTTON' && !e.target.closest('button')) {
-                    statsDisplay.classList.remove('ui-hide');
+                    if (statsDisplay) statsDisplay.classList.remove('ui-hide');
                     controlsBar.classList.remove('ui-hide');
                     isMinimized = false;
                 }
             }
         });
 
-        // --- 14. NEW: Resize Timer Logic ---
+        // --- Resize Timer Logic ---
         const resizeTimerBtn = document.getElementById('resize-timer-btn');
         const resizeModal = document.getElementById('resize-modal');
         const resizeModalOk = document.getElementById('resize-modal-ok');
         const timerSizeSlider = document.getElementById('timer-size-slider');
-        // REMOVED resetPositionBtn
 
         resizeTimerBtn.addEventListener('click', () => resizeModal.classList.remove('hidden'));
         resizeModalOk.addEventListener('click', () => resizeModal.classList.add('hidden'));
@@ -1339,20 +1243,14 @@
 
         timerSizeSlider.addEventListener('input', (e) => {
             const newSize = e.target.value;
-            const newSubSize = newSize / 5; // NEW: Calculate subtext size
+            const newSubSize = newSize / 5;
             document.documentElement.style.setProperty('--timer-font-size', `${newSize}rem`);
-            document.documentElement.style.setProperty('--timer-subtext-font-size', `${newSubSize}rem`); // NEW: Set subtext size
+            document.documentElement.style.setProperty('--timer-subtext-font-size', `${newSubSize}rem`);
             localStorage.setItem('timerSize', newSize);
-            localStorage.setItem('timerSubSize', newSubSize); // NEW: Save subtext size
+            localStorage.setItem('timerSubSize', newSubSize);
         });
 
-        // REMOVED: Reset Position Button Logic
-
-
-        // --- 15. REMOVED: Draggable Timer Logic (FIXED) ---
-
-
-        // --- 16. NEW: Fullscreen Logic ---
+        // --- Fullscreen Logic ---
         const fullscreenBtn = document.getElementById('fullscreen-btn');
         const fsEnterIcon = document.getElementById('fullscreen-enter-icon');
         const fsExitIcon = document.getElementById('fullscreen-exit-icon');
@@ -1379,33 +1277,28 @@
             }
         });
 
-        // --- 17. NEW: Custom Text Save Logic ---
+        // --- Custom Text Save Logic ---
         customTextInput.addEventListener('input', () => {
             localStorage.setItem('customTimerText', customTextInput.value);
         });
 
 
-        // --- 18. NEW: Journal Logic ---
-
+        // --- Journal Logic ---
         function getTodayJournalDateString() {
             return new Date().toISOString().split('T')[0];
         }
 
         function renderJournalEntries() {
-            // Sort newest first
             journalEntries.sort((a, b) => new Date(b.date) - new Date(a.date));
-
-            journalEntriesContainer.innerHTML = ''; // Clear existing
+            journalEntriesContainer.innerHTML = '';
 
             if (journalEntries.length === 0) {
-                // This matches the style of your screenshot
                 journalEntriesContainer.innerHTML = `<p class="text-gray-400 italic text-center mt-8">No entries yet!</p>`;
                 return;
             }
 
             journalEntries.forEach(entry => {
                 const entryDate = new Date(entry.date);
-                // Use a nice date format
                 const displayDate = entryDate.toLocaleDateString(undefined, {
                     weekday: 'long',
                     year: 'numeric',
@@ -1435,15 +1328,12 @@
                 return;
             }
 
-            // Find if an entry for today already exists
             const existingEntryIndex = journalEntries.findIndex(entry => entry.date === today);
 
             if (existingEntryIndex > -1) {
-                // Update existing entry
                 journalEntries[existingEntryIndex].text = entryText;
                 journalEntries[existingEntryIndex].mood = selectedMood;
             } else {
-                // Add new entry
                 const newEntry = {
                     date: today,
                     mood: selectedMood,
@@ -1452,43 +1342,31 @@
                 journalEntries.push(newEntry);
             }
 
-            // Save to localStorage
             localStorage.setItem('journalEntries', JSON.stringify(journalEntries));
-            // Re-render the list
             renderJournalEntries();
-            // Show a saved confirmation
             journalSaveBtn.textContent = 'Saved!';
             setTimeout(() => {
                 journalSaveBtn.textContent = "Save Today's Entry";
             }, 1500);
         }
 
-        // --- Event Listeners for Journal ---
-
         journalBtn.addEventListener('click', () => {
-            // 1. Render all past entries
             renderJournalEntries();
-
-            // 2. Check if there is an entry for today
             const today = getTodayJournalDateString();
             const todayEntry = journalEntries.find(entry => entry.date === today);
 
             if (todayEntry) {
-                // If so, load it into the editor
                 journalTextArea.value = todayEntry.text;
                 selectedMood = todayEntry.mood;
             } else {
-                // If not, clear the editor
                 journalTextArea.value = '';
-                selectedMood = '😐'; // Reset to default
+                selectedMood = '😐';
             }
 
-            // 3. Set the active mood button
             moodButtons.forEach(b => {
                 b.classList.toggle('bg-blue-600', b.dataset.mood === selectedMood);
             });
 
-            // 4. Show the modal
             journalModal.classList.remove('hidden');
         });
 
@@ -1499,9 +1377,7 @@
 
         moodButtons.forEach(btn => {
             btn.addEventListener('click', () => {
-                // Remove selected style from all
                 moodButtons.forEach(b => b.classList.remove('bg-blue-600'));
-                // Add to clicked one
                 btn.classList.add('bg-blue-600');
                 selectedMood = btn.dataset.mood;
             });
@@ -1509,7 +1385,7 @@
 
         journalSaveBtn.addEventListener('click', saveJournalEntry);
 
-        // --- 19. NEW: Question Counter Logic ---
+        // --- Question Counter Logic ---
         toggleQuestionCounterBtn.addEventListener('click', () => {
             questionCounterDisplay.classList.toggle('hidden');
         });
@@ -1517,43 +1393,36 @@
         questionAddBtn.addEventListener('click', () => {
             questionCountToday++;
             questionCountEl.textContent = questionCountToday;
-            saveAllDataToLocalStorage(); // Save on change
+            saveAllDataToLocalStorage();
         });
 
         questionSubtractBtn.addEventListener('click', () => {
             if (questionCountToday > 0) {
                 questionCountToday--;
                 questionCountEl.textContent = questionCountToday;
-                saveAllDataToLocalStorage(); // Save on change
+                saveAllDataToLocalStorage();
             }
         });
 
-        // NEW: Timer Type toggle (Pomodoro <-> Stopwatch)
+        // Timer Type toggle
         timerTypeBtn.addEventListener('click', () => {
-            // Toggle type
             if (timerType === 'pomodoro') {
                 timerType = 'stopwatch';
                 timerTypeBtn.textContent = 'Stopwatch';
-                // start stopwatch from zero
                 elapsedSeconds = 0;
             } else {
                 timerType = 'pomodoro';
                 timerTypeBtn.textContent = 'Pomodoro';
-                // ensure remainingTime corresponds to mode
                 remainingTime = (currentMode === 'study') ? studyDuration : breakDuration;
             }
-            // visual reset but keep stats
             resetTimer();
         });
 
-        // Ensure the switch-mode button label reflects current mode
         function refreshSwitchModeLabel() {
             switchModeBtn.textContent = (currentMode === 'study') ? 'Study' : 'Break';
         }
 
-        // Shortcuts: space toggles play/pause
         window.addEventListener('keydown', (e) => {
-            // Only trigger if no modal is open and not typing in an input
             const isModalOpen = !timerModal.classList.contains('hidden') ||
                 !resizeModal.classList.contains('hidden') ||
                 !journalModal.classList.contains('hidden');
@@ -1567,15 +1436,10 @@
         });
 
         // --- Init ---
-        // REMOVED console logs for API key
-        loadDataFromLocalStorage(); // NEW: Load all data
-
-        // Ensure timerType button label matches
+        loadDataFromLocalStorage();
         timerTypeBtn.textContent = (timerType === 'pomodoro') ? 'Pomodoro' : 'Stopwatch';
-        // Ensure switch-mode label
         refreshSwitchModeLabel();
 
-        // --- NEW: Top-right "time left until the hour" updater ---
         function updateTopHourLeft() {
             try {
                 const now = new Date();
@@ -1588,26 +1452,19 @@
                     topHourLeftTextEl.textContent = `${minsLeft}m ${String(secsLeft).padStart(2, '0')}s left this hour`;
                 }
             } catch (e) {
-                // silent
             }
         }
         updateTopHourLeft();
         setInterval(updateTopHourLeft, 1000);
-        
-        // NEW: Set initial video control state
+
         rewireControlsForLocalPlayer();
+        resetTimer();
 
-        resetTimer(); // MODIFIED: Set initial timer display and mode text
-        // REMOVED renderChatHistory();
-
-        // --- NEW: YouTube Integration ---
-
-        // Add YouTube API
+        // --- YouTube Integration ---
         const ytScript = document.createElement('script');
         ytScript.src = "https://www.youtube.com/iframe_api";
         document.body.appendChild(ytScript);
 
-        // MODIFIED: Properly handle API ready state
         window.onYouTubeIframeAPIReady = () => {
             isYouTubeApiReady = true;
             if (videoIdToLoad) {
@@ -1616,16 +1473,14 @@
             }
         };
 
-        // NEW: Function to create player (fixes race condition)
         function createYouTubePlayer(videoId) {
-            if (ytPlayer) { // If player exists, just load video and rewire
+            if (ytPlayer) {
                 activePlayer = 'youtube';
                 ytPlayer.loadVideoById(videoId);
-                rewireControlsForYouTubePlayer(); // Ensure controls are wired
+                rewireControlsForYouTubePlayer();
                 return;
             }
 
-            // If player doesn't exist, create it
             ytPlayer = new YT.Player('youtube-bg', {
                 videoId: videoId,
                 playerVars: {
@@ -1634,33 +1489,30 @@
                     playlist: videoId,
                     controls: 0,
                     modestbranding: 1,
-                    mute: 1, // Start muted
+                    mute: 1,
                     origin: window.location.href,
                 },
                 events: {
                     onReady: (e) => {
                         activePlayer = 'youtube';
                         e.target.playVideo();
-                        rewireControlsForYouTubePlayer(); // Wire controls on ready
-                        // Sync mute state
+                        rewireControlsForYouTubePlayer();
                         isMuted = true;
                         unmuteIcon.classList.remove('hidden');
                         muteIcon.classList.add('hidden');
                     },
                     onStateChange: (e) => {
-                        youtubeVideoStateChange(e); // Update play/pause icon
+                        youtubeVideoStateChange(e);
                     },
                     onError: (e) => console.error('YouTube Player Error:', e.data)
                 }
             });
         }
 
-        // MODIFIED: setYoutubeBtn listener
         setYoutubeBtn.addEventListener('click', () => {
             const url = prompt("Enter YouTube video URL:");
             if (!url) return;
 
-            // --- FIX for GitHub Pages YouTube API origin issues ---
             if (location.hostname.includes('github.io')) {
                 const meta = document.createElement('meta');
                 meta.httpEquiv = "Content-Security-Policy";
@@ -1672,25 +1524,151 @@
             if (!idMatch) return alert("Invalid YouTube URL");
             const videoId = idMatch[1];
 
-            // Switch UI
             videoPlayer.pause();
             videoPlayer.style.display = 'none';
+            bgImageEl.style.display = 'none'; // Hide image if active
             youtubeContainer.style.display = 'block';
-            videoControlsContainer.classList.remove('hidden'); // Show shared controls
+            videoControlsContainer.classList.remove('hidden');
 
             if (ytPlayer) {
                 activePlayer = 'youtube';
                 ytPlayer.loadVideoById(videoId);
-                rewireControlsForYouTubePlayer(); // Re-wire
+                rewireControlsForYouTubePlayer();
             } else {
                 if (isYouTubeApiReady) {
                     createYouTubePlayer(videoId);
                 } else {
-                    videoIdToLoad = videoId; // Will be picked up by onYouTubeIframeAPIReady
+                    videoIdToLoad = videoId;
                 }
             }
         });
+
+        // --- NEW: Background Image Logic ---
+        setImageBtn.addEventListener('click', () => imageFileInput.click());
+
+        imageFileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const imgUrl = URL.createObjectURL(file);
+                bgImageEl.src = imgUrl;
+                bgImageEl.style.display = 'block';
+
+                // Hide videos to show image
+                videoPlayer.style.display = 'none';
+                youtubeContainer.style.display = 'none';
+                if (ytPlayer) ytPlayer.pauseVideo();
+                videoPlayer.pause();
+
+                // Hide video controls
+                videoControlsContainer.classList.add('hidden');
+            }
+        });
+
+        // --- NEW: Snow & Rain Animation Engine ---
+        const canvas = document.getElementById('effect-canvas');
+        const ctx = canvas.getContext('2d');
+
+        let particles = [];
+        let animationId = null;
+        let currentEffect = 'none'; // 'none', 'snow', 'rain'
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        class Particle {
+            constructor(type) {
+                this.type = type;
+                this.reset(true);
+            }
+            reset(initial = false) {
+                this.x = Math.random() * canvas.width;
+                this.y = initial ? Math.random() * canvas.height : -10;
+
+                if (this.type === 'snow') {
+                    this.vy = 1 + Math.random() * 2;
+                    this.vx = (Math.random() - 0.5) * 0.5;
+                    this.size = Math.random() * 2 + 1;
+                } else if (this.type === 'rain') {
+                    this.vy = 15 + Math.random() * 10;
+                    this.vx = 0;
+                    this.size = Math.random() * 15 + 10;
+                }
+            }
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                if (this.y > canvas.height) this.reset();
+            }
+            draw() {
+                ctx.beginPath();
+                if (this.type === 'snow') {
+                    ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+                    ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                    ctx.fill();
+                } else if (this.type === 'rain') {
+                    ctx.strokeStyle = 'rgba(174, 214, 241, 0.5)';
+                    ctx.lineWidth = 1.5;
+                    ctx.moveTo(this.x, this.y);
+                    ctx.lineTo(this.x, this.y + this.size);
+                    ctx.stroke();
+                }
+            }
+        }
+
+        function startAnimation(type) {
+            if (animationId) cancelAnimationFrame(animationId);
+            particles = [];
+            currentEffect = type;
+
+            const count = type === 'snow' ? 150 : 200;
+            for (let i = 0; i < count; i++) {
+                particles.push(new Particle(type));
+            }
+            animate();
+        }
+
+        function stopAnimation() {
+            if (animationId) cancelAnimationFrame(animationId);
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            currentEffect = 'none';
+        }
+
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles.forEach(p => {
+                p.update();
+                p.draw();
+            });
+            animationId = requestAnimationFrame(animate);
+        }
+
+        toggleSnowBtn.addEventListener('click', () => {
+            if (currentEffect === 'snow') {
+                stopAnimation();
+                toggleSnowBtn.classList.remove('text-blue-400');
+            } else {
+                startAnimation('snow');
+                toggleSnowBtn.classList.add('text-blue-400');
+                toggleRainBtn.classList.remove('text-blue-400');
+            }
+        });
+
+        toggleRainBtn.addEventListener('click', () => {
+            if (currentEffect === 'rain') {
+                stopAnimation();
+                toggleRainBtn.classList.remove('text-blue-400');
+            } else {
+                startAnimation('rain');
+                toggleRainBtn.classList.add('text-blue-400');
+                toggleSnowBtn.classList.remove('text-blue-400');
+            }
+        });
+
     </script>
 </body>
 
-</html>
+</html> 
