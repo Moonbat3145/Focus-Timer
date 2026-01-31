@@ -8,189 +8,100 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         /* Fix for fullscreen white line */
-        html,
-        body {
-            height: 100%;
-            width: 100%;
-            margin: 0;
-            padding: 0;
-        }
+        html, body { height: 100%; width: 100%; margin: 0; padding: 0; }
 
         /* Ensure the video player is a background element */
         #bg-video {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            min-width: 100%;
-            min-height: 100%;
-            width: auto;
-            height: auto;
+            position: fixed; top: 50%; left: 50%;
+            min-width: 100%; min-height: 100%; width: auto; height: auto;
             transform: translateX(-50%) translateY(-50%);
-            z-index: -10;
-            pointer-events: none;
-            object-fit: cover;
+            z-index: -10; pointer-events: none; object-fit: cover;
         }
 
         /* Background Image Style */
         #bg-image {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            z-index: -5;
-            /* Above video (-10) but behind effects */
-            display: none;
-            /* Hidden by default */
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            object-fit: cover; z-index: -5; display: none;
         }
 
         /* Animation Canvas (Snow/Rain) */
         #effect-canvas {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            /* Allows clicking through */
-            z-index: 5;
-            /* Above background, below UI */
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; z-index: 5;
         }
 
-        body {
-            font-family: 'Inter', sans-serif;
-            overflow: hidden;
-            /* Hide scrollbars */
-        }
+        body { font-family: 'Inter', sans-serif; overflow: hidden; }
 
-        /* Custom styles for text shadow to make text readable on any background */
-        .text-shadow {
-            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
-        }
+        .text-shadow { text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5); }
 
-        /* Style for the progress bar */
+        /* Progress Bar */
         .progress-bar {
-            height: 2px;
-            background-color: rgba(255, 255, 255, 0.3);
-            width: 100%;
-            max-width: 400px;
-            margin: 0 auto;
-            border-radius: 2px;
-            overflow: hidden;
+            height: 2px; background-color: rgba(255, 255, 255, 0.3);
+            width: 100%; max-width: 400px; margin: 0 auto;
+            border-radius: 2px; overflow: hidden;
         }
-
         .progress-bar-inner {
-            height: 100%;
-            background-color: white;
-            width: 100%;
-            transition: width 0.5s ease;
+            height: 100%; background-color: white; width: 100%; transition: width 0.5s ease;
         }
 
-        /* --- Add/Subtract Time Button Styles --- */
-        #timer-wrapper {
-            position: relative;
-        }
-
+        /* Timer Adjust Buttons */
+        #timer-wrapper { position: relative; }
         .time-adjust-btn {
-            position: absolute;
-            top: 50%;
-            transform: translateY(-50%);
-            font-size: 3rem;
-            font-weight: 200;
-            color: rgba(255, 255, 255, 0.4);
-            cursor: pointer;
-            padding: 1rem;
-            opacity: 0;
-            transition: opacity 0.2s ease-in-out, color 0.2s ease-in-out;
-            user-select: none;
+            position: absolute; top: 50%; transform: translateY(-50%);
+            font-size: 3rem; font-weight: 200; color: rgba(255, 255, 255, 0.4);
+            cursor: pointer; padding: 1rem; opacity: 0;
+            transition: opacity 0.2s ease-in-out, color 0.2s ease-in-out; user-select: none;
         }
+        .time-adjust-btn:hover { color: rgba(255, 255, 255, 0.8); }
+        #timer-wrapper:hover .time-adjust-btn { opacity: 1; }
+        #subtract-time-btn { left: -80px; }
+        #add-time-btn { right: -80px; }
 
-        .time-adjust-btn:hover {
-            color: rgba(255, 255, 255, 0.8);
-        }
+        /* Common Control Btn */
+        .control-btn { transition: all 0.3s ease; }
 
-        #timer-wrapper:hover .time-adjust-btn {
-            opacity: 1;
-        }
-
-        #subtract-time-btn {
-            left: -80px;
-        }
-
-        #add-time-btn {
-            right: -80px;
-        }
-
-        .control-btn {
-            transition: all 0.3s ease;
-        }
-
-        /* --- Video Seek Bar Styles --- */
+        /* Video Seek Bar */
         #video-seek-bar {
-            -webkit-appearance: none;
-            appearance: none;
-            width: 100%;
-            height: 6px;
-            background: rgba(255, 255, 255, 0.3);
-            border-radius: 3px;
-            outline: none;
-            cursor: pointer;
-            transition: height 0.2s ease;
+            -webkit-appearance: none; appearance: none; width: 100%; height: 6px;
+            background: rgba(255, 255, 255, 0.3); border-radius: 3px; outline: none;
+            cursor: pointer; transition: height 0.2s ease;
         }
+        #video-seek-bar:hover { height: 10px; }
+        #video-seek-bar::-webkit-progress-bar { background: rgba(255, 255, 255, 0.3); border-radius: 3px; }
+        #video-seek-bar::-webkit-progress-value { background: white; border-radius: 3px; }
+        #video-seek-bar::-moz-progress-bar { background: white; border-radius: 3px; }
 
-        #video-seek-bar:hover {
-            height: 10px;
-        }
-
-        #video-seek-bar::-webkit-progress-bar {
-            background: rgba(255, 255, 255, 0.3);
-            border-radius: 3px;
-        }
-
-        #video-seek-bar::-webkit-progress-value {
-            background: white;
-            border-radius: 3px;
-        }
-
-        #video-seek-bar::-moz-progress-bar {
-            background: white;
-            border-radius: 3px;
-        }
-
-        /* --- Resizable Timer Style --- */
-        #timer-display {
-            font-size: var(--timer-font-size, 10rem);
-        }
-
-        /* --- Editable Subtext Style --- */
+        /* Resizable Timer */
+        #timer-display { font-size: var(--timer-font-size, 10rem); }
         #custom-text-input {
-            font-size: var(--timer-subtext-font-size, 2rem);
-            font-family: 'serif';
-            font-style: italic;
-            color: white;
-            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
-            opacity: 0.8;
-            background-color: transparent;
-            border: none;
-            outline: none;
-            text-align: center;
-            width: 100%;
-            max-width: 600px;
-            margin-top: 0.5rem;
+            font-size: var(--timer-subtext-font-size, 2rem); font-family: 'serif';
+            font-style: italic; color: white; text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+            opacity: 0.8; background-color: transparent; border: none; outline: none;
+            text-align: center; width: 100%; max-width: 600px; margin-top: 0.5rem;
         }
+        #custom-text-input::placeholder { color: rgba(255, 255, 255, 0.4); font-style: italic; }
 
-        #custom-text-input::placeholder {
-            color: rgba(255, 255, 255, 0.4);
-            font-style: italic;
-        }
+        /* UI Hide */
+        .ui-hide { opacity: 0 !important; pointer-events: none !important; transition: opacity 0.3s ease-out; }
 
-        /* --- UI Hide Style (for Cinema and Minimize) --- */
-        .ui-hide {
-            opacity: 0 !important;
-            pointer-events: none !important;
-            transition: opacity 0.3s ease-out;
+        /* Pop-up Menus */
+        .popup-menu {
+            position: absolute; bottom: 120%; left: 50%; transform: translateX(-50%);
+            background-color: rgba(20, 20, 20, 0.9); backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.1); padding: 1rem;
+            border-radius: 1rem; width: 300px; z-index: 50;
+            display: none; flex-col: column; gap: 0.5rem; box-shadow: 0 10px 25px rgba(0,0,0,0.5);
         }
+        .popup-menu.active { display: flex; }
+
+        /* Music Queue Item */
+        .queue-item {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 0.5rem; border-radius: 0.5rem; background: rgba(255,255,255,0.05);
+            font-size: 0.85rem; cursor: pointer; transition: background 0.2s;
+        }
+        .queue-item:hover { background: rgba(255,255,255,0.1); }
+        .queue-item.active-track { background: rgba(59, 130, 246, 0.3); border: 1px solid rgba(59, 130, 246, 0.5); }
     </style>
 </head>
 
@@ -199,380 +110,231 @@
     <img id="bg-image" alt="Background">
     <canvas id="effect-canvas"></canvas>
     <video id="bg-video" muted loop playsinline autoplay></video>
-    <div id="youtube-bg"
-        style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);min-width:100%;min-height:100%;z-index:-10;pointer-events:none;">
-    </div>
+    <div id="youtube-bg" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);min-width:100%;min-height:100%;z-index:-10;pointer-events:none;"></div>
+    
+    <div id="music-youtube-player" style="position:fixed; top:0; left:0; opacity:0; pointer-events:none; z-index:-20; width:1px; height:1px;"></div>
+    <audio id="local-music-player"></audio>
 
     <input type="file" id="video-file-input" accept="video/*" class="hidden">
     <input type="file" id="image-file-input" accept="image/*" class="hidden">
+    <input type="file" id="music-file-input" accept="audio/*" class="hidden">
 
-    <div id="question-counter-display"
-        class="fixed top-4 left-6 z-20 text-left text-shadow transition-opacity duration-300 hidden">
+    <div id="question-counter-display" class="fixed top-4 left-6 z-20 text-left text-shadow transition-opacity duration-300 hidden">
         <div class="text-lg font-semibold">Questions Solved Today</div>
         <div class="flex items-center space-x-2 mt-1">
-            <button id="question-subtract-btn"
-                class="p-1 rounded-full text-white/80 hover:bg-white/20 transition-all">-</button>
+            <button id="question-subtract-btn" class="p-1 rounded-full text-white/80 hover:bg-white/20 transition-all">-</button>
             <span id="question-count-el" class="text-xl font-bold">0</span>
-            <button id="question-add-btn"
-                class="p-1 rounded-full text-white/80 hover:bg-white/20 transition-all">+</button>
+            <button id="question-add-btn" class="p-1 rounded-full text-white/80 hover:bg-white/20 transition-all">+</button>
         </div>
     </div>
 
     <div id="timer-ui-container" class="flex flex-col justify-center items-center h-full w-full relative z-10">
-
-        <div id="current-mode-display" class="text-3xl font-serif italic text-shadow opacity-80 mb-2">
-        </div>
-
+        <div id="current-mode-display" class="text-3xl font-serif italic text-shadow opacity-80 mb-2"></div>
         <div id="timer-wrapper" class="relative">
             <div id="timer-container" class="text-center">
-                <div id="timer-display" class="font-bold text-shadow tracking-tight">
-                    25:00
-                </div>
+                <div id="timer-display" class="font-bold text-shadow tracking-tight">25:00</div>
                 <div class="progress-bar mt-4">
                     <div id="progress-bar-inner" class="progress-bar-inner"></div>
                 </div>
                 <input type="text" id="custom-text-input" placeholder="What are you working on?">
-                <div id="top-hour-left-text" class="mt-3 text-sm font-medium text-white/60 text-shadow tracking-wide">
-                </div>
+                <div id="top-hour-left-text" class="mt-3 text-sm font-medium text-white/60 text-shadow tracking-wide"></div>
             </div>
             <button id="subtract-time-btn" class="time-adjust-btn" title="Subtract 5 minutes">-</button>
             <button id="add-time-btn" class="time-adjust-btn" title="Add 5 minutes">+</button>
         </div>
-
     </div>
 
     <div id="video-controls-container" class="fixed bottom-32 left-1/2 -translate-x-1/2 w-full max-w-xl z-20 hidden">
         <div class="flex items-center space-x-4 bg-black/30 backdrop-blur-md p-3 rounded-full shadow-lg mx-auto w-full">
-            <button id="video-play-pause-btn" title="Play/Pause Video"
-                class="p-1 text-white/80 hover:text-white rounded-full transition-all">
-                <svg id="video-play-icon" class="w-6 h-6 hidden" fill="currentColor" viewBox="0 0 20 20"
-                    xmlns="http://www.w3.org/2000/svg">
-                    <path fill-rule="evenodd"
-                        d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z"
-                        clip-rule="evenodd"></path>
-                </svg>
-                <svg id="video-pause-icon" class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"
-                    xmlns="http://www.w3.org/2000/svg">
-                    <path fill-rule="evenodd"
-                        d="M10 18a8 8 0 100-16 8 8 0 000 16zM8 7a1 1 0 00-1 1v4a1 1 0 001 1h1a1 1 0 001-1V8a1 1 0 00-1-1H8zm5 0a1 1 0 00-1 1v4a1 1 0 001 1h1a1 1 0 001-1V8a1 1 0 00-1-1h-1z"
-                        clip-rule="evenodd"></path>
-                </svg>
+            <button id="video-play-pause-btn" title="Play/Pause BG Video" class="p-1 text-white/80 hover:text-white rounded-full transition-all">
+                <svg id="video-play-icon" class="w-6 h-6 hidden" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"></path></svg>
+                <svg id="video-pause-icon" class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8 7a1 1 0 00-1 1v4a1 1 0 001 1h1a1 1 0 001-1V8a1 1 0 00-1-1H8zm5 0a1 1 0 00-1 1v4a1 1 0 001 1h1a1 1 0 001-1V8a1 1 0 00-1-1h-1z" clip-rule="evenodd"></path></svg>
             </button>
             <span id="video-time-display" class="text-sm text-white/80 font-mono w-28 text-center">00:00 / 00:00</span>
             <progress id="video-seek-bar" value="0" max="100" class="flex-grow"></progress>
+            <button id="bg-mute-btn" class="p-1 text-white/80 hover:text-white rounded-full transition-all" title="Mute Background">
+                <svg id="bg-unmute-icon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path></svg>
+                <svg id="bg-mute-icon" class="w-5 h-5 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15zM17 14l4-4m0 4l-4-4"></path></svg>
+            </button>
         </div>
     </div>
 
-    <div id="controls-bar"
-        class="fixed bottom-0 left-0 w-full flex justify-center p-6 z-20 transition-opacity duration-300">
-        <div class="flex items-center space-x-2 bg-black/30 backdrop-blur-md p-3 rounded-full shadow-lg">
-            <button id="minimize-btn" title="Minimize UI (Click anywhere to exit)"
-                class="p-3 text-white/80 hover:text-white hover:bg-white/20 rounded-full transition-all">
-                <svg id="minimize-icon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                    xmlns="http://www.w3.org/2000/svg">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                </svg>
-            </button>
-            <button id="cinema-mode-btn" title="Cinema Mode (Click anywhere to exit)"
-                class="control-btn p-3 text-white/80 hover:text-white hover:bg-white/20 rounded-full transition-all">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                    xmlns="http://www.w3.org/2000/svg">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.478 0-8.268-2.943-9.542-7z">
-                    </path>
-                </svg>
-            </button>
-            <button id="fullscreen-btn" title="Toggle Fullscreen"
-                class="control-btn p-3 text-white/80 hover:text-white hover:bg-white/20 rounded-full transition-all">
-                <svg id="fullscreen-enter-icon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                    xmlns="http://www.w3.org/2000/svg">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 1v4m0 0h-4m4 0l-5-5">
-                    </path>
-                </svg>
-                <svg id="fullscreen-exit-icon" class="w-6 h-6 hidden" fill="none" stroke="currentColor"
-                    viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M8 4H4m0 0v4M4 4l5 5m1-5h4m0 0v4m0-4l-5 5M8 20H4m0 0v-4m0 4l5-5m1 5h4m0 0v-4m0 4l-5-5">
-                    </path>
-                </svg>
+    <div id="controls-bar" class="fixed bottom-0 left-0 w-full flex justify-center p-6 z-20 transition-opacity duration-300">
+        <div class="flex items-center space-x-2 bg-black/30 backdrop-blur-md p-3 rounded-full shadow-lg relative">
+            
+            <button id="minimize-btn" title="Minimize UI" class="p-3 text-white/80 hover:text-white hover:bg-white/20 rounded-full transition-all">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
             </button>
 
-            <button id="set-timer-btn" title="Set Timers"
-                class="control-btn p-3 text-white/80 hover:text-white hover:bg-white/20 rounded-full transition-all">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                    xmlns="http://www.w3.org/2000/svg">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826 3.31-2.37 2.37.996.608 2.296.07 2.572-1.065z">
-                    </path>
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                </svg>
-            </button>
-            <button id="play-pause-btn" title="Play/Pause Timer"
-                class="control-btn p-4 bg-white text-black rounded-full shadow-lg transform hover:scale-110 transition-all">
-                <svg id="play-icon" class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"
-                    xmlns="http://www.w3.org/2000/svg">
-                    <path fill-rule="evenodd"
-                        d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z"
-                        clip-rule="evenodd"></path>
-                </svg>
-                <svg id="pause-icon" class="w-6 h-6 hidden" fill="currentColor" viewBox="0 0 20 20"
-                    xmlns="http://www.w3.org/2000/svg">
-                    <path fill-rule="evenodd"
-                        d="M10 18a8 8 0 100-16 8 8 0 000 16zM8 7a1 1 0 00-1 1v4a1 1 0 001 1h1a1 1 0 001-1V8a1 1 0 00-1-1H8zm5 0a1 1 0 00-1 1v4a1 1 0 001 1h1a1 1 0 001-1V8a1 1 0 00-1-1h-1z"
-                        clip-rule="evenodd"></path>
-                </svg>
-            </button>
-            <button id="reset-btn" title="Reset Timer"
-                class="control-btn p-3 text-white/80 hover:text-white hover:bg-white/20 rounded-full transition-all">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                    xmlns="http://www.w3.org/2000/svg">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M4 4v5h.582m15.356 2.086a8.001 8.001 0 00-11.854-10.49L9.5 6M4 20v-5h.582m15.356-2.086a8.001 8.001 0 01-11.854 10.49L9.5 18">
-                    </path>
-                </svg>
+            <button id="cinema-mode-btn" title="Cinema Mode" class="control-btn p-3 text-white/80 hover:text-white hover:bg-white/20 rounded-full transition-all">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.478 0-8.268-2.943-9.542-7z"></path></svg>
             </button>
 
-            <button id="switch-mode-btn" title="Toggle Study/Break"
-                class="control-btn p-3 text-white/80 hover:text-white hover:bg-white/20 rounded-full transition-all w-20 text-center">
-                Study
+            <button id="fullscreen-btn" title="Toggle Fullscreen" class="control-btn p-3 text-white/80 hover:text-white hover:bg-white/20 rounded-full transition-all">
+                <svg id="fullscreen-enter-icon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 1v4m0 0h-4m4 0l-5-5"></path></svg>
+                <svg id="fullscreen-exit-icon" class="w-6 h-6 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 4H4m0 0v4M4 4l5 5m1-5h4m0 0v4m0-4l-5 5M8 20H4m0 0v-4m0 4l5-5m1 5h4m0 0v-4m0 4l-5-5"></path></svg>
             </button>
 
-            <button id="timer-type-btn" title="Toggle Pomodoro/Stopwatch"
-                class="control-btn p-3 text-white/80 hover:text-white hover:bg-white/20 rounded-full transition-all">
-                Pomodoro
+            <button id="set-timer-btn" title="Set Timers" class="control-btn p-3 text-white/80 hover:text-white hover:bg-white/20 rounded-full transition-all">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826 3.31-2.37 2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
             </button>
 
-            <button id="resize-timer-btn" title="Resize Timer"
-                class="control-btn p-3 text-white/80 hover:text-white hover:bg-white/20 rounded-full transition-all">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                    xmlns="http://www.w3.org/2000/svg">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M4 7v10M12 7v10M8 7h8M20 7v10M16 7h4"></path>
-                </svg>
+            <button id="play-pause-btn" title="Play/Pause Timer" class="control-btn p-4 bg-white text-black rounded-full shadow-lg transform hover:scale-110 transition-all">
+                <svg id="play-icon" class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"></path></svg>
+                <svg id="pause-icon" class="w-6 h-6 hidden" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8 7a1 1 0 00-1 1v4a1 1 0 001 1h1a1 1 0 001-1V8a1 1 0 00-1-1H8zm5 0a1 1 0 00-1 1v4a1 1 0 001 1h1a1 1 0 001-1V8a1 1 0 00-1-1h-1z" clip-rule="evenodd"></path></svg>
+            </button>
+            
+            <button id="reset-btn" title="Reset Timer" class="control-btn p-3 text-white/80 hover:text-white hover:bg-white/20 rounded-full transition-all">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2.086a8.001 8.001 0 00-11.854-10.49L9.5 6M4 20v-5h.582m15.356-2.086a8.001 8.001 0 01-11.854 10.49L9.5 18"></path></svg>
             </button>
 
-            <button id="journal-btn" title="Journal"
-                class="control-btn p-3 text-white/80 hover:text-white hover:bg-white/20 rounded-full transition-all">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                    xmlns="http://www.w3.org/2000/svg">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M12 6.253v11.494m-9-11.494v11.494H3v-11.494M12 6.253H3.75m8.25 0H20.25V17.747H12">
-                    </path>
-                </svg>
+            <button id="switch-mode-btn" class="control-btn p-3 text-white/80 hover:text-white hover:bg-white/20 rounded-full transition-all w-20 text-center">Study</button>
+            <button id="timer-type-btn" class="control-btn p-3 text-white/80 hover:text-white hover:bg-white/20 rounded-full transition-all">Pomodoro</button>
+
+            <button id="resize-timer-btn" title="Resize Timer" class="control-btn p-3 text-white/80 hover:text-white hover:bg-white/20 rounded-full transition-all">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10M12 7v10M8 7h8M20 7v10M16 7h4"></path></svg>
+            </button>
+            
+             <button id="toggle-question-counter-btn" title="Toggle Question Counter" class="control-btn p-3 text-white/80 hover:text-white hover:bg-white/20 rounded-full transition-all">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 20l4-16m2 16l4-16M5 9h14M4 15h14"></path></svg>
             </button>
 
-            <button id="toggle-question-counter-btn" title="Toggle Question Counter"
-                class="control-btn p-3 text-white/80 hover:text-white hover:bg-white/20 rounded-full transition-all">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                    xmlns="http://www.w3.org/2000/svg">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M7 20l4-16m2 16l4-16M5 9h14M4 15h14"></path>
-                </svg>
-            </button>
+            <div class="relative">
+                <div id="bg-menu-container" class="popup-menu">
+                    <button id="set-youtube-btn" class="w-full text-left p-2 hover:bg-white/10 rounded flex items-center space-x-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5v14l11-7z"></path></svg>
+                        <span>YouTube Background</span>
+                    </button>
+                    <button id="set-video-btn" class="w-full text-left p-2 hover:bg-white/10 rounded flex items-center space-x-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+                        <span>Local Video</span>
+                    </button>
+                     <button id="set-image-btn" class="w-full text-left p-2 hover:bg-white/10 rounded flex items-center space-x-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                        <span>Local Image</span>
+                    </button>
+                    <hr class="border-white/20 my-1">
+                    <button id="video-controls-toggle" class="w-full text-left p-2 hover:bg-white/10 rounded flex items-center space-x-2">
+                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                        <span>Show Video Controls</span>
+                    </button>
+                     <div class="flex justify-around pt-1">
+                         <button id="toggle-snow-btn" title="Toggle Snow" class="p-2 hover:text-blue-300 transition"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg></button>
+                         <button id="toggle-rain-btn" title="Toggle Rain" class="p-2 hover:text-blue-300 transition"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path></svg></button>
+                     </div>
+                </div>
+                <button id="bg-menu-btn" title="Wallpaper Settings" class="control-btn p-3 text-white/80 hover:text-white hover:bg-white/20 rounded-full transition-all">
+                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                </button>
+            </div>
 
-            <button id="video-controls-btn" title="Show Video Controls"
-                class="control-btn p-3 text-white/80 hover:text-white hover:bg-white/20 rounded-full transition-all">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                    xmlns="http://www.w3.org/2000/svg">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z">
-                    </path>
-                </svg>
-            </button>
-            <button id="set-video-btn" title="Select Local Video"
-                class="control-btn p-3 text-white/80 hover:text-white hover:bg-white/20 rounded-full transition-all">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                    xmlns="http://www.w3.org/2000/svg">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
-                </svg>
-            </button>
-            <button id="toggle-mute-btn" title="Mute/Unmute Video"
-                class="control-btn p-3 text-white/80 hover:text-white hover:bg-white/20 rounded-full transition-all">
-                <svg id="unmute-icon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                    xmlns="http://www.w3.org/2000/svg">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z">
-                    </path>
-                </svg>
-                <svg id="mute-icon" class="w-6 h-6 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                    xmlns="http://www.w3.org/2000/svg">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15zM17 14l4-4m0 4l-4-4">
-                    </path>
-                </svg>
-            </button>
-            <button id="set-youtube-btn" title="Set YouTube Video"
-                class="control-btn p-3 text-white/80 hover:text-white hover:bg-white/20 rounded-full transition-all">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                    xmlns="http://www.w3.org/2000/svg">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5v14l11-7z"></path>
-                </svg>
-            </button>
+            <div class="relative">
+                 <div id="music-menu-container" class="popup-menu" style="width: 320px;">
+                    <div class="text-sm font-semibold text-gray-400 mb-2 uppercase tracking-wide">Music Player</div>
+                    
+                    <div class="flex items-center justify-between bg-white/5 p-2 rounded mb-2">
+                         <button id="music-prev-btn" class="p-2 hover:text-blue-400"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg></button>
+                         <button id="music-play-btn" class="p-2 hover:text-blue-400">
+                             <svg id="music-play-icon" class="w-8 h-8" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"></path></svg>
+                             <svg id="music-pause-icon" class="w-8 h-8 hidden" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8 7a1 1 0 00-1 1v4a1 1 0 001 1h1a1 1 0 001-1V8a1 1 0 00-1-1H8zm5 0a1 1 0 00-1 1v4a1 1 0 001 1h1a1 1 0 001-1V8a1 1 0 00-1-1h-1z" clip-rule="evenodd"></path></svg>
+                         </button>
+                         <button id="music-next-btn" class="p-2 hover:text-blue-400"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg></button>
+                    </div>
 
-            <button id="set-image-btn" title="Set Background Image"
-                class="control-btn p-3 text-white/80 hover:text-white hover:bg-white/20 rounded-full transition-all">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                    xmlns="http://www.w3.org/2000/svg">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z">
-                    </path>
-                </svg>
-            </button>
+                    <div class="flex items-center justify-between space-x-2 mb-3">
+                         <button id="music-mute-btn" title="Mute Music" class="p-2 text-white/70 hover:text-white"><svg id="music-unmute-icon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path></svg><svg id="music-mute-icon" class="w-5 h-5 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15zM17 14l4-4m0 4l-4-4"></path></svg></button>
+                         <button id="music-autoplay-btn" title="Toggle Autoplay" class="text-xs px-2 py-1 rounded border border-white/30 text-white/70 hover:bg-white/10">Autoplay: OFF</button>
+                    </div>
 
-            <button id="toggle-snow-btn" title="Toggle Snow"
-                class="control-btn p-3 text-white/80 hover:text-white hover:bg-white/20 rounded-full transition-all">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                    xmlns="http://www.w3.org/2000/svg">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z">
-                    </path>
-                </svg>
-            </button>
+                    <div class="grid grid-cols-2 gap-2 mb-3">
+                        <button id="add-music-yt-btn" class="bg-red-600/80 hover:bg-red-600 p-2 rounded text-xs flex justify-center items-center">
+                            <span>+ YouTube Link</span>
+                        </button>
+                        <button id="add-music-local-btn" class="bg-blue-600/80 hover:bg-blue-600 p-2 rounded text-xs flex justify-center items-center">
+                            <span>+ Local File</span>
+                        </button>
+                    </div>
 
-            <button id="toggle-rain-btn" title="Toggle Rain"
-                class="control-btn p-3 text-white/80 hover:text-white hover:bg-white/20 rounded-full transition-all">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                    xmlns="http://www.w3.org/2000/svg">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M19 14l-7 7m0 0l-7-7m7 7V3">
-                    </path>
-                </svg>
-            </button>
+                    <div id="music-queue-list" class="flex flex-col space-y-1 max-h-40 overflow-y-auto pr-1">
+                        <div class="text-xs text-gray-500 text-center italic py-2">Queue is empty</div>
+                    </div>
+                 </div>
+                 <button id="music-menu-btn" title="Music Player" class="control-btn p-3 text-white/80 hover:text-white hover:bg-white/20 rounded-full transition-all">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path></svg>
+                 </button>
+            </div>
 
         </div>
     </div>
 
-    <div id="timer-modal"
-        class="fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center z-30 hidden">
+    <div id="timer-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center z-30 hidden">
         <div class="bg-gray-900 text-white p-8 rounded-xl shadow-2xl w-full max-w-sm">
             <h2 class="text-2xl font-bold mb-6 text-center">Set Timers</h2>
             <p class="text-gray-400 mb-2">Study Duration (minutes):</p>
-            <input id="study-timer-input" type="number" min="1" value="25"
-                class="w-full p-3 bg-gray-800 border border-gray-700 rounded-lg text-white text-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <input id="study-timer-input" type="number" min="1" value="25" class="w-full p-3 bg-gray-800 border border-gray-700 rounded-lg text-white text-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
             <p class="text-gray-400 mb-2 mt-4">Break Duration (minutes):</p>
-            <input id="break-timer-input" type="number" min="1" value="5"
-                class="w-full p-3 bg-gray-800 border border-gray-700 rounded-lg text-white text-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <input id="break-timer-input" type="number" min="1" value="5" class="w-full p-3 bg-gray-800 border border-gray-700 rounded-lg text-white text-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
             <div class="flex justify-between space-x-4 mt-6">
-                <button id="timer-modal-cancel"
-                    class="w-full p-3 bg-gray-700 hover:bg-gray-600 rounded-lg transition-all">Cancel</button>
-                <button id="timer-modal-ok"
-                    class="w-full p-3 bg-blue-600 hover:bg-blue-500 rounded-lg font-semibold transition-all">Set</button>
+                <button id="timer-modal-cancel" class="w-full p-3 bg-gray-700 hover:bg-gray-600 rounded-lg transition-all">Cancel</button>
+                <button id="timer-modal-ok" class="w-full p-3 bg-blue-600 hover:bg-blue-500 rounded-lg font-semibold transition-all">Set</button>
             </div>
         </div>
     </div>
 
-    <div id="resize-modal"
-        class="fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center z-30 hidden">
+    <div id="resize-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center z-30 hidden">
         <div class="bg-gray-900 text-white p-8 rounded-xl shadow-2xl w-full max-w-sm">
             <h2 class="text-2xl font-bold mb-6 text-center">Resize Timer</h2>
             <p class="text-gray-400 mb-2">Timer Size</p>
-            <input id="timer-size-slider" type="range" min="6" max="14" value="10" step="0.5"
-                class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer">
+            <input id="timer-size-slider" type="range" min="6" max="14" value="10" step="0.5" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer">
             <div class="flex flex-col space-y-4 mt-6">
-                <button id="resize-modal-ok"
-                    class="w-full p-3 bg-blue-600 hover:bg-blue-500 rounded-lg font-semibold transition-all">Close</button>
+                <button id="resize-modal-ok" class="w-full p-3 bg-blue-600 hover:bg-blue-500 rounded-lg font-semibold transition-all">Close</button>
             </div>
         </div>
     </div>
 
-    <div id="journal-modal"
-        class="fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center z-30 hidden">
-        <div
-            class="bg-gray-900 text-white p-6 rounded-xl shadow-2xl w-full max-w-3xl h-full max-h-[80vh] flex flex-col">
-            <h2 class="text-2xl font-bold mb-4 text-center">Mood Journal</h2>
-
-            <div class="flex-grow grid grid-cols-1 md:grid-cols-3 gap-6 overflow-y-auto">
-                <div class="md:col-span-1 flex flex-col space-y-4">
-                    <div class="bg-gray-800 p-4 rounded-lg">
-                        <h3 class="text-lg font-semibold mb-3 text-gray-300">Today's Entry</h3>
-                        <p class="text-sm text-gray-400 mb-2">How are you feeling?</p>
-                        <div class="flex justify-around mb-3">
-                            <button data-mood="😊"
-                                class="mood-btn text-3xl p-2 rounded-lg hover:bg-gray-700 transition-all">😊</button>
-                            <button data-mood="😄"
-                                class="mood-btn text-3xl p-2 rounded-lg hover:bg-gray-700 transition-all">😄</button>
-                            <button data-mood="😐"
-                                class="mood-btn text-3xl p-2 rounded-lg hover:bg-gray-700 transition-all">😐</button>
-                            <button data-mood="😔"
-                                class="mood-btn text-3xl p-2 rounded-lg hover:bg-gray-700 transition-all">😔</button>
-                            <button data-mood="😠"
-                                class="mood-btn text-3xl p-2 rounded-lg hover:bg-gray-700 transition-all">😠</button>
-                        </div>
-                        <textarea id="journal-text-area" rows="6"
-                            class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg text-white text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            placeholder="What's on your mind?"></textarea>
-                        <button id="journal-save-btn"
-                            class="w-full p-3 bg-blue-600 hover:bg-blue-500 rounded-lg font-semibold transition-all mt-3">
-                            Save Today's Entry
-                        </button>
-                    </div>
-                </div>
-
-                <div class="md:col-span-2 h-full">
-                    <div class="bg-gray-800 p-4 rounded-lg h-full flex flex-col">
-                        <h3 class="text-lg font-semibold mb-3 text-gray-300">Past Entries</h3>
-                        <div id="journal-entries-container" class="flex-grow overflow-y-auto space-y-3 pr-2">
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="flex justify-end mt-4">
-                <button id="journal-modal-close"
-                    class="w-full md:w-auto p-3 bg-gray-700 hover:bg-gray-600 rounded-lg transition-all">Close</button>
-            </div>
-        </div>
-    </div>
-
-    <audio id="alarm-sound" src="https://assets.mixkit.co/sfx/preview/mixkit-clear-announce-tones-2861.mp3"
-        preload="auto"></audio>
+    <audio id="alarm-sound" src="https://assets.mixkit.co/sfx/preview/mixkit-clear-announce-tones-2861.mp3" preload="auto"></audio>
 
     <script type="module">
         // --- 0. App State & Config ---
-        // Timer state
+        // Timer
         let timerInterval = null;
         let studyDuration = 25 * 60;
         let breakDuration = 5 * 60;
         let remainingTime = studyDuration;
         let isRunning = false;
-        let currentMode = 'study'; // 'study' or 'break'
-
-        // timer type and stopwatch elapsed
-        let timerType = 'pomodoro'; // 'pomodoro' or 'stopwatch'
-        let elapsedSeconds = 0; // used only in stopwatch mode
+        let currentMode = 'study';
+        let timerType = 'pomodoro'; 
+        let elapsedSeconds = 0;
         let pomodoroEndTime = 0;
         let lastTickTime = 0;
 
-        // Local stats state
+        // Stats
         let studyTimeToday = 0;
         let breakTimeToday = 0;
         let todayDateString = getTodayDateString();
         let lastSaveTimestamp = 0;
         let statsHistory = [];
 
-        // UI state
-        let isMinimized = false;
-
-        // Journal State
-        let journalEntries = [];
-        let selectedMood = '😐'; // Default
-
-        // Question Counter State
+        // Question Counter
         let questionCountToday = 0;
 
-        // YouTube + Video Player State
-        let activePlayer = 'local'; // 'local' or 'youtube'
-        let isYouTubeApiReady = false;
-        let videoIdToLoad = null;
-        let ytPlayer = null;
-        let ytSeekBarInterval = null;
+        // --- BACKGROUND MEDIA STATE ---
+        let activeBgPlayer = 'local'; // 'local' or 'youtube'
+        let bgVideoIdToLoad = null;
+        let ytBgPlayer = null;
+        let ytBgSeekBarInterval = null;
+        let isBgMuted = true;
 
-        // UI Elements
+        // --- MUSIC PLAYER STATE ---
+        let musicPlaylist = []; // { type: 'youtube'|'local', src: string, name: string }
+        let currentMusicIndex = -1;
+        let isMusicPlaying = false;
+        let musicAutoplay = false;
+        let isMusicMuted = false;
+        let ytMusicPlayer = null;
+        let musicVideoIdToLoad = null; // Buffer if API not ready
+
+        // --- UI Elements ---
         const timerDisplay = document.getElementById('timer-display');
         const progressBar = document.getElementById('progress-bar-inner');
         const playBtn = document.getElementById('play-pause-btn');
@@ -584,101 +346,145 @@
         const switchModeBtn = document.getElementById('switch-mode-btn');
         const timerTypeBtn = document.getElementById('timer-type-btn');
         const customTextInput = document.getElementById('custom-text-input');
-
-        // Journal UI
-        const journalBtn = document.getElementById('journal-btn');
-        const journalModal = document.getElementById('journal-modal');
-        const journalModalClose = document.getElementById('journal-modal-close');
-        const journalSaveBtn = document.getElementById('journal-save-btn');
-        const journalTextArea = document.getElementById('journal-text-area');
-        const journalEntriesContainer = document.getElementById('journal-entries-container');
-        const moodButtons = document.querySelectorAll('.mood-btn');
-
-        // Question Counter UI
+        const topHourLeftTextEl = document.getElementById('top-hour-left-text');
+        const controlsBar = document.getElementById('controls-bar');
+        const minimizeBtn = document.getElementById('minimize-btn');
+        const addTimeBtn = document.getElementById('add-time-btn');
+        const subtractTimeBtn = document.getElementById('subtract-time-btn');
+        
+        // --- Question Counter UI ---
         const toggleQuestionCounterBtn = document.getElementById('toggle-question-counter-btn');
         const questionCounterDisplay = document.getElementById('question-counter-display');
         const questionCountEl = document.getElementById('question-count-el');
         const questionAddBtn = document.getElementById('question-add-btn');
         const questionSubtractBtn = document.getElementById('question-subtract-btn');
 
-        // Stats UI (Elements removed from HTML, setting to null)
-        const statsDisplay = null;
-        const statsStudyEl = null;
-        const statsBreakEl = null;
-
-        // Re-targeted to new element inside timer container
-        const topHourLeftTextEl = document.getElementById('top-hour-left-text');
-
-        // Minimize UI
-        const controlsBar = document.getElementById('controls-bar');
-        const minimizeBtn = document.getElementById('minimize-btn');
-
-        // Time adjust UI
-        const addTimeBtn = document.getElementById('add-time-btn');
-        const subtractTimeBtn = document.getElementById('subtract-time-btn');
-
-        // --- Background Video Logic ---
-        const videoPlayer = document.getElementById('bg-video');
+        // --- BACKGROUND VIDEO UI ---
+        const bgVideoPlayer = document.getElementById('bg-video');
         const videoFileInput = document.getElementById('video-file-input');
         const setVideoBtn = document.getElementById('set-video-btn');
-        const videoControlsBtn = document.getElementById('video-controls-btn');
-        // SHARED CONTROLS
+        const setYoutubeBtn = document.getElementById('set-youtube-btn');
+        const youtubeBgContainer = document.getElementById('youtube-bg');
+        
         const videoControlsContainer = document.getElementById('video-controls-container');
+        const videoControlsToggle = document.getElementById('video-controls-toggle');
         const videoTimeDisplay = document.getElementById('video-time-display');
         const videoSeekBar = document.getElementById('video-seek-bar');
         const videoPlayPauseBtn = document.getElementById('video-play-pause-btn');
         const videoPlayIcon = document.getElementById('video-play-icon');
         const videoPauseIcon = document.getElementById('video-pause-icon');
-        // YOUTUBE
-        const youtubeContainer = document.getElementById('youtube-bg');
-        const setYoutubeBtn = document.getElementById('set-youtube-btn');
+        const bgMuteBtn = document.getElementById('bg-mute-btn');
+        const bgMuteIcon = document.getElementById('bg-mute-icon');
+        const bgUnmuteIcon = document.getElementById('bg-unmute-icon');
 
-        // --- NEW: Image & Animation Elements ---
+        // --- NEW IMAGE & FX UI ---
         const imageFileInput = document.getElementById('image-file-input');
         const bgImageEl = document.getElementById('bg-image');
         const setImageBtn = document.getElementById('set-image-btn');
         const toggleSnowBtn = document.getElementById('toggle-snow-btn');
         const toggleRainBtn = document.getElementById('toggle-rain-btn');
 
+        // --- MENU UI ---
+        const bgMenuBtn = document.getElementById('bg-menu-btn');
+        const bgMenuContainer = document.getElementById('bg-menu-container');
+        const musicMenuBtn = document.getElementById('music-menu-btn');
+        const musicMenuContainer = document.getElementById('music-menu-container');
 
-        setVideoBtn.addEventListener('click', () => {
-            videoFileInput.click();
+        // --- MUSIC UI ---
+        const musicPlayBtn = document.getElementById('music-play-btn');
+        const musicPlayIcon = document.getElementById('music-play-icon');
+        const musicPauseIcon = document.getElementById('music-pause-icon');
+        const musicNextBtn = document.getElementById('music-next-btn');
+        const musicPrevBtn = document.getElementById('music-prev-btn');
+        const musicMuteBtn = document.getElementById('music-mute-btn');
+        const musicUnmuteIcon = document.getElementById('music-unmute-icon');
+        const musicMuteIcon = document.getElementById('music-mute-icon');
+        const musicAutoplayBtn = document.getElementById('music-autoplay-btn');
+        const addMusicYtBtn = document.getElementById('add-music-yt-btn');
+        const addMusicLocalBtn = document.getElementById('add-music-local-btn');
+        const musicFileInput = document.getElementById('music-file-input');
+        const musicQueueList = document.getElementById('music-queue-list');
+        const localMusicPlayer = document.getElementById('local-music-player');
+
+        // --- MENU TOGGLE LOGIC ---
+        bgMenuBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            bgMenuContainer.classList.toggle('active');
+            musicMenuContainer.classList.remove('active'); // Close other
+        });
+        musicMenuBtn.addEventListener('click', (e) => {
+             e.stopPropagation();
+            musicMenuContainer.classList.toggle('active');
+            bgMenuContainer.classList.remove('active'); // Close other
+        });
+        document.addEventListener('click', (e) => {
+            if (!bgMenuContainer.contains(e.target) && e.target !== bgMenuBtn) {
+                bgMenuContainer.classList.remove('active');
+            }
+             if (!musicMenuContainer.contains(e.target) && e.target !== musicMenuBtn) {
+                musicMenuContainer.classList.remove('active');
+            }
         });
 
-        videoControlsBtn.addEventListener('click', () => {
+        // ==========================================
+        //  BACKGROUND VIDEO LOGIC
+        // ==========================================
+
+        setVideoBtn.addEventListener('click', () => videoFileInput.click());
+
+        videoControlsToggle.addEventListener('click', () => {
             videoControlsContainer.classList.toggle('hidden');
         });
 
         videoFileInput.addEventListener('change', (event) => {
             const file = event.target.files[0];
             if (file) {
-                if (videoPlayer.src) {
-                    URL.revokeObjectURL(videoPlayer.src);
-                }
+                if (bgVideoPlayer.src) URL.revokeObjectURL(bgVideoPlayer.src);
                 const videoURL = URL.createObjectURL(file);
-                videoPlayer.src = videoURL;
-                videoPlayer.play();
+                bgVideoPlayer.src = videoURL;
+                bgVideoPlayer.play();
+                bgVideoPlayer.muted = true;
+                isBgMuted = true;
+                updateBgMuteUI();
 
-                isMuted = true;
-                videoPlayer.muted = true;
-                unmuteIcon.classList.remove('hidden');
-                muteIcon.classList.add('hidden');
+                activeBgPlayer = 'local';
+                bgVideoPlayer.style.display = 'block';
+                bgImageEl.style.display = 'none';
+                youtubeBgContainer.style.display = 'none';
+                if (ytBgPlayer && ytBgPlayer.pauseVideo) ytBgPlayer.pauseVideo();
 
-                // Set active player and switch UI
-                activePlayer = 'local';
-                videoPlayer.style.display = 'block';
-                bgImageEl.style.display = 'none'; // Hide image
-                if (ytPlayer) ytPlayer.pauseVideo();
-                youtubeContainer.style.display = 'none';
-
-                // Show shared controls
                 videoControlsContainer.classList.remove('hidden');
-
-                // Wire controls for local player
-                rewireControlsForLocalPlayer();
+                rewireControlsForLocalBg();
             }
         });
 
+        setYoutubeBtn.addEventListener('click', () => {
+             const url = prompt("Enter YouTube video URL for Background:");
+            if (!url) return;
+            const idMatch = url.match(/(?:youtube\.com.*(?:\?|&)v=|youtu\.be\/)([^&#]+)/);
+            if (!idMatch) return alert("Invalid YouTube URL");
+            const videoId = idMatch[1];
+
+            bgVideoPlayer.pause();
+            bgVideoPlayer.style.display = 'none';
+            bgImageEl.style.display = 'none';
+            youtubeBgContainer.style.display = 'block';
+            videoControlsContainer.classList.remove('hidden');
+
+            if (ytBgPlayer) {
+                activeBgPlayer = 'youtube';
+                ytBgPlayer.loadVideoById(videoId);
+                rewireControlsForYouTubeBg();
+            } else {
+                 if (window.YT && window.YT.Player) {
+                    createYouTubeBgPlayer(videoId);
+                 } else {
+                    bgVideoIdToLoad = videoId;
+                 }
+            }
+        });
+
+        // Helper: Format Time
         function formatVideoTime(timeInSeconds) {
             if (isNaN(timeInSeconds)) return "00:00";
             const totalSeconds = Math.floor(timeInSeconds);
@@ -687,109 +493,393 @@
             return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
         }
 
-        // --- Video Control Listeners ---
-        function localVideoTimeUpdate() {
-            if (isNaN(videoPlayer.duration)) return;
-            videoSeekBar.value = videoPlayer.currentTime;
-            videoSeekBar.max = videoPlayer.duration;
-            videoTimeDisplay.textContent = `${formatVideoTime(videoPlayer.currentTime)} / ${formatVideoTime(videoPlayer.duration)}`;
+        // --- Local BG Controls ---
+        function localBgTimeUpdate() {
+            if (isNaN(bgVideoPlayer.duration)) return;
+            videoSeekBar.value = bgVideoPlayer.currentTime;
+            videoSeekBar.max = bgVideoPlayer.duration;
+            videoTimeDisplay.textContent = `${formatVideoTime(bgVideoPlayer.currentTime)} / ${formatVideoTime(bgVideoPlayer.duration)}`;
         }
-        function localVideoLoadedMetadata() {
-            if (isNaN(videoPlayer.duration)) return;
-            videoSeekBar.max = videoPlayer.duration;
-            videoTimeDisplay.textContent = `00:00 / ${formatVideoTime(videoPlayer.duration)}`;
-        }
-        function localVideoSeekClick(e) {
+        function localBgSeekClick(e) {
             const rect = videoSeekBar.getBoundingClientRect();
             const clickX = e.clientX - rect.left;
             const percentage = clickX / rect.width;
-            videoPlayer.currentTime = percentage * videoPlayer.duration;
+            bgVideoPlayer.currentTime = percentage * bgVideoPlayer.duration;
         }
-        function localVideoPlayPauseClick() {
-            if (videoPlayer.paused) videoPlayer.play(); else videoPlayer.pause();
+        function localBgPlayPause() {
+            if (bgVideoPlayer.paused) bgVideoPlayer.play(); else bgVideoPlayer.pause();
         }
-        function localVideoPlayEvent() {
-            videoPlayIcon.classList.add('hidden');
-            videoPauseIcon.classList.remove('hidden');
+        function onLocalBgPlay() {
+            videoPlayIcon.classList.add('hidden'); videoPauseIcon.classList.remove('hidden');
         }
-        function localVideoPauseEvent() {
-            videoPlayIcon.classList.remove('hidden');
-            videoPauseIcon.classList.add('hidden');
+        function onLocalBgPause() {
+            videoPlayIcon.classList.remove('hidden'); videoPauseIcon.classList.add('hidden');
         }
 
-        // --- YouTube Listeners ---
-        function youtubeVideoSeekUpdate() {
-            if (ytPlayer && ytPlayer.getDuration) {
-                const duration = ytPlayer.getDuration();
-                const currentTime = ytPlayer.getCurrentTime();
+        function rewireControlsForLocalBg() {
+            if (ytBgSeekBarInterval) clearInterval(ytBgSeekBarInterval);
+            videoSeekBar.removeEventListener('click', youtubeBgSeekClick);
+            videoPlayPauseBtn.removeEventListener('click', youtubeBgPlayPause);
+
+            bgVideoPlayer.addEventListener('timeupdate', localBgTimeUpdate);
+            videoSeekBar.addEventListener('click', localBgSeekClick);
+            videoPlayPauseBtn.addEventListener('click', localBgPlayPause);
+            bgVideoPlayer.addEventListener('play', onLocalBgPlay);
+            bgVideoPlayer.addEventListener('pause', onLocalBgPause);
+
+            if (bgVideoPlayer.paused) onLocalBgPause(); else onLocalBgPlay();
+            localBgTimeUpdate();
+        }
+
+        // --- YouTube BG Controls ---
+        function youtubeBgSeekUpdate() {
+            if (ytBgPlayer && ytBgPlayer.getDuration) {
+                const duration = ytBgPlayer.getDuration();
+                const currentTime = ytBgPlayer.getCurrentTime();
                 videoSeekBar.max = duration;
                 videoSeekBar.value = currentTime;
                 videoTimeDisplay.textContent = `${formatVideoTime(currentTime)} / ${formatVideoTime(duration)}`;
             }
         }
-        function youtubeVideoSeekClick(e) {
+        function youtubeBgSeekClick(e) {
             const rect = videoSeekBar.getBoundingClientRect();
             const clickX = e.clientX - rect.left;
             const percentage = clickX / rect.width;
-            const newTime = percentage * ytPlayer.getDuration();
-            ytPlayer.seekTo(newTime, true);
+            const newTime = percentage * ytBgPlayer.getDuration();
+            ytBgPlayer.seekTo(newTime, true);
         }
-        function youtubeVideoPlayPauseClick() {
-            if (!ytPlayer || typeof ytPlayer.getPlayerState !== 'function') return;
-            const state = ytPlayer.getPlayerState();
-            if (state === YT.PlayerState.PLAYING) {
-                ytPlayer.pauseVideo();
-            } else {
-                ytPlayer.playVideo();
-            }
+        function youtubeBgPlayPause() {
+            if (!ytBgPlayer || typeof ytBgPlayer.getPlayerState !== 'function') return;
+            const state = ytBgPlayer.getPlayerState();
+            if (state === YT.PlayerState.PLAYING) ytBgPlayer.pauseVideo();
+            else ytBgPlayer.playVideo();
         }
-        function youtubeVideoStateChange(event) {
+        function youtubeBgStateChange(event) {
             if (event.data === YT.PlayerState.PLAYING) {
-                videoPlayIcon.classList.add('hidden');
-                videoPauseIcon.classList.remove('hidden');
+                videoPlayIcon.classList.add('hidden'); videoPauseIcon.classList.remove('hidden');
             } else {
-                videoPlayIcon.classList.remove('hidden');
-                videoPauseIcon.classList.add('hidden');
+                videoPlayIcon.classList.remove('hidden'); videoPauseIcon.classList.add('hidden');
             }
         }
 
-        // --- Wiring Functions ---
-        function rewireControlsForLocalPlayer() {
-            if (ytSeekBarInterval) clearInterval(ytSeekBarInterval);
-            videoSeekBar.removeEventListener('click', youtubeVideoSeekClick);
-            videoPlayPauseBtn.removeEventListener('click', youtubeVideoPlayPauseClick);
+        function rewireControlsForYouTubeBg() {
+            if (ytBgSeekBarInterval) clearInterval(ytBgSeekBarInterval);
+            bgVideoPlayer.removeEventListener('timeupdate', localBgTimeUpdate);
+            videoSeekBar.removeEventListener('click', localBgSeekClick);
+            videoPlayPauseBtn.removeEventListener('click', localBgPlayPause);
+            bgVideoPlayer.removeEventListener('play', onLocalBgPlay);
+            bgVideoPlayer.removeEventListener('pause', onLocalBgPause);
 
-            videoPlayer.addEventListener('timeupdate', localVideoTimeUpdate);
-            videoPlayer.addEventListener('loadedmetadata', localVideoLoadedMetadata);
-            videoSeekBar.addEventListener('click', localVideoSeekClick);
-            videoPlayPauseBtn.addEventListener('click', localVideoPlayPauseClick);
-            videoPlayer.addEventListener('play', localVideoPlayEvent);
-            videoPlayer.addEventListener('pause', localVideoPauseEvent);
+            videoSeekBar.addEventListener('click', youtubeBgSeekClick);
+            videoPlayPauseBtn.addEventListener('click', youtubeBgPlayPause);
+            ytBgSeekBarInterval = setInterval(youtubeBgSeekUpdate, 500);
 
-            if (videoPlayer.paused) localVideoPauseEvent(); else localVideoPlayEvent();
-            localVideoTimeUpdate();
-        }
-
-        function rewireControlsForYouTubePlayer() {
-            if (ytSeekBarInterval) clearInterval(ytSeekBarInterval);
-            videoPlayer.removeEventListener('timeupdate', localVideoTimeUpdate);
-            videoPlayer.removeEventListener('loadedmetadata', localVideoLoadedMetadata);
-            videoSeekBar.removeEventListener('click', localVideoSeekClick);
-            videoPlayPauseBtn.removeEventListener('click', localVideoPlayPauseClick);
-            videoPlayer.removeEventListener('play', localVideoPlayEvent);
-            videoPlayer.removeEventListener('pause', localVideoPauseEvent);
-
-            videoSeekBar.addEventListener('click', youtubeVideoSeekClick);
-            videoPlayPauseBtn.addEventListener('click', youtubeVideoPlayPauseClick);
-
-            ytSeekBarInterval = setInterval(youtubeVideoSeekUpdate, 500);
-
-            if (ytPlayer && typeof ytPlayer.getPlayerState === 'function') {
-                youtubeVideoStateChange({ data: ytPlayer.getPlayerState() });
+            if (ytBgPlayer && typeof ytBgPlayer.getPlayerState === 'function') {
+                youtubeBgStateChange({ data: ytBgPlayer.getPlayerState() });
             }
         }
 
-        // --- Timer Logic ---
+        // --- BG Mute Toggle ---
+        function updateBgMuteUI() {
+             if (isBgMuted) {
+                bgUnmuteIcon.classList.remove('hidden');
+                bgMuteIcon.classList.add('hidden');
+            } else {
+                bgUnmuteIcon.classList.add('hidden');
+                bgMuteIcon.classList.remove('hidden');
+            }
+        }
+        bgMuteBtn.addEventListener('click', () => {
+            if (activeBgPlayer === 'local') {
+                bgVideoPlayer.muted = !bgVideoPlayer.muted;
+                isBgMuted = bgVideoPlayer.muted;
+            } else if (activeBgPlayer === 'youtube' && ytBgPlayer) {
+                if (ytBgPlayer.isMuted()) { ytBgPlayer.unMute(); isBgMuted = false; }
+                else { ytBgPlayer.mute(); isBgMuted = true; }
+            }
+            updateBgMuteUI();
+        });
+
+
+        // ==========================================
+        //  MUSIC PLAYER LOGIC
+        // ==========================================
+        
+        function renderMusicQueue() {
+            musicQueueList.innerHTML = '';
+            if(musicPlaylist.length === 0) {
+                 musicQueueList.innerHTML = '<div class="text-xs text-gray-500 text-center italic py-2">Queue is empty</div>';
+                 return;
+            }
+            musicPlaylist.forEach((track, index) => {
+                const el = document.createElement('div');
+                el.className = `queue-item ${index === currentMusicIndex ? 'active-track' : ''}`;
+                el.innerHTML = `
+                    <div class="truncate w-48">${index + 1}. ${track.name}</div>
+                    <div class="text-xs opacity-50 ml-2">${track.type === 'youtube' ? 'YT' : 'MP3'}</div>
+                `;
+                el.onclick = () => playMusicTrack(index);
+                musicQueueList.appendChild(el);
+            });
+        }
+
+        function playMusicTrack(index) {
+            if (index < 0 || index >= musicPlaylist.length) return;
+            currentMusicIndex = index;
+            const track = musicPlaylist[index];
+            isMusicPlaying = true;
+            updateMusicPlayPauseUI();
+            renderMusicQueue();
+
+            if (track.type === 'local') {
+                // Stop YT Music
+                if (ytMusicPlayer && ytMusicPlayer.pauseVideo) ytMusicPlayer.pauseVideo();
+                
+                localMusicPlayer.src = track.src;
+                localMusicPlayer.play();
+                localMusicPlayer.muted = isMusicMuted;
+            } else {
+                // Stop Local
+                localMusicPlayer.pause();
+
+                if (ytMusicPlayer) {
+                    ytMusicPlayer.loadVideoById(track.src);
+                    ytMusicPlayer.setVolume(100);
+                    if(isMusicMuted) ytMusicPlayer.mute(); else ytMusicPlayer.unMute();
+                } else {
+                     if (window.YT && window.YT.Player) {
+                        createYouTubeMusicPlayer(track.src);
+                     } else {
+                        musicVideoIdToLoad = track.src;
+                     }
+                }
+            }
+        }
+
+        function updateMusicPlayPauseUI() {
+            if(isMusicPlaying) {
+                musicPlayIcon.classList.add('hidden');
+                musicPauseIcon.classList.remove('hidden');
+            } else {
+                musicPlayIcon.classList.remove('hidden');
+                musicPauseIcon.classList.add('hidden');
+            }
+        }
+
+        // Music Controls
+        musicPlayBtn.addEventListener('click', () => {
+            if(musicPlaylist.length === 0) return;
+            if(isMusicPlaying) {
+                // Pause
+                isMusicPlaying = false;
+                localMusicPlayer.pause();
+                if(ytMusicPlayer && ytMusicPlayer.pauseVideo) ytMusicPlayer.pauseVideo();
+            } else {
+                // Play
+                if (currentMusicIndex === -1) {
+                    playMusicTrack(0);
+                } else {
+                    isMusicPlaying = true;
+                    if(musicPlaylist[currentMusicIndex].type === 'local') localMusicPlayer.play();
+                    else if (ytMusicPlayer) ytMusicPlayer.playVideo();
+                }
+            }
+            updateMusicPlayPauseUI();
+        });
+
+        musicNextBtn.addEventListener('click', () => {
+            if(currentMusicIndex < musicPlaylist.length - 1) playMusicTrack(currentMusicIndex + 1);
+        });
+        musicPrevBtn.addEventListener('click', () => {
+            if(currentMusicIndex > 0) playMusicTrack(currentMusicIndex - 1);
+        });
+
+        musicMuteBtn.addEventListener('click', () => {
+            isMusicMuted = !isMusicMuted;
+            localMusicPlayer.muted = isMusicMuted;
+            if(ytMusicPlayer) {
+                if(isMusicMuted) ytMusicPlayer.mute(); else ytMusicPlayer.unMute();
+            }
+            if(isMusicMuted) {
+                musicMuteIcon.classList.remove('hidden'); musicUnmuteIcon.classList.add('hidden');
+            } else {
+                musicMuteIcon.classList.add('hidden'); musicUnmuteIcon.classList.remove('hidden');
+            }
+        });
+
+        musicAutoplayBtn.addEventListener('click', () => {
+            musicAutoplay = !musicAutoplay;
+            musicAutoplayBtn.textContent = `Autoplay: ${musicAutoplay ? 'ON' : 'OFF'}`;
+            musicAutoplayBtn.classList.toggle('bg-blue-600', musicAutoplay);
+        });
+
+        // Add Music
+        addMusicYtBtn.addEventListener('click', () => {
+             const url = prompt("Enter YouTube Music URL:");
+            if (!url) return;
+            const idMatch = url.match(/(?:youtube\.com.*(?:\?|&)v=|youtu\.be\/)([^&#]+)/);
+            if (!idMatch) return alert("Invalid YouTube URL");
+            
+            musicPlaylist.push({
+                type: 'youtube',
+                src: idMatch[1],
+                name: `YouTube Track ${musicPlaylist.length + 1}`
+            });
+            renderMusicQueue();
+            if(musicPlaylist.length === 1) playMusicTrack(0);
+        });
+
+        addMusicLocalBtn.addEventListener('click', () => musicFileInput.click());
+
+        musicFileInput.addEventListener('change', (e) => {
+             const file = e.target.files[0];
+            if (file) {
+                const url = URL.createObjectURL(file);
+                musicPlaylist.push({
+                    type: 'local',
+                    src: url,
+                    name: file.name
+                });
+                renderMusicQueue();
+                if(musicPlaylist.length === 1) playMusicTrack(0);
+            }
+        });
+
+        // Autoplay Logic handles
+        localMusicPlayer.addEventListener('ended', () => {
+            if(musicAutoplay && currentMusicIndex < musicPlaylist.length - 1) {
+                playMusicTrack(currentMusicIndex + 1);
+            } else {
+                isMusicPlaying = false;
+                updateMusicPlayPauseUI();
+            }
+        });
+
+
+        // ==========================================
+        //  YOUTUBE API SETUP (Handles both players)
+        // ==========================================
+        const ytScript = document.createElement('script');
+        ytScript.src = "https://www.youtube.com/iframe_api";
+        document.body.appendChild(ytScript);
+
+        window.onYouTubeIframeAPIReady = () => {
+            // Check pending BG load
+            if (bgVideoIdToLoad) {
+                createYouTubeBgPlayer(bgVideoIdToLoad);
+                bgVideoIdToLoad = null;
+            }
+            // Check pending Music load
+            if (musicVideoIdToLoad) {
+                createYouTubeMusicPlayer(musicVideoIdToLoad);
+                musicVideoIdToLoad = null;
+            }
+        };
+
+        function createYouTubeBgPlayer(videoId) {
+            ytBgPlayer = new YT.Player('youtube-bg', {
+                videoId: videoId,
+                playerVars: { autoplay: 1, loop: 1, playlist: videoId, controls: 0, modestbranding: 1, mute: 1, origin: window.location.href },
+                events: {
+                    onReady: (e) => {
+                        activeBgPlayer = 'youtube';
+                        e.target.playVideo();
+                        rewireControlsForYouTubeBg();
+                        isBgMuted = true;
+                        updateBgMuteUI();
+                    },
+                    onStateChange: (e) => youtubeBgStateChange(e)
+                }
+            });
+        }
+
+        function createYouTubeMusicPlayer(videoId) {
+            ytMusicPlayer = new YT.Player('music-youtube-player', {
+                height: '1', width: '1', // Tiny player
+                videoId: videoId,
+                playerVars: { autoplay: 1, controls: 0, modestbranding: 1, origin: window.location.href },
+                events: {
+                    onReady: (e) => {
+                        e.target.playVideo();
+                        if(isMusicMuted) e.target.mute(); else e.target.unMute();
+                    },
+                    onStateChange: (e) => {
+                        // Handle Autoplay for YouTube
+                        if (e.data === YT.PlayerState.ENDED) {
+                            if(musicAutoplay && currentMusicIndex < musicPlaylist.length - 1) {
+                                playMusicTrack(currentMusicIndex + 1);
+                            } else {
+                                isMusicPlaying = false;
+                                updateMusicPlayPauseUI();
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+
+        // ==========================================
+        //  CORE TIMER & APP LOGIC (Existing)
+        // ==========================================
+
+        function getTodayDateString(date = new Date()) {
+            const now = new Date(date.getTime());
+            if (now.getHours() < 5) now.setDate(now.getDate() - 1);
+            return now.toISOString().split('T')[0];
+        }
+
+        function loadDataFromLocalStorage() {
+            // Stats
+            const savedStatsJSON = localStorage.getItem('studyStats');
+            todayDateString = getTodayDateString();
+            if (savedStatsJSON) {
+                try {
+                    const savedStats = JSON.parse(savedStatsJSON);
+                    if (savedStats[todayDateString]) {
+                        studyTimeToday = savedStats[todayDateString].totalStudy || 0;
+                        breakTimeToday = savedStats[todayDateString].totalBreak || 0;
+                    }
+                } catch (e) {}
+            }
+            // Size
+            const savedTimerSize = localStorage.getItem('timerSize');
+            const savedTimerSubSize = localStorage.getItem('timerSubSize');
+            if (savedTimerSize && savedTimerSubSize) {
+                document.documentElement.style.setProperty('--timer-font-size', `${savedTimerSize}rem`);
+                document.documentElement.style.setProperty('--timer-subtext-font-size', `${savedTimerSubSize}rem`);
+                document.getElementById('timer-size-slider').value = savedTimerSize;
+            }
+            // Custom Text
+            const savedCustomText = localStorage.getItem('customTimerText');
+            if (savedCustomText) customTextInput.value = savedCustomText;
+
+            // Questions
+            const savedQuestionCountJSON = localStorage.getItem('questionCount');
+            if (savedQuestionCountJSON) {
+                try {
+                    const savedQuestionCount = JSON.parse(savedQuestionCountJSON);
+                    if (savedQuestionCount[todayDateString]) questionCountToday = savedQuestionCount[todayDateString] || 0;
+                } catch (e) {}
+            }
+            questionCountEl.textContent = questionCountToday;
+        }
+
+        function saveAllDataToLocalStorage() {
+            const newToday = getTodayDateString();
+            if (newToday !== todayDateString) {
+                todayDateString = newToday;
+                studyTimeToday = 0;
+                breakTimeToday = 0;
+                questionCountToday = 0;
+            }
+            const statsData = { [todayDateString]: { totalStudy: Math.round(studyTimeToday), totalBreak: Math.round(breakTimeToday) } };
+            localStorage.setItem('studyStats', JSON.stringify(statsData));
+            const questionData = { [todayDateString]: questionCountToday };
+            localStorage.setItem('questionCount', JSON.stringify(questionData));
+            questionCountEl.textContent = questionCountToday;
+        }
+
         function updateTimerDisplay() {
             if (timerType === 'pomodoro') {
                 const duration = (currentMode === 'study') ? studyDuration : breakDuration;
@@ -797,7 +887,6 @@
                 const minutes = Math.floor(displayTime / 60);
                 const seconds = displayTime % 60;
                 timerDisplay.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-
                 const progress = (displayTime / duration) * 100;
                 progressBar.style.width = `${Math.min(100, progress)}%`;
                 progressBar.parentElement.style.display = '';
@@ -813,71 +902,34 @@
             }
         }
 
-        function formatTime(totalSeconds) {
-            const minutes = Math.floor(totalSeconds / 60);
-            const seconds = totalSeconds % 60;
-            return `${minutes}m ${seconds}s`;
-        }
-
-        function updateTodayStatsUI() {
-            if (statsStudyEl) statsStudyEl.textContent = formatTime(Math.round(studyTimeToday));
-            if (statsBreakEl) statsBreakEl.textContent = formatTime(Math.round(breakTimeToday));
-        }
-
         function startTimer() {
             if (isRunning) return;
             isRunning = true;
             playIcon.classList.add('hidden');
             pauseIcon.classList.remove('hidden');
-
             lastTickTime = Date.now();
 
             if (timerType === 'pomodoro') {
                 pomodoroEndTime = Date.now() + (remainingTime * 1000);
-
                 timerInterval = setInterval(() => {
                     const now = Date.now();
                     const deltaSeconds = (now - lastTickTime) / 1000.0;
                     lastTickTime = now;
-
-                    if (currentMode === 'study') {
-                        studyTimeToday += deltaSeconds;
-                    } else {
-                        breakTimeToday += deltaSeconds;
-                    }
-
+                    if (currentMode === 'study') studyTimeToday += deltaSeconds; else breakTimeToday += deltaSeconds;
                     remainingTime = (pomodoroEndTime - now) / 1000.0;
-
-                    if (remainingTime < 0) {
-                        remainingTime = 0;
-                    }
-
+                    if (remainingTime < 0) remainingTime = 0;
                     updateTimerDisplay();
-
-                    if (now - lastSaveTimestamp > 5000) {
-                        saveAllDataToLocalStorage();
-                        lastSaveTimestamp = now;
-                    }
+                    if (now - lastSaveTimestamp > 5000) { saveAllDataToLocalStorage(); lastSaveTimestamp = now; }
 
                     if (remainingTime <= 0) {
                         clearInterval(timerInterval);
                         isRunning = false;
                         alarmSound.play();
-
                         studyTimeToday = Math.round(studyTimeToday);
                         breakTimeToday = Math.round(breakTimeToday);
-
                         saveAllDataToLocalStorage();
-                        updateTodayStatsUI();
-
                         toggleMode();
-
-                        setTimeout(() => {
-                            startTimer();
-                        }, 1000);
-
-                    } else {
-                        updateTodayStatsUI();
+                        setTimeout(startTimer, 1000);
                     }
                 }, 1000);
             } else {
@@ -885,26 +937,13 @@
                     const now = Date.now();
                     const deltaSeconds = (now - lastTickTime) / 1000.0;
                     lastTickTime = now;
-
                     elapsedSeconds += deltaSeconds;
-
-                    if (currentMode === 'study') {
-                        studyTimeToday += deltaSeconds;
-                    } else {
-                        breakTimeToday += deltaSeconds;
-                    }
-                    updateTodayStatsUI();
-
-                    if (now - lastSaveTimestamp > 5000) {
-                        saveAllDataToLocalStorage();
-                        lastSaveTimestamp = now;
-                    }
-
+                    if (currentMode === 'study') studyTimeToday += deltaSeconds; else breakTimeToday += deltaSeconds;
+                    if (now - lastSaveTimestamp > 5000) { saveAllDataToLocalStorage(); lastSaveTimestamp = now; }
                     updateTimerDisplay();
                 }, 1000);
             }
         }
-
 
         function pauseTimer() {
             if (!isRunning) return;
@@ -912,50 +951,25 @@
             playIcon.classList.remove('hidden');
             pauseIcon.classList.add('hidden');
             clearInterval(timerInterval);
-
             const now = Date.now();
             const deltaSeconds = (now - lastTickTime) / 1000.0;
-
-            if (timerType === 'pomodoro') {
-                if (currentMode === 'study') {
-                    studyTimeToday += deltaSeconds;
-                } else {
-                    breakTimeToday += deltaSeconds;
-                }
+             if (timerType === 'pomodoro') {
+                if (currentMode === 'study') studyTimeToday += deltaSeconds; else breakTimeToday += deltaSeconds;
                 remainingTime = (pomodoroEndTime - now) / 1000.0;
                 if (remainingTime < 0) remainingTime = 0;
-
             } else {
                 elapsedSeconds += deltaSeconds;
-                if (currentMode === 'study') {
-                    studyTimeToday += deltaSeconds;
-                } else {
-                    breakTimeToday += deltaSeconds;
-                }
+                 if (currentMode === 'study') studyTimeToday += deltaSeconds; else breakTimeToday += deltaSeconds;
             }
-
-            studyTimeToday = Math.round(studyTimeToday);
-            breakTimeToday = Math.round(breakTimeToday);
-
             saveAllDataToLocalStorage();
-            updateTodayStatsUI();
             updateTimerDisplay();
         }
 
         function resetTimer() {
             pauseTimer();
-            if (timerType === 'pomodoro') {
-                remainingTime = (currentMode === 'study') ? studyDuration : breakDuration;
-            } else {
-                elapsedSeconds = 0;
-            }
-
-            studyTimeToday = Math.round(studyTimeToday);
-            breakTimeToday = Math.round(breakTimeToday);
-
+            if (timerType === 'pomodoro') remainingTime = (currentMode === 'study') ? studyDuration : breakDuration;
+            else elapsedSeconds = 0;
             updateTimerDisplay();
-            updateTodayStatsUI();
-
             currentModeDisplay.textContent = (currentMode === 'study') ? 'Studying' : 'Break';
         }
 
@@ -965,28 +979,19 @@
                 currentMode = 'break';
                 remainingTime = breakDuration;
                 switchModeBtn.textContent = 'Break';
-                switchModeBtn.title = "Switch to Study Mode";
             } else {
                 currentMode = 'study';
                 remainingTime = studyDuration;
                 switchModeBtn.textContent = 'Study';
-                switchModeBtn.title = "Switch to Break Mode";
             }
             resetTimer();
         }
 
         switchModeBtn.addEventListener('click', toggleMode);
-
-        playBtn.addEventListener('click', () => {
-            if (isRunning) {
-                pauseTimer();
-            } else {
-                startTimer();
-            }
-        });
+        playBtn.addEventListener('click', () => isRunning ? pauseTimer() : startTimer());
         resetBtn.addEventListener('click', resetTimer);
 
-        // --- Timer Modal Logic ---
+        // Timer Modals
         const timerModal = document.getElementById('timer-modal');
         const setTimerBtn = document.getElementById('set-timer-btn');
         const studyTimerInput = document.getElementById('study-timer-input');
@@ -996,679 +1001,152 @@
 
         setTimerBtn.addEventListener('click', () => timerModal.classList.remove('hidden'));
         timerModalCancel.addEventListener('click', () => timerModal.classList.add('hidden'));
-
         timerModalOk.addEventListener('click', () => {
             const studyMinutes = parseInt(studyTimerInput.value);
             const breakMinutes = parseInt(breakTimerInput.value);
-
-            if (studyMinutes && studyMinutes > 0) {
-                studyDuration = studyMinutes * 60;
-            }
-            if (breakMinutes && breakMinutes > 0) {
-                breakDuration = breakMinutes * 60;
-            }
-
-            if (currentMode === 'study') {
-                remainingTime = studyDuration;
-            } else {
-                remainingTime = breakDuration;
-            }
+            if (studyMinutes > 0) studyDuration = studyMinutes * 60;
+            if (breakMinutes > 0) breakDuration = breakMinutes * 60;
+            if (currentMode === 'study') remainingTime = studyDuration; else remainingTime = breakDuration;
             resetTimer();
             timerModal.classList.add('hidden');
         });
 
-        timerModal.addEventListener('click', (e) => {
-            if (e.target === timerModal) timerModal.classList.add('hidden');
-        });
-
-        // --- Mute/Unmute Logic ---
-        const toggleMuteBtn = document.getElementById('toggle-mute-btn');
-        const muteIcon = document.getElementById('mute-icon');
-        const unmuteIcon = document.getElementById('unmute-icon');
-        let isMuted = true;
-
-        toggleMuteBtn.addEventListener('click', () => {
-            if (activePlayer === 'local') {
-                if (!videoPlayer.src) return;
-                videoPlayer.muted = !videoPlayer.muted;
-                isMuted = videoPlayer.muted;
-            } else if (activePlayer === 'youtube' && ytPlayer) {
-                if (ytPlayer.isMuted()) {
-                    ytPlayer.unMute();
-                    isMuted = false;
-                } else {
-                    ytPlayer.mute();
-                    isMuted = true;
-                }
-            }
-
-            if (isMuted) {
-                unmuteIcon.classList.remove('hidden');
-                muteIcon.classList.add('hidden');
-            } else {
-                unmuteIcon.classList.add('hidden');
-                muteIcon.classList.remove('hidden');
-            }
-        });
-
-        // --- Core Data & Task Logic ---
-        function getTodayDateString(date = new Date()) {
-            const now = new Date(date.getTime());
-            if (now.getHours() < 5) {
-                now.setDate(now.getDate() - 1);
-            }
-            return now.toISOString().split('T')[0];
-        }
-
-        function loadDataFromLocalStorage() {
-            const savedStatsJSON = localStorage.getItem('studyStats');
-            todayDateString = getTodayDateString();
-
-            if (savedStatsJSON) {
-                try {
-                    const savedStats = JSON.parse(savedStatsJSON);
-                    if (savedStats[todayDateString]) {
-                        studyTimeToday = savedStats[todayDateString].totalStudy || 0;
-                        breakTimeToday = savedStats[todayDateString].totalBreak || 0;
-                    }
-                } catch (e) {
-                    console.error("Failed to parse saved stats", e);
-                }
-            }
-
-            const savedHistoryJSON = localStorage.getItem('statsHistory');
-            if (savedHistoryJSON) {
-                try {
-                    statsHistory = JSON.parse(savedHistoryJSON);
-                } catch (e) {
-                    console.error("Failed to parse stats history", e);
-                    statsHistory = [];
-                }
-            }
-
-            const savedTimerSize = localStorage.getItem('timerSize');
-            const savedTimerSubSize = localStorage.getItem('timerSubSize');
-            if (savedTimerSize && savedTimerSubSize) {
-                document.documentElement.style.setProperty('--timer-font-size', `${savedTimerSize}rem`);
-                document.documentElement.style.setProperty('--timer-subtext-font-size', `${savedTimerSubSize}rem`);
-                document.getElementById('timer-size-slider').value = savedTimerSize;
-            }
-
-            const savedCustomText = localStorage.getItem('customTimerText');
-            if (savedCustomText) {
-                customTextInput.value = savedCustomText;
-            }
-
-            const savedJournalJSON = localStorage.getItem('journalEntries');
-            if (savedJournalJSON) {
-                try {
-                    journalEntries = JSON.parse(savedJournalJSON);
-                } catch (e) {
-                    console.error("Failed to parse journal entries", e);
-                    journalEntries = [];
-                }
-            }
-
-            const savedQuestionCountJSON = localStorage.getItem('questionCount');
-            if (savedQuestionCountJSON) {
-                try {
-                    const savedQuestionCount = JSON.parse(savedQuestionCountJSON);
-                    if (savedQuestionCount[todayDateString]) {
-                        questionCountToday = savedQuestionCount[todayDateString] || 0;
-                    }
-                } catch (e) {
-                    console.error("Failed to parse question count", e);
-                    questionCountToday = 0;
-                }
-            }
-
-            updateTodayStatsUI();
-            questionCountEl.textContent = questionCountToday;
-        }
-
-        function saveAllDataToLocalStorage() {
-            const newToday = getTodayDateString();
-
-            if (newToday !== todayDateString) {
-                const yesterdayString = todayDateString;
-                const yesterdayStats = {
-                    date: yesterdayString,
-                    totalStudy: Math.round(studyTimeToday),
-                    totalBreak: Math.round(breakTimeToday)
-                };
-
-                if (yesterdayStats.totalStudy > 0 || yesterdayStats.totalBreak > 0) {
-                    statsHistory.push(yesterdayStats);
-                    localStorage.setItem('statsHistory', JSON.stringify(statsHistory));
-                }
-
-                todayDateString = newToday;
-                studyTimeToday = 0;
-                breakTimeToday = 0;
-                questionCountToday = 0;
-            }
-
-            const statsData = {
-                [todayDateString]: {
-                    totalStudy: Math.round(studyTimeToday),
-                    totalBreak: Math.round(breakTimeToday)
-                }
-            };
-            localStorage.setItem('studyStats', JSON.stringify(statsData));
-
-            const questionData = {
-                [todayDateString]: questionCountToday
-            };
-            localStorage.setItem('questionCount', JSON.stringify(questionData));
-
-            questionCountEl.textContent = questionCountToday;
-        }
-
-        // --- UI Logic ---
-        minimizeBtn.addEventListener('click', () => {
-            isMinimized = !isMinimized;
-            if (statsDisplay) statsDisplay.classList.toggle('ui-hide'); // Check for null
-            controlsBar.classList.toggle('ui-hide');
-        });
-
-
-        addTimeBtn.addEventListener('click', () => {
-            if (timerType === 'pomodoro') {
-                remainingTime += 300;
-                if (isRunning) {
-                    pomodoroEndTime += 300 * 1000;
-                }
-            } else {
-                elapsedSeconds += 300;
-            }
-            updateTimerDisplay();
-        });
-
-        subtractTimeBtn.addEventListener('click', () => {
-            if (timerType === 'pomodoro') {
-                remainingTime -= 300;
-                if (remainingTime < 0) remainingTime = 0;
-                if (isRunning) {
-                    pomodoroEndTime -= 300 * 1000;
-                }
-            } else {
-                elapsedSeconds -= 300;
-                if (elapsedSeconds < 0) elapsedSeconds = 0;
-            }
-            updateTimerDisplay();
-        });
-
-        // --- Cinema Mode Logic ---
-        const cinemaModeBtn = document.getElementById('cinema-mode-btn');
-        const timerUIContainer = document.getElementById('timer-ui-container');
-
-        const UIElementsToHide = [
-            statsDisplay,
-            controlsBar,
-            timerUIContainer,
-            videoControlsContainer,
-            questionCounterDisplay
-        ].filter(el => el !== null); // Filter out any null elements
-
-        cinemaModeBtn.addEventListener('click', () => {
-            UIElementsToHide.forEach(el => el.classList.add('ui-hide'));
-        });
-
-        document.documentElement.addEventListener('click', (e) => {
-            if (controlsBar.classList.contains('ui-hide') && timerUIContainer.classList.contains('ui-hide')) {
-                if (e.target.tagName !== 'BUTTON' && !e.target.closest('button')) {
-                    UIElementsToHide.forEach(el => el.classList.remove('ui-hide'));
-                }
-            }
-            else if (controlsBar.classList.contains('ui-hide')) {
-                if (e.target.tagName !== 'BUTTON' && !e.target.closest('button')) {
-                    if (statsDisplay) statsDisplay.classList.remove('ui-hide');
-                    controlsBar.classList.remove('ui-hide');
-                    isMinimized = false;
-                }
-            }
-        });
-
-        // --- Resize Timer Logic ---
+        // Resize
         const resizeTimerBtn = document.getElementById('resize-timer-btn');
         const resizeModal = document.getElementById('resize-modal');
         const resizeModalOk = document.getElementById('resize-modal-ok');
         const timerSizeSlider = document.getElementById('timer-size-slider');
-
         resizeTimerBtn.addEventListener('click', () => resizeModal.classList.remove('hidden'));
         resizeModalOk.addEventListener('click', () => resizeModal.classList.add('hidden'));
-        resizeModal.addEventListener('click', (e) => {
-            if (e.target === resizeModal) resizeModal.classList.add('hidden');
-        });
-
         timerSizeSlider.addEventListener('input', (e) => {
             const newSize = e.target.value;
-            const newSubSize = newSize / 5;
             document.documentElement.style.setProperty('--timer-font-size', `${newSize}rem`);
-            document.documentElement.style.setProperty('--timer-subtext-font-size', `${newSubSize}rem`);
+            document.documentElement.style.setProperty('--timer-subtext-font-size', `${newSize/5}rem`);
             localStorage.setItem('timerSize', newSize);
-            localStorage.setItem('timerSubSize', newSubSize);
+            localStorage.setItem('timerSubSize', newSize/5);
         });
 
-        // --- Fullscreen Logic ---
-        const fullscreenBtn = document.getElementById('fullscreen-btn');
-        const fsEnterIcon = document.getElementById('fullscreen-enter-icon');
-        const fsExitIcon = document.getElementById('fullscreen-exit-icon');
+        // Question Counter
+        toggleQuestionCounterBtn.addEventListener('click', () => questionCounterDisplay.classList.toggle('hidden'));
+        questionAddBtn.addEventListener('click', () => { questionCountToday++; questionCountEl.textContent = questionCountToday; saveAllDataToLocalStorage(); });
+        questionSubtractBtn.addEventListener('click', () => { if(questionCountToday>0){ questionCountToday--; questionCountEl.textContent = questionCountToday; saveAllDataToLocalStorage(); }});
 
-        function toggleFullScreen() {
-            if (!document.fullscreenElement) {
-                document.documentElement.requestFullscreen();
-            } else {
-                if (document.exitFullscreen) {
-                    document.exitFullscreen();
-                }
-            }
-        }
-
-        fullscreenBtn.addEventListener('click', toggleFullScreen);
-
-        document.addEventListener('fullscreenchange', () => {
-            if (document.fullscreenElement) {
-                fsEnterIcon.classList.add('hidden');
-                fsExitIcon.classList.remove('hidden');
-            } else {
-                fsEnterIcon.classList.remove('hidden');
-                fsExitIcon.classList.add('hidden');
-            }
-        });
-
-        // --- Custom Text Save Logic ---
-        customTextInput.addEventListener('input', () => {
-            localStorage.setItem('customTimerText', customTextInput.value);
-        });
-
-
-        // --- Journal Logic ---
-        function getTodayJournalDateString() {
-            return new Date().toISOString().split('T')[0];
-        }
-
-        function renderJournalEntries() {
-            journalEntries.sort((a, b) => new Date(b.date) - new Date(a.date));
-            journalEntriesContainer.innerHTML = '';
-
-            if (journalEntries.length === 0) {
-                journalEntriesContainer.innerHTML = `<p class="text-gray-400 italic text-center mt-8">No entries yet!</p>`;
-                return;
-            }
-
-            journalEntries.forEach(entry => {
-                const entryDate = new Date(entry.date);
-                const displayDate = entryDate.toLocaleDateString(undefined, {
-                    weekday: 'long',
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric'
-                });
-
-                const entryEl = document.createElement('div');
-                entryEl.className = 'bg-gray-700 p-4 rounded-lg';
-                entryEl.innerHTML = `
-            <div class="flex justify-between items-center mb-2">
-                <span class="text-2xl">${entry.mood}</span>
-                <span class="text-sm font-medium text-gray-400">${displayDate}</span>
-            </div>
-            <p class="text-gray-300 whitespace-pre-wrap">${entry.text}</p>
-        `;
-                journalEntriesContainer.appendChild(entryEl);
-            });
-        }
-
-        function saveJournalEntry() {
-            const entryText = journalTextArea.value.trim();
-            const today = getTodayJournalDateString();
-
-            if (entryText === "") {
-                alert("Please write something in your journal entry.");
-                return;
-            }
-
-            const existingEntryIndex = journalEntries.findIndex(entry => entry.date === today);
-
-            if (existingEntryIndex > -1) {
-                journalEntries[existingEntryIndex].text = entryText;
-                journalEntries[existingEntryIndex].mood = selectedMood;
-            } else {
-                const newEntry = {
-                    date: today,
-                    mood: selectedMood,
-                    text: entryText
-                };
-                journalEntries.push(newEntry);
-            }
-
-            localStorage.setItem('journalEntries', JSON.stringify(journalEntries));
-            renderJournalEntries();
-            journalSaveBtn.textContent = 'Saved!';
-            setTimeout(() => {
-                journalSaveBtn.textContent = "Save Today's Entry";
-            }, 1500);
-        }
-
-        journalBtn.addEventListener('click', () => {
-            renderJournalEntries();
-            const today = getTodayJournalDateString();
-            const todayEntry = journalEntries.find(entry => entry.date === today);
-
-            if (todayEntry) {
-                journalTextArea.value = todayEntry.text;
-                selectedMood = todayEntry.mood;
-            } else {
-                journalTextArea.value = '';
-                selectedMood = '😐';
-            }
-
-            moodButtons.forEach(b => {
-                b.classList.toggle('bg-blue-600', b.dataset.mood === selectedMood);
-            });
-
-            journalModal.classList.remove('hidden');
-        });
-
-        journalModalClose.addEventListener('click', () => journalModal.classList.add('hidden'));
-        journalModal.addEventListener('click', (e) => {
-            if (e.target === journalModal) journalModal.classList.add('hidden');
-        });
-
-        moodButtons.forEach(btn => {
-            btn.addEventListener('click', () => {
-                moodButtons.forEach(b => b.classList.remove('bg-blue-600'));
-                btn.classList.add('bg-blue-600');
-                selectedMood = btn.dataset.mood;
-            });
-        });
-
-        journalSaveBtn.addEventListener('click', saveJournalEntry);
-
-        // --- Question Counter Logic ---
-        toggleQuestionCounterBtn.addEventListener('click', () => {
-            questionCounterDisplay.classList.toggle('hidden');
-        });
-
-        questionAddBtn.addEventListener('click', () => {
-            questionCountToday++;
-            questionCountEl.textContent = questionCountToday;
-            saveAllDataToLocalStorage();
-        });
-
-        questionSubtractBtn.addEventListener('click', () => {
-            if (questionCountToday > 0) {
-                questionCountToday--;
-                questionCountEl.textContent = questionCountToday;
-                saveAllDataToLocalStorage();
-            }
-        });
-
-        // Timer Type toggle
+        // Timer Type
         timerTypeBtn.addEventListener('click', () => {
-            if (timerType === 'pomodoro') {
-                timerType = 'stopwatch';
-                timerTypeBtn.textContent = 'Stopwatch';
-                elapsedSeconds = 0;
-            } else {
-                timerType = 'pomodoro';
-                timerTypeBtn.textContent = 'Pomodoro';
-                remainingTime = (currentMode === 'study') ? studyDuration : breakDuration;
-            }
+            if (timerType === 'pomodoro') { timerType = 'stopwatch'; timerTypeBtn.textContent = 'Stopwatch'; elapsedSeconds = 0; }
+            else { timerType = 'pomodoro'; timerTypeBtn.textContent = 'Pomodoro'; remainingTime = (currentMode === 'study') ? studyDuration : breakDuration; }
             resetTimer();
         });
 
-        function refreshSwitchModeLabel() {
-            switchModeBtn.textContent = (currentMode === 'study') ? 'Study' : 'Break';
-        }
+        // Adjust Time
+        addTimeBtn.addEventListener('click', () => {
+            if (timerType === 'pomodoro') { remainingTime += 300; if (isRunning) pomodoroEndTime += 300000; }
+            else elapsedSeconds += 300;
+            updateTimerDisplay();
+        });
+        subtractTimeBtn.addEventListener('click', () => {
+            if (timerType === 'pomodoro') { remainingTime -= 300; if (remainingTime < 0) remainingTime = 0; if (isRunning) pomodoroEndTime -= 300000; }
+            else { elapsedSeconds -= 300; if (elapsedSeconds < 0) elapsedSeconds = 0; }
+            updateTimerDisplay();
+        });
 
-        window.addEventListener('keydown', (e) => {
-            const isModalOpen = !timerModal.classList.contains('hidden') ||
-                !resizeModal.classList.contains('hidden') ||
-                !journalModal.classList.contains('hidden');
-            const isTyping = document.activeElement.tagName === 'INPUT' ||
-                document.activeElement.tagName === 'TEXTAREA';
-
-            if (e.code === 'Space' && !isModalOpen && !isTyping) {
-                e.preventDefault();
-                if (isRunning) pauseTimer(); else startTimer();
+        // Fullscreen
+        const fullscreenBtn = document.getElementById('fullscreen-btn');
+        fullscreenBtn.addEventListener('click', () => {
+            if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+            else if (document.exitFullscreen) document.exitFullscreen();
+        });
+        document.addEventListener('fullscreenchange', () => {
+             if (document.fullscreenElement) {
+                document.getElementById('fullscreen-enter-icon').classList.add('hidden');
+                document.getElementById('fullscreen-exit-icon').classList.remove('hidden');
+            } else {
+                document.getElementById('fullscreen-enter-icon').classList.remove('hidden');
+                document.getElementById('fullscreen-exit-icon').classList.add('hidden');
             }
         });
 
-        // --- Init ---
-        loadDataFromLocalStorage();
-        timerTypeBtn.textContent = (timerType === 'pomodoro') ? 'Pomodoro' : 'Stopwatch';
-        refreshSwitchModeLabel();
+        // Custom Text
+        customTextInput.addEventListener('input', () => localStorage.setItem('customTimerText', customTextInput.value));
 
-        function updateTopHourLeft() {
-            try {
-                const now = new Date();
-                const minutes = now.getMinutes();
-                const seconds = now.getSeconds();
-                const totalSecondsLeft = (59 - minutes) * 60 + (60 - seconds);
-                const minsLeft = Math.floor(totalSecondsLeft / 60);
-                const secsLeft = totalSecondsLeft % 60;
-                if (topHourLeftTextEl) {
-                    topHourLeftTextEl.textContent = `${minsLeft}m ${String(secsLeft).padStart(2, '0')}s left this hour`;
+        // Minimize / Cinema
+        minimizeBtn.addEventListener('click', () => controlsBar.classList.toggle('ui-hide'));
+        const cinemaModeBtn = document.getElementById('cinema-mode-btn');
+        const timerUIContainer = document.getElementById('timer-ui-container');
+        cinemaModeBtn.addEventListener('click', () => {
+            [controlsBar, timerUIContainer, videoControlsContainer, questionCounterDisplay].forEach(el => el.classList.add('ui-hide'));
+        });
+        document.documentElement.addEventListener('click', (e) => {
+            if (controlsBar.classList.contains('ui-hide')) {
+                if(e.target.tagName !== 'BUTTON' && !e.target.closest('button')) {
+                    [controlsBar, timerUIContainer, questionCounterDisplay].forEach(el => el.classList.remove('ui-hide'));
+                    if(activeBgPlayer === 'local' || activeBgPlayer === 'youtube') videoControlsContainer.classList.remove('ui-hide');
                 }
-            } catch (e) {
             }
+        });
+
+        // Top Hour
+        function updateTopHourLeft() {
+             const now = new Date();
+             const totalSecondsLeft = (59 - now.getMinutes()) * 60 + (60 - now.getSeconds());
+             const mins = Math.floor(totalSecondsLeft / 60);
+             if(topHourLeftTextEl) topHourLeftTextEl.textContent = `${mins}m ${String(totalSecondsLeft%60).padStart(2,'0')}s left this hour`;
         }
-        updateTopHourLeft();
         setInterval(updateTopHourLeft, 1000);
 
-        rewireControlsForLocalPlayer();
-        resetTimer();
-
-        // --- YouTube Integration ---
-        const ytScript = document.createElement('script');
-        ytScript.src = "https://www.youtube.com/iframe_api";
-        document.body.appendChild(ytScript);
-
-        window.onYouTubeIframeAPIReady = () => {
-            isYouTubeApiReady = true;
-            if (videoIdToLoad) {
-                createYouTubePlayer(videoIdToLoad);
-                videoIdToLoad = null;
-            }
-        };
-
-        function createYouTubePlayer(videoId) {
-            if (ytPlayer) {
-                activePlayer = 'youtube';
-                ytPlayer.loadVideoById(videoId);
-                rewireControlsForYouTubePlayer();
-                return;
-            }
-
-            ytPlayer = new YT.Player('youtube-bg', {
-                videoId: videoId,
-                playerVars: {
-                    autoplay: 1,
-                    loop: 1,
-                    playlist: videoId,
-                    controls: 0,
-                    modestbranding: 1,
-                    mute: 1,
-                    origin: window.location.href,
-                },
-                events: {
-                    onReady: (e) => {
-                        activePlayer = 'youtube';
-                        e.target.playVideo();
-                        rewireControlsForYouTubePlayer();
-                        isMuted = true;
-                        unmuteIcon.classList.remove('hidden');
-                        muteIcon.classList.add('hidden');
-                    },
-                    onStateChange: (e) => {
-                        youtubeVideoStateChange(e);
-                    },
-                    onError: (e) => console.error('YouTube Player Error:', e.data)
-                }
-            });
-        }
-
-        setYoutubeBtn.addEventListener('click', () => {
-            const url = prompt("Enter YouTube video URL:");
-            if (!url) return;
-
-            if (location.hostname.includes('github.io')) {
-                const meta = document.createElement('meta');
-                meta.httpEquiv = "Content-Security-Policy";
-                meta.content = "upgrade-insecure-requests";
-                document.head.appendChild(meta);
-            }
-
-            const idMatch = url.match(/(?:youtube\.com.*(?:\?|&)v=|youtu\.be\/)([^&#]+)/);
-            if (!idMatch) return alert("Invalid YouTube URL");
-            const videoId = idMatch[1];
-
-            videoPlayer.pause();
-            videoPlayer.style.display = 'none';
-            bgImageEl.style.display = 'none'; // Hide image if active
-            youtubeContainer.style.display = 'block';
-            videoControlsContainer.classList.remove('hidden');
-
-            if (ytPlayer) {
-                activePlayer = 'youtube';
-                ytPlayer.loadVideoById(videoId);
-                rewireControlsForYouTubePlayer();
-            } else {
-                if (isYouTubeApiReady) {
-                    createYouTubePlayer(videoId);
-                } else {
-                    videoIdToLoad = videoId;
-                }
-            }
-        });
-
-        // --- NEW: Background Image Logic ---
+        // BG Image Logic
         setImageBtn.addEventListener('click', () => imageFileInput.click());
-
         imageFileInput.addEventListener('change', (e) => {
             const file = e.target.files[0];
             if (file) {
                 const imgUrl = URL.createObjectURL(file);
                 bgImageEl.src = imgUrl;
                 bgImageEl.style.display = 'block';
-
-                // Hide videos to show image
-                videoPlayer.style.display = 'none';
-                youtubeContainer.style.display = 'none';
-                if (ytPlayer) ytPlayer.pauseVideo();
-                videoPlayer.pause();
-
-                // Hide video controls
+                bgVideoPlayer.style.display = 'none';
+                youtubeBgContainer.style.display = 'none';
+                if (ytBgPlayer) ytBgPlayer.pauseVideo();
+                bgVideoPlayer.pause();
                 videoControlsContainer.classList.add('hidden');
             }
         });
 
-        // --- NEW: Snow & Rain Animation Engine ---
+        // Snow/Rain
         const canvas = document.getElementById('effect-canvas');
         const ctx = canvas.getContext('2d');
-
-        let particles = [];
-        let animationId = null;
-        let currentEffect = 'none'; // 'none', 'snow', 'rain'
-
-        function resizeCanvas() {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-        }
+        let particles = [], animationId = null, currentEffect = 'none';
+        function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
         window.addEventListener('resize', resizeCanvas);
         resizeCanvas();
-
         class Particle {
-            constructor(type) {
-                this.type = type;
-                this.reset(true);
-            }
+            constructor(type) { this.type = type; this.reset(true); }
             reset(initial = false) {
                 this.x = Math.random() * canvas.width;
                 this.y = initial ? Math.random() * canvas.height : -10;
-
-                if (this.type === 'snow') {
-                    this.vy = 1 + Math.random() * 2;
-                    this.vx = (Math.random() - 0.5) * 0.5;
-                    this.size = Math.random() * 2 + 1;
-                } else if (this.type === 'rain') {
-                    this.vy = 15 + Math.random() * 10;
-                    this.vx = 0;
-                    this.size = Math.random() * 15 + 10;
-                }
+                if (this.type === 'snow') { this.vy = 1 + Math.random() * 2; this.vx = (Math.random() - 0.5) * 0.5; this.size = Math.random() * 2 + 1; } 
+                else { this.vy = 15 + Math.random() * 10; this.vx = 0; this.size = Math.random() * 15 + 10; }
             }
-            update() {
-                this.x += this.vx;
-                this.y += this.vy;
-                if (this.y > canvas.height) this.reset();
-            }
+            update() { this.x += this.vx; this.y += this.vy; if (this.y > canvas.height) this.reset(); }
             draw() {
                 ctx.beginPath();
-                if (this.type === 'snow') {
-                    ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
-                    ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-                    ctx.fill();
-                } else if (this.type === 'rain') {
-                    ctx.strokeStyle = 'rgba(174, 214, 241, 0.5)';
-                    ctx.lineWidth = 1.5;
-                    ctx.moveTo(this.x, this.y);
-                    ctx.lineTo(this.x, this.y + this.size);
-                    ctx.stroke();
-                }
+                if (this.type === 'snow') { ctx.fillStyle = 'rgba(255, 255, 255, 0.8)'; ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2); ctx.fill(); } 
+                else { ctx.strokeStyle = 'rgba(174, 214, 241, 0.5)'; ctx.lineWidth = 1.5; ctx.moveTo(this.x, this.y); ctx.lineTo(this.x, this.y + this.size); ctx.stroke(); }
             }
         }
-
         function startAnimation(type) {
             if (animationId) cancelAnimationFrame(animationId);
-            particles = [];
-            currentEffect = type;
-
-            const count = type === 'snow' ? 150 : 200;
-            for (let i = 0; i < count; i++) {
-                particles.push(new Particle(type));
-            }
+            particles = []; currentEffect = type;
+            for (let i = 0; i < (type === 'snow' ? 150 : 200); i++) particles.push(new Particle(type));
             animate();
         }
+        function animate() { ctx.clearRect(0, 0, canvas.width, canvas.height); particles.forEach(p => { p.update(); p.draw(); }); animationId = requestAnimationFrame(animate); }
+        toggleSnowBtn.addEventListener('click', () => { if(currentEffect === 'snow'){ cancelAnimationFrame(animationId); ctx.clearRect(0,0,canvas.width,canvas.height); currentEffect='none'; toggleSnowBtn.classList.remove('text-blue-400'); } else { startAnimation('snow'); toggleSnowBtn.classList.add('text-blue-400'); toggleRainBtn.classList.remove('text-blue-400'); } });
+        toggleRainBtn.addEventListener('click', () => { if(currentEffect === 'rain'){ cancelAnimationFrame(animationId); ctx.clearRect(0,0,canvas.width,canvas.height); currentEffect='none'; toggleRainBtn.classList.remove('text-blue-400'); } else { startAnimation('rain'); toggleRainBtn.classList.add('text-blue-400'); toggleSnowBtn.classList.remove('text-blue-400'); } });
 
-        function stopAnimation() {
-            if (animationId) cancelAnimationFrame(animationId);
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            currentEffect = 'none';
-        }
-
-        function animate() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            particles.forEach(p => {
-                p.update();
-                p.draw();
-            });
-            animationId = requestAnimationFrame(animate);
-        }
-
-        toggleSnowBtn.addEventListener('click', () => {
-            if (currentEffect === 'snow') {
-                stopAnimation();
-                toggleSnowBtn.classList.remove('text-blue-400');
-            } else {
-                startAnimation('snow');
-                toggleSnowBtn.classList.add('text-blue-400');
-                toggleRainBtn.classList.remove('text-blue-400');
-            }
-        });
-
-        toggleRainBtn.addEventListener('click', () => {
-            if (currentEffect === 'rain') {
-                stopAnimation();
-                toggleRainBtn.classList.remove('text-blue-400');
-            } else {
-                startAnimation('rain');
-                toggleRainBtn.classList.add('text-blue-400');
-                toggleSnowBtn.classList.remove('text-blue-400');
-            }
-        });
+        // Init
+        loadDataFromLocalStorage();
+        rewireControlsForLocalBg();
+        resetTimer();
 
     </script>
 </body>
-
-</html> 
+</html>
