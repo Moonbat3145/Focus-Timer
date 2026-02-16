@@ -127,9 +127,9 @@
         /* Pop-up Menus */
         .popup-menu {
             position: absolute; bottom: 120%; left: 50%; transform: translateX(-50%);
-            background-color: rgba(20, 20, 20, 0.9); backdrop-filter: blur(10px);
+            background-color: rgba(20, 20, 20, 0.95); backdrop-filter: blur(15px);
             border: 1px solid rgba(255,255,255,0.1); padding: 1rem;
-            border-radius: 1rem; width: 300px; z-index: 50;
+            border-radius: 1rem; width: 320px; z-index: 50;
             display: none; flex-direction: column; gap: 0.5rem; box-shadow: 0 10px 25px rgba(0,0,0,0.5);
         }
         .popup-menu.active { display: flex; }
@@ -138,10 +138,29 @@
         .queue-item {
             display: flex; justify-content: space-between; align-items: center;
             padding: 0.5rem; border-radius: 0.5rem; background: rgba(255,255,255,0.05);
-            font-size: 0.85rem; cursor: pointer; transition: background 0.2s;
+            font-size: 0.85rem; transition: background 0.2s;
+            group: ;
         }
         .queue-item:hover { background: rgba(255,255,255,0.1); }
         .queue-item.active-track { background: rgba(59, 130, 246, 0.3); border: 1px solid rgba(59, 130, 246, 0.5); }
+        
+        .queue-controls {
+            display: flex; gap: 0.25rem; opacity: 0.5; transition: opacity 0.2s;
+        }
+        .queue-item:hover .queue-controls { opacity: 1; }
+        .queue-btn { padding: 2px; hover:text-white; cursor: pointer; }
+        .queue-btn:hover { color: white; }
+
+        /* Volume Slider */
+        input[type=range].volume-slider {
+            -webkit-appearance: none; width: 100%; background: transparent;
+        }
+        input[type=range].volume-slider::-webkit-slider-thumb {
+            -webkit-appearance: none; height: 12px; width: 12px; border-radius: 50%; background: white; cursor: pointer; margin-top: -4px;
+        }
+        input[type=range].volume-slider::-webkit-slider-runnable-track {
+            width: 100%; height: 4px; cursor: pointer; background: rgba(255,255,255,0.3); border-radius: 2px;
+        }
     </style>
 </head>
 
@@ -152,7 +171,8 @@
     <video id="bg-video" muted loop playsinline autoplay></video>
     <div id="youtube-bg" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);min-width:100%;min-height:100%;z-index:-10;pointer-events:none;"></div>
     
-    <div id="music-youtube-player" style="position:fixed; top:0; left:0; opacity:0; pointer-events:none; z-index:-20; width:1px; height:1px;"></div>
+    <!-- Music Player: ensure opacity is not 0 for some browser policies -->
+    <div id="music-youtube-player" style="position:fixed; top:0; left:0; opacity:0.01; pointer-events:none; z-index:-20; width:1px; height:1px;"></div>
     <audio id="local-music-player"></audio>
 
     <input type="file" id="video-file-input" accept="video/*" class="hidden">
@@ -180,7 +200,6 @@
 
         <div id="timer-container" class="text-center relative z-10">
             <div id="timer-display" class="font-bold text-shadow tracking-tight">25:00</div>
-            <!-- Removed linear progress bar completely -->
         </div>
         
         <button id="subtract-time-btn" class="time-adjust-btn" title="Subtract 5 minutes">-</button>
@@ -215,7 +234,7 @@
 
             <button id="fullscreen-btn" title="Toggle Fullscreen" class="control-btn p-3 text-white/80 hover:text-white hover:bg-white/20 rounded-full transition-all">
                 <svg id="fullscreen-enter-icon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 1v4m0 0h-4m4 0l-5-5"></path></svg>
-                <svg id="fullscreen-exit-icon" class="w-6 h-6 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 4H4m0 0v4M4 4l5 5m1-5h4m0 0v4m0-4l-5 5M8 20H4m0 0v-4m0 4l5-5m1 5h4m0 0v-4m0 4l-5-5"></path></svg>
+                <svg id="fullscreen-exit-icon" class="w-6 h-6 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 4H4m0 0v4M4 4l5 5m1-5h4m0 0v4m0-4l-5 5M8 20H4m0 0v-4m0 4l-5-5"></path></svg>
             </button>
 
             <button id="set-timer-btn" title="Set Timers" class="control-btn p-3 text-white/80 hover:text-white hover:bg-white/20 rounded-full transition-all">
@@ -262,7 +281,16 @@
                     </button>
                     <hr class="border-white/20 my-1">
                     <div class="text-xs text-gray-400 mt-2 px-2 border-t border-white/10 pt-2"><span class="opacity-70">Current:</span> <span id="bg-current-title" class="text-white">None</span></div>
-                    <button id="video-controls-toggle" class="w-full text-left p-2 hover:bg-white/10 rounded flex items-center space-x-2">
+                    
+                    <div class="mt-2 px-2">
+                        <div class="text-xs text-gray-400 mb-1">Saved Backgrounds</div>
+                        <div id="bg-playlist-list" class="flex flex-col gap-1 max-h-32 overflow-y-auto">
+                            <!-- JS will populate -->
+                            <div class="text-xs text-white/30 italic">No saved backgrounds</div>
+                        </div>
+                    </div>
+
+                    <button id="video-controls-toggle" class="w-full text-left p-2 hover:bg-white/10 rounded flex items-center space-x-2 mt-2">
                          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
                         <span>Show Video Controls</span>
                     </button>
@@ -291,7 +319,10 @@
                     </div>
 
                     <div class="flex items-center justify-between space-x-2 mb-3">
-                         <button id="music-mute-btn" title="Mute Music" class="p-2 text-white/70 hover:text-white"><svg id="music-unmute-icon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path></svg><svg id="music-mute-icon" class="w-5 h-5 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15zM17 14l4-4m0 4l-4-4"></path></svg></button>
+                         <div class="flex items-center space-x-1">
+                             <button id="music-mute-btn" title="Mute Music" class="p-2 text-white/70 hover:text-white"><svg id="music-unmute-icon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path></svg><svg id="music-mute-icon" class="w-5 h-5 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15zM17 14l4-4m0 4l-4-4"></path></svg></button>
+                             <input type="range" id="music-volume-slider" min="0" max="100" value="100" class="volume-slider w-20" title="Volume">
+                         </div>
                          <button id="music-autoplay-btn" title="Toggle Autoplay" class="text-xs px-2 py-1 rounded border border-white/30 text-white/70 hover:bg-white/10">Autoplay: OFF</button>
                     </div>
 
@@ -316,6 +347,7 @@
         </div>
     </div>
 
+    <!-- ... existing modals ... -->
     <div id="timer-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center z-50 hidden">
         <div class="bg-gray-900 text-white p-8 rounded-xl shadow-2xl w-full max-w-sm">
             <h2 class="text-2xl font-bold mb-6 text-center">Set Timers</h2>
@@ -374,6 +406,7 @@
         let ytBgPlayer = null;
         let ytBgSeekBarInterval = null;
         let isBgMuted = true;
+        let bgPlaylist = []; // { type: 'youtube'|'local', src: string, name: string }
 
         // --- MUSIC PLAYER STATE ---
         let musicPlaylist = []; // { type: 'youtube'|'local', src: string, name: string }
@@ -381,6 +414,7 @@
         let isMusicPlaying = false;
         let musicAutoplay = false;
         let isMusicMuted = false;
+        let musicVolume = 100;
         let ytMusicPlayer = null;
         let musicVideoIdToLoad = null; // Buffer if API not ready
 
@@ -417,6 +451,7 @@
         const setYoutubeBtn = document.getElementById('set-youtube-btn');
         const youtubeBgContainer = document.getElementById('youtube-bg');
         const bgCurrentTitleEl = document.getElementById('bg-current-title');
+        const bgPlaylistList = document.getElementById('bg-playlist-list');
         
         const videoControlsContainer = document.getElementById('video-controls-container');
         const videoControlsToggle = document.getElementById('video-controls-toggle');
@@ -459,6 +494,7 @@
         const localMusicPlayer = document.getElementById('local-music-player');
         const musicCurrentDisplay = document.getElementById('music-current-display');
         const musicCurrentTitleEl = document.getElementById('music-current-title');
+        const musicVolumeSlider = document.getElementById('music-volume-slider');
 
         // --- DRAG LOGIC ---
         let isDragging = false;
@@ -550,36 +586,67 @@
             videoControlsContainer.classList.toggle('hidden');
         });
 
-        videoFileInput.addEventListener('change', (event) => {
-            const file = event.target.files[0];
-            if (file) {
-                if (bgVideoPlayer.src) URL.revokeObjectURL(bgVideoPlayer.src);
-                const videoURL = URL.createObjectURL(file);
-                bgVideoPlayer.src = videoURL;
-                bgVideoPlayer.play();
-                bgVideoPlayer.muted = true;
-                isBgMuted = true;
-                updateBgMuteUI();
+        function addToBgPlaylist(item) {
+            bgPlaylist.push(item);
+            renderBgPlaylist();
+        }
 
-                activeBgPlayer = 'local';
-                bgVideoPlayer.style.display = 'block';
-                bgImageEl.style.display = 'none';
-                youtubeBgContainer.style.display = 'none';
-                if (ytBgPlayer && ytBgPlayer.pauseVideo) ytBgPlayer.pauseVideo();
-
-                videoControlsContainer.classList.remove('hidden');
-                rewireControlsForLocalBg();
-                bgCurrentTitleEl.textContent = `Local: ${file.name}`;
+        function renderBgPlaylist() {
+            bgPlaylistList.innerHTML = '';
+            if (bgPlaylist.length === 0) {
+                bgPlaylistList.innerHTML = '<div class="text-xs text-white/30 italic">No saved backgrounds</div>';
+                return;
             }
-        });
+            bgPlaylist.forEach((item, index) => {
+                const div = document.createElement('div');
+                div.className = "flex items-center justify-between p-1 hover:bg-white/10 rounded cursor-pointer group";
+                div.innerHTML = `<span class="truncate text-xs text-white/80 w-40">${item.name}</span>`;
+                div.onclick = () => loadBackgroundFromPlaylist(index);
+                bgPlaylistList.appendChild(div);
+            });
+        }
 
-        setYoutubeBtn.addEventListener('click', () => {
-             const url = prompt("Enter YouTube video URL for Background:");
-            if (!url) return;
-            const idMatch = url.match(/(?:youtube\.com.*(?:\?|&)v=|youtu\.be\/)([^&#]+)/);
-            if (!idMatch) return alert("Invalid YouTube URL");
-            const videoId = idMatch[1];
+        function loadBackgroundFromPlaylist(index) {
+            const item = bgPlaylist[index];
+            if (item.type === 'youtube') {
+                loadYouTubeBg(item.src);
+            } else if (item.type === 'local') {
+                loadLocalBg(item.src, item.name);
+            } else if (item.type === 'image') {
+                loadLocalImage(item.src, item.name);
+            }
+        }
 
+        function loadLocalBg(url, name) {
+            bgVideoPlayer.src = url;
+            bgVideoPlayer.play();
+            bgVideoPlayer.muted = true;
+            isBgMuted = true;
+            updateBgMuteUI();
+            
+            activeBgPlayer = 'local';
+            bgVideoPlayer.style.display = 'block';
+            bgImageEl.style.display = 'none';
+            youtubeBgContainer.style.display = 'none';
+            if (ytBgPlayer && ytBgPlayer.pauseVideo) ytBgPlayer.pauseVideo();
+            
+            videoControlsContainer.classList.remove('hidden');
+            rewireControlsForLocalBg();
+            bgCurrentTitleEl.textContent = name;
+        }
+
+        function loadLocalImage(url, name) {
+            bgImageEl.src = url;
+            bgImageEl.style.display = 'block';
+            bgVideoPlayer.style.display = 'none';
+            youtubeBgContainer.style.display = 'none';
+            if (ytBgPlayer) ytBgPlayer.pauseVideo();
+            bgVideoPlayer.pause();
+            videoControlsContainer.classList.add('hidden');
+            bgCurrentTitleEl.textContent = name;
+        }
+
+        function loadYouTubeBg(videoId) {
             bgVideoPlayer.pause();
             bgVideoPlayer.style.display = 'none';
             bgImageEl.style.display = 'none';
@@ -597,7 +664,37 @@
                     bgVideoIdToLoad = videoId;
                  }
             }
-            bgCurrentTitleEl.textContent = `YouTube Video`;
+            bgCurrentTitleEl.textContent = `YouTube: ${videoId}`;
+        }
+
+        videoFileInput.addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (file) {
+                if (bgVideoPlayer.src) URL.revokeObjectURL(bgVideoPlayer.src);
+                const videoURL = URL.createObjectURL(file);
+                loadLocalBg(videoURL, file.name);
+                addToBgPlaylist({ type: 'local', src: videoURL, name: file.name });
+            }
+        });
+
+        setYoutubeBtn.addEventListener('click', () => {
+             const url = prompt("Enter YouTube video URL for Background:");
+            if (!url) return;
+            const idMatch = url.match(/(?:youtube\.com.*(?:\?|&)v=|youtu\.be\/)([^&#]+)/);
+            if (!idMatch) return alert("Invalid YouTube URL");
+            const videoId = idMatch[1];
+            loadYouTubeBg(videoId);
+            addToBgPlaylist({ type: 'youtube', src: videoId, name: `YT: ${videoId}` });
+        });
+
+        setImageBtn.addEventListener('click', () => imageFileInput.click());
+        imageFileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const imgUrl = URL.createObjectURL(file);
+                loadLocalImage(imgUrl, file.name);
+                addToBgPlaylist({ type: 'image', src: imgUrl, name: file.name });
+            }
         });
 
         // Helper: Format Time
@@ -730,16 +827,25 @@
             musicPlaylist.forEach((track, index) => {
                 const el = document.createElement('div');
                 el.className = `queue-item ${index === currentMusicIndex ? 'active-track' : ''}`;
+                
+                // Track Info + Controls
                 el.innerHTML = `
-                    <div class="truncate w-48">${index + 1}. ${track.name}</div>
-                    <div class="text-xs opacity-50 ml-2">${track.type === 'youtube' ? 'YT' : 'MP3'}</div>
+                    <div class="flex items-center gap-2 overflow-hidden flex-1" onclick="window.playMusicTrack(${index})">
+                        <span class="text-xs opacity-50">${index + 1}.</span>
+                        <div class="truncate text-sm w-full">${track.name}</div>
+                    </div>
+                    <div class="queue-controls flex items-center ml-2">
+                        <button class="queue-btn hover:text-blue-300" onclick="event.stopPropagation(); window.moveTrackUp(${index})" title="Move Up">↑</button>
+                        <button class="queue-btn hover:text-blue-300" onclick="event.stopPropagation(); window.moveTrackDown(${index})" title="Move Down">↓</button>
+                        <button class="queue-btn text-red-400 hover:text-red-300 ml-1" onclick="event.stopPropagation(); window.removeTrack(${index})" title="Remove">✕</button>
+                    </div>
                 `;
-                el.onclick = () => playMusicTrack(index);
                 musicQueueList.appendChild(el);
             });
         }
 
-        function playMusicTrack(index) {
+        // Global functions for inline HTML calls
+        window.playMusicTrack = function(index) {
             if (index < 0 || index >= musicPlaylist.length) return;
             currentMusicIndex = index;
             const track = musicPlaylist[index];
@@ -747,24 +853,28 @@
             updateMusicPlayPauseUI();
             renderMusicQueue();
             
-            // Show Current Title
             musicCurrentDisplay.classList.remove('hidden');
             musicCurrentTitleEl.textContent = track.name;
 
             if (track.type === 'local') {
-                // Stop YT Music
                 if (ytMusicPlayer && ytMusicPlayer.pauseVideo) ytMusicPlayer.pauseVideo();
-                
                 localMusicPlayer.src = track.src;
-                localMusicPlayer.play();
+                // Important: Reset volume on load
+                localMusicPlayer.volume = musicVolume / 100;
                 localMusicPlayer.muted = isMusicMuted;
+                
+                const playPromise = localMusicPlayer.play();
+                if (playPromise !== undefined) {
+                    playPromise.catch(error => {
+                        console.error("Playback failed:", error);
+                        alert("Could not play audio. Check file format.");
+                    });
+                }
             } else {
-                // Stop Local
                 localMusicPlayer.pause();
-
                 if (ytMusicPlayer) {
                     ytMusicPlayer.loadVideoById(track.src);
-                    ytMusicPlayer.setVolume(100);
+                    ytMusicPlayer.setVolume(musicVolume);
                     if(isMusicMuted) ytMusicPlayer.mute(); else ytMusicPlayer.unMute();
                 } else {
                      if (window.YT && window.YT.Player) {
@@ -774,7 +884,51 @@
                      }
                 }
             }
-        }
+        };
+
+        window.removeTrack = function(index) {
+            musicPlaylist.splice(index, 1);
+            if (currentMusicIndex === index) {
+                // If removing current, stop or play next
+                if (musicPlaylist.length > 0) {
+                    window.playMusicTrack(index < musicPlaylist.length ? index : index - 1);
+                } else {
+                    isMusicPlaying = false;
+                    localMusicPlayer.pause();
+                    if(ytMusicPlayer) ytMusicPlayer.pauseVideo();
+                    updateMusicPlayPauseUI();
+                    currentMusicIndex = -1;
+                    musicCurrentDisplay.classList.add('hidden');
+                }
+            } else if (index < currentMusicIndex) {
+                currentMusicIndex--; // Shift index
+            }
+            renderMusicQueue();
+        };
+
+        window.moveTrackUp = function(index) {
+            if (index <= 0) return;
+            const temp = musicPlaylist[index];
+            musicPlaylist[index] = musicPlaylist[index - 1];
+            musicPlaylist[index - 1] = temp;
+            
+            if (currentMusicIndex === index) currentMusicIndex--;
+            else if (currentMusicIndex === index - 1) currentMusicIndex++;
+            
+            renderMusicQueue();
+        };
+
+        window.moveTrackDown = function(index) {
+            if (index >= musicPlaylist.length - 1) return;
+            const temp = musicPlaylist[index];
+            musicPlaylist[index] = musicPlaylist[index + 1];
+            musicPlaylist[index + 1] = temp;
+            
+            if (currentMusicIndex === index) currentMusicIndex++;
+            else if (currentMusicIndex === index + 1) currentMusicIndex--;
+            
+            renderMusicQueue();
+        };
 
         function updateMusicPlayPauseUI() {
             if(isMusicPlaying) {
@@ -790,14 +944,12 @@
         musicPlayBtn.addEventListener('click', () => {
             if(musicPlaylist.length === 0) return;
             if(isMusicPlaying) {
-                // Pause
                 isMusicPlaying = false;
                 localMusicPlayer.pause();
                 if(ytMusicPlayer && ytMusicPlayer.pauseVideo) ytMusicPlayer.pauseVideo();
             } else {
-                // Play
                 if (currentMusicIndex === -1) {
-                    playMusicTrack(0);
+                    window.playMusicTrack(0);
                 } else {
                     isMusicPlaying = true;
                     if(musicPlaylist[currentMusicIndex].type === 'local') localMusicPlayer.play();
@@ -808,10 +960,10 @@
         });
 
         musicNextBtn.addEventListener('click', () => {
-            if(currentMusicIndex < musicPlaylist.length - 1) playMusicTrack(currentMusicIndex + 1);
+            if(currentMusicIndex < musicPlaylist.length - 1) window.playMusicTrack(currentMusicIndex + 1);
         });
         musicPrevBtn.addEventListener('click', () => {
-            if(currentMusicIndex > 0) playMusicTrack(currentMusicIndex - 1);
+            if(currentMusicIndex > 0) window.playMusicTrack(currentMusicIndex - 1);
         });
 
         musicMuteBtn.addEventListener('click', () => {
@@ -824,6 +976,15 @@
                 musicMuteIcon.classList.remove('hidden'); musicUnmuteIcon.classList.add('hidden');
             } else {
                 musicMuteIcon.classList.add('hidden'); musicUnmuteIcon.classList.remove('hidden');
+            }
+        });
+
+        // Volume Slider Logic
+        musicVolumeSlider.addEventListener('input', (e) => {
+            musicVolume = e.target.value;
+            localMusicPlayer.volume = musicVolume / 100;
+            if (ytMusicPlayer && ytMusicPlayer.setVolume) {
+                ytMusicPlayer.setVolume(musicVolume);
             }
         });
 
@@ -846,7 +1007,7 @@
                 name: `YouTube Track ${musicPlaylist.length + 1}`
             });
             renderMusicQueue();
-            if(musicPlaylist.length === 1) playMusicTrack(0);
+            if(musicPlaylist.length === 1) window.playMusicTrack(0);
         });
 
         addMusicLocalBtn.addEventListener('click', () => musicFileInput.click());
@@ -861,14 +1022,14 @@
                     name: file.name
                 });
                 renderMusicQueue();
-                if(musicPlaylist.length === 1) playMusicTrack(0);
+                if(musicPlaylist.length === 1) window.playMusicTrack(0);
             }
         });
 
         // Autoplay Logic handles
         localMusicPlayer.addEventListener('ended', () => {
             if(musicAutoplay && currentMusicIndex < musicPlaylist.length - 1) {
-                playMusicTrack(currentMusicIndex + 1);
+                window.playMusicTrack(currentMusicIndex + 1);
             } else {
                 isMusicPlaying = false;
                 updateMusicPlayPauseUI();
@@ -884,12 +1045,10 @@
         document.body.appendChild(ytScript);
 
         window.onYouTubeIframeAPIReady = () => {
-            // Check pending BG load
             if (bgVideoIdToLoad) {
                 createYouTubeBgPlayer(bgVideoIdToLoad);
                 bgVideoIdToLoad = null;
             }
-            // Check pending Music load
             if (musicVideoIdToLoad) {
                 createYouTubeMusicPlayer(musicVideoIdToLoad);
                 musicVideoIdToLoad = null;
@@ -915,19 +1074,19 @@
 
         function createYouTubeMusicPlayer(videoId) {
             ytMusicPlayer = new YT.Player('music-youtube-player', {
-                height: '1', width: '1', // Tiny player
+                height: '1', width: '1', // Tiny player to ensure it runs
                 videoId: videoId,
                 playerVars: { autoplay: 1, controls: 0, modestbranding: 1, origin: window.location.href },
                 events: {
                     onReady: (e) => {
                         e.target.playVideo();
+                        e.target.setVolume(musicVolume);
                         if(isMusicMuted) e.target.mute(); else e.target.unMute();
                     },
                     onStateChange: (e) => {
-                        // Handle Autoplay for YouTube
                         if (e.data === YT.PlayerState.ENDED) {
                             if(musicAutoplay && currentMusicIndex < musicPlaylist.length - 1) {
-                                playMusicTrack(currentMusicIndex + 1);
+                                window.playMusicTrack(currentMusicIndex + 1);
                             } else {
                                 isMusicPlaying = false;
                                 updateMusicPlayPauseUI();
@@ -1229,14 +1388,8 @@
             const file = e.target.files[0];
             if (file) {
                 const imgUrl = URL.createObjectURL(file);
-                bgImageEl.src = imgUrl;
-                bgImageEl.style.display = 'block';
-                bgVideoPlayer.style.display = 'none';
-                youtubeBgContainer.style.display = 'none';
-                if (ytBgPlayer) ytBgPlayer.pauseVideo();
-                bgVideoPlayer.pause();
-                videoControlsContainer.classList.add('hidden');
-                bgCurrentTitleEl.textContent = `Local: ${file.name}`;
+                loadLocalImage(imgUrl, file.name);
+                addToBgPlaylist({ type: 'image', src: imgUrl, name: file.name });
             }
         });
 
