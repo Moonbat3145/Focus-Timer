@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Focus Timer</title>
+    <title>Focus Timer Zen</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         /* Fix for fullscreen white line */
@@ -34,28 +34,58 @@
 
         .text-shadow { text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5); }
 
-        /* Progress Bar */
-        .progress-bar {
-            height: 2px; background-color: rgba(255, 255, 255, 0.3);
+        /* Progress Bar (Linear) */
+        .progress-bar-container {
             width: 100%; max-width: 400px; margin: 0 auto;
             border-radius: 2px; overflow: hidden;
+            display: none; /* Hidden by default in Ring mode, toggled via JS */
+        }
+        .progress-bar {
+            height: 2px; background-color: rgba(255, 255, 255, 0.3);
+            width: 100%;
         }
         .progress-bar-inner {
             height: 100%; background-color: white; width: 100%; transition: width 0.5s ease;
         }
 
         /* Timer Adjust Buttons */
-        #timer-wrapper { position: relative; }
+        #timer-wrapper { 
+            position: absolute; 
+            top: 50%; left: 50%; 
+            transform: translate(-50%, -50%); /* Default centered */
+            cursor: grab; /* Indicates draggable */
+            user-select: none;
+            z-index: 100;
+            padding: 2rem;
+            border-radius: 9999px;
+            transition: background-color 0.3s ease;
+        }
+        #timer-wrapper:active { cursor: grabbing; }
+        
+        /* Only show background on hover to help visualize drag area */
+        #timer-wrapper:hover { background-color: rgba(255,255,255,0.05); }
+
         .time-adjust-btn {
             position: absolute; top: 50%; transform: translateY(-50%);
             font-size: 3rem; font-weight: 200; color: rgba(255, 255, 255, 0.4);
             cursor: pointer; padding: 1rem; opacity: 0;
             transition: opacity 0.2s ease-in-out, color 0.2s ease-in-out; user-select: none;
+            z-index: 102;
         }
         .time-adjust-btn:hover { color: rgba(255, 255, 255, 0.8); }
         #timer-wrapper:hover .time-adjust-btn { opacity: 1; }
-        #subtract-time-btn { left: -80px; }
-        #add-time-btn { right: -80px; }
+        #subtract-time-btn { left: -40px; }
+        #add-time-btn { right: -40px; }
+
+        /* Ring Progress Styles */
+        #timer-ring-svg {
+            position: absolute; top: 0; left: 0;
+            width: 100%; height: 100%;
+            pointer-events: none;
+            transform: rotate(-90deg);
+            display: block; /* Visible by default */
+        }
+        circle { transition: stroke-dashoffset 0.5s ease; }
 
         /* Common Control Btn */
         .control-btn { transition: all 0.3s ease; }
@@ -72,14 +102,7 @@
         #video-seek-bar::-moz-progress-bar { background: white; border-radius: 3px; }
 
         /* Resizable Timer */
-        #timer-display { font-size: var(--timer-font-size, 10rem); }
-        #custom-text-input {
-            font-size: var(--timer-subtext-font-size, 2rem); font-family: 'serif';
-            font-style: italic; color: white; text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
-            opacity: 0.8; background-color: transparent; border: none; outline: none;
-            text-align: center; width: 100%; max-width: 600px; margin-top: 0.5rem;
-        }
-        #custom-text-input::placeholder { color: rgba(255, 255, 255, 0.4); font-style: italic; }
+        #timer-display { font-size: var(--timer-font-size, 8rem); line-height: 1; pointer-events: none; }
 
         /* UI Hide */
         .ui-hide { opacity: 0 !important; pointer-events: none !important; transition: opacity 0.3s ease-out; }
@@ -90,7 +113,7 @@
             background-color: rgba(20, 20, 20, 0.9); backdrop-filter: blur(10px);
             border: 1px solid rgba(255,255,255,0.1); padding: 1rem;
             border-radius: 1rem; width: 300px; z-index: 50;
-            display: none; flex-col: column; gap: 0.5rem; box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            display: none; flex-direction: column; gap: 0.5rem; box-shadow: 0 10px 25px rgba(0,0,0,0.5);
         }
         .popup-menu.active { display: flex; }
 
@@ -128,20 +151,27 @@
         </div>
     </div>
 
-    <div id="timer-ui-container" class="flex flex-col justify-center items-center h-full w-full relative z-10">
-        <div id="current-mode-display" class="text-3xl font-serif italic text-shadow opacity-80 mb-2"></div>
-        <div id="timer-wrapper" class="relative">
-            <div id="timer-container" class="text-center">
-                <div id="timer-display" class="font-bold text-shadow tracking-tight">25:00</div>
-                <div class="progress-bar mt-4">
+    <!-- MAIN TIMER CONTAINER (Draggable) -->
+    <div id="timer-wrapper">
+        <!-- Ring SVG -->
+        <svg id="timer-ring-svg" viewBox="0 0 100 100">
+             <circle cx="50" cy="50" r="45" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="3" />
+             <circle id="timer-ring-progress" cx="50" cy="50" r="45" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-dasharray="283" stroke-dashoffset="0" />
+        </svg>
+
+        <div id="timer-container" class="text-center relative z-10 p-10">
+            <div id="timer-display" class="font-bold text-shadow tracking-tight">25:00</div>
+            
+            <div id="linear-progress-container" class="progress-bar-container mt-4">
+                <div class="progress-bar">
                     <div id="progress-bar-inner" class="progress-bar-inner"></div>
                 </div>
-                <input type="text" id="custom-text-input" placeholder="What are you working on?">
-                <div id="top-hour-left-text" class="mt-3 text-sm font-medium text-white/60 text-shadow tracking-wide"></div>
             </div>
-            <button id="subtract-time-btn" class="time-adjust-btn" title="Subtract 5 minutes">-</button>
-            <button id="add-time-btn" class="time-adjust-btn" title="Add 5 minutes">+</button>
+            
+            <!-- Removed: custom-text-input & top-hour-left-text & current-mode-display -->
         </div>
+        <button id="subtract-time-btn" class="time-adjust-btn" title="Subtract 5 minutes">-</button>
+        <button id="add-time-btn" class="time-adjust-btn" title="Add 5 minutes">+</button>
     </div>
 
     <div id="video-controls-container" class="fixed bottom-32 left-1/2 -translate-x-1/2 w-full max-w-xl z-20 hidden">
@@ -188,6 +218,10 @@
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2.086a8.001 8.001 0 00-11.854-10.49L9.5 6M4 20v-5h.582m15.356-2.086a8.001 8.001 0 01-11.854 10.49L9.5 18"></path></svg>
             </button>
 
+            <button id="toggle-visual-mode-btn" title="Toggle Ring/Line" class="control-btn p-3 text-white/80 hover:text-white hover:bg-white/20 rounded-full transition-all">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            </button>
+
             <button id="switch-mode-btn" class="control-btn p-3 text-white/80 hover:text-white hover:bg-white/20 rounded-full transition-all w-20 text-center">Study</button>
             <button id="timer-type-btn" class="control-btn p-3 text-white/80 hover:text-white hover:bg-white/20 rounded-full transition-all">Pomodoro</button>
 
@@ -209,7 +243,7 @@
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
                         <span>Local Video</span>
                     </button>
-                     <button id="set-image-btn" class="w-full text-left p-2 hover:bg-white/10 rounded flex items-center space-x-2">
+                      <button id="set-image-btn" class="w-full text-left p-2 hover:bg-white/10 rounded flex items-center space-x-2">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
                         <span>Local Image</span>
                     </button>
@@ -218,13 +252,13 @@
                          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
                         <span>Show Video Controls</span>
                     </button>
-                     <div class="flex justify-around pt-1">
-                         <button id="toggle-snow-btn" title="Toggle Snow" class="p-2 hover:text-blue-300 transition"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg></button>
-                         <button id="toggle-rain-btn" title="Toggle Rain" class="p-2 hover:text-blue-300 transition"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path></svg></button>
-                     </div>
+                      <div class="flex justify-around pt-1">
+                          <button id="toggle-snow-btn" title="Toggle Snow" class="p-2 hover:text-blue-300 transition"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg></button>
+                          <button id="toggle-rain-btn" title="Toggle Rain" class="p-2 hover:text-blue-300 transition"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path></svg></button>
+                      </div>
                 </div>
                 <button id="bg-menu-btn" title="Wallpaper Settings" class="control-btn p-3 text-white/80 hover:text-white hover:bg-white/20 rounded-full transition-all">
-                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
                 </button>
             </div>
 
@@ -285,7 +319,7 @@
         <div class="bg-gray-900 text-white p-8 rounded-xl shadow-2xl w-full max-w-sm">
             <h2 class="text-2xl font-bold mb-6 text-center">Resize Timer</h2>
             <p class="text-gray-400 mb-2">Timer Size</p>
-            <input id="timer-size-slider" type="range" min="6" max="14" value="10" step="0.5" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer">
+            <input id="timer-size-slider" type="range" min="4" max="14" value="8" step="0.5" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer">
             <div class="flex flex-col space-y-4 mt-6">
                 <button id="resize-modal-ok" class="w-full p-3 bg-blue-600 hover:bg-blue-500 rounded-lg font-semibold transition-all">Close</button>
             </div>
@@ -307,6 +341,7 @@
         let elapsedSeconds = 0;
         let pomodoroEndTime = 0;
         let lastTickTime = 0;
+        let visualMode = 'ring'; // 'ring' or 'line'
 
         // Stats
         let studyTimeToday = 0;
@@ -336,17 +371,19 @@
 
         // --- UI Elements ---
         const timerDisplay = document.getElementById('timer-display');
-        const progressBar = document.getElementById('progress-bar-inner');
+        const progressBarInner = document.getElementById('progress-bar-inner');
+        const linearProgressContainer = document.getElementById('linear-progress-container');
+        const timerRingSvg = document.getElementById('timer-ring-svg');
+        const timerRingProgress = document.getElementById('timer-ring-progress');
+        const toggleVisualModeBtn = document.getElementById('toggle-visual-mode-btn');
+
         const playBtn = document.getElementById('play-pause-btn');
         const playIcon = document.getElementById('play-icon');
         const pauseIcon = document.getElementById('pause-icon');
         const resetBtn = document.getElementById('reset-btn');
         const alarmSound = document.getElementById('alarm-sound');
-        const currentModeDisplay = document.getElementById('current-mode-display');
         const switchModeBtn = document.getElementById('switch-mode-btn');
         const timerTypeBtn = document.getElementById('timer-type-btn');
-        const customTextInput = document.getElementById('custom-text-input');
-        const topHourLeftTextEl = document.getElementById('top-hour-left-text');
         const controlsBar = document.getElementById('controls-bar');
         const minimizeBtn = document.getElementById('minimize-btn');
         const addTimeBtn = document.getElementById('add-time-btn');
@@ -405,6 +442,47 @@
         const musicFileInput = document.getElementById('music-file-input');
         const musicQueueList = document.getElementById('music-queue-list');
         const localMusicPlayer = document.getElementById('local-music-player');
+
+        // --- DRAG LOGIC ---
+        const timerWrapper = document.getElementById('timer-wrapper');
+        let isDragging = false;
+        let dragOffsetX = 0;
+        let dragOffsetY = 0;
+
+        timerWrapper.addEventListener('mousedown', (e) => {
+            // Don't drag if clicking buttons
+            if (e.target.tagName === 'BUTTON' || e.target.closest('button')) return;
+            
+            isDragging = true;
+            const rect = timerWrapper.getBoundingClientRect();
+            // Calculate offset from center of element to mouse
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
+            dragOffsetX = e.clientX - centerX;
+            dragOffsetY = e.clientY - centerY;
+            
+            timerWrapper.style.cursor = 'grabbing';
+            // Remove transform centering to allow free movement, use current computed pixel pos
+            timerWrapper.style.transform = 'translate(-50%, -50%)'; 
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (!isDragging) return;
+            e.preventDefault();
+            
+            // Move based on mouse pos minus offset
+            // We keep translate(-50%, -50%) to keep origin at center of element
+            const x = e.clientX - dragOffsetX;
+            const y = e.clientY - dragOffsetY;
+            
+            timerWrapper.style.left = `${x}px`;
+            timerWrapper.style.top = `${y}px`;
+        });
+
+        document.addEventListener('mouseup', () => {
+            isDragging = false;
+            timerWrapper.style.cursor = 'grab';
+        });
 
         // --- MENU TOGGLE LOGIC ---
         bgMenuBtn.addEventListener('click', (e) => {
@@ -844,15 +922,10 @@
             }
             // Size
             const savedTimerSize = localStorage.getItem('timerSize');
-            const savedTimerSubSize = localStorage.getItem('timerSubSize');
-            if (savedTimerSize && savedTimerSubSize) {
+            if (savedTimerSize) {
                 document.documentElement.style.setProperty('--timer-font-size', `${savedTimerSize}rem`);
-                document.documentElement.style.setProperty('--timer-subtext-font-size', `${savedTimerSubSize}rem`);
                 document.getElementById('timer-size-slider').value = savedTimerSize;
             }
-            // Custom Text
-            const savedCustomText = localStorage.getItem('customTimerText');
-            if (savedCustomText) customTextInput.value = savedCustomText;
 
             // Questions
             const savedQuestionCountJSON = localStorage.getItem('questionCount');
@@ -880,16 +953,34 @@
             questionCountEl.textContent = questionCountToday;
         }
 
+        // --- Visual Mode Logic ---
+        function updateVisualMode() {
+            if (visualMode === 'ring') {
+                timerRingSvg.style.display = 'block';
+                linearProgressContainer.style.display = 'none';
+                timerWrapper.classList.add('rounded-full'); // More rounded for ring
+            } else {
+                timerRingSvg.style.display = 'none';
+                linearProgressContainer.style.display = 'block';
+                timerWrapper.classList.remove('rounded-full');
+            }
+        }
+        toggleVisualModeBtn.addEventListener('click', () => {
+            visualMode = (visualMode === 'ring') ? 'line' : 'ring';
+            updateVisualMode();
+            updateTimerDisplay(); // Redraw progress
+        });
+
         function updateTimerDisplay() {
+            let progress = 0;
+            
             if (timerType === 'pomodoro') {
                 const duration = (currentMode === 'study') ? studyDuration : breakDuration;
                 const displayTime = Math.round(remainingTime);
                 const minutes = Math.floor(displayTime / 60);
                 const seconds = displayTime % 60;
                 timerDisplay.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-                const progress = (displayTime / duration) * 100;
-                progressBar.style.width = `${Math.min(100, progress)}%`;
-                progressBar.parentElement.style.display = '';
+                progress = (displayTime / duration) * 100;
             } else {
                 const displayTime = Math.round(elapsedSeconds);
                 const hs = Math.floor(displayTime / 3600);
@@ -897,8 +988,17 @@
                 const ss = displayTime % 60;
                 const hstr = hs > 0 ? `${String(hs).padStart(2, '0')}:` : '';
                 timerDisplay.textContent = `${hstr}${String(ms).padStart(2, '0')}:${String(ss).padStart(2, '0')}`;
-                progressBar.style.width = `0%`;
-                progressBar.parentElement.style.display = 'none';
+                progress = 0; // Stopwatch doesn't track progress normally, or maybe 100?
+            }
+
+            if (visualMode === 'line') {
+                progressBarInner.style.width = `${Math.min(100, progress)}%`;
+            } else {
+                // Ring progress
+                // Circumference is 2 * PI * 45 ≈ 283
+                const circumference = 283;
+                const offset = circumference - (progress / 100) * circumference;
+                timerRingProgress.style.strokeDashoffset = offset;
             }
         }
 
@@ -970,7 +1070,6 @@
             if (timerType === 'pomodoro') remainingTime = (currentMode === 'study') ? studyDuration : breakDuration;
             else elapsedSeconds = 0;
             updateTimerDisplay();
-            currentModeDisplay.textContent = (currentMode === 'study') ? 'Studying' : 'Break';
         }
 
         function toggleMode() {
@@ -1021,9 +1120,7 @@
         timerSizeSlider.addEventListener('input', (e) => {
             const newSize = e.target.value;
             document.documentElement.style.setProperty('--timer-font-size', `${newSize}rem`);
-            document.documentElement.style.setProperty('--timer-subtext-font-size', `${newSize/5}rem`);
             localStorage.setItem('timerSize', newSize);
-            localStorage.setItem('timerSubSize', newSize/5);
         });
 
         // Question Counter
@@ -1066,33 +1163,25 @@
             }
         });
 
-        // Custom Text
-        customTextInput.addEventListener('input', () => localStorage.setItem('customTimerText', customTextInput.value));
-
         // Minimize / Cinema
         minimizeBtn.addEventListener('click', () => controlsBar.classList.toggle('ui-hide'));
         const cinemaModeBtn = document.getElementById('cinema-mode-btn');
-        const timerUIContainer = document.getElementById('timer-ui-container');
+        const timerContainerEl = document.getElementById('timer-container'); // Part of wrapper now
         cinemaModeBtn.addEventListener('click', () => {
-            [controlsBar, timerUIContainer, videoControlsContainer, questionCounterDisplay].forEach(el => el.classList.add('ui-hide'));
+            [controlsBar, timerWrapper, videoControlsContainer, questionCounterDisplay].forEach(el => el.classList.add('ui-hide'));
         });
         document.documentElement.addEventListener('click', (e) => {
             if (controlsBar.classList.contains('ui-hide')) {
+                // If clicking background (not a button)
                 if(e.target.tagName !== 'BUTTON' && !e.target.closest('button')) {
-                    [controlsBar, timerUIContainer, questionCounterDisplay].forEach(el => el.classList.remove('ui-hide'));
+                    [controlsBar, timerWrapper, questionCounterDisplay].forEach(el => el.classList.remove('ui-hide'));
                     if(activeBgPlayer === 'local' || activeBgPlayer === 'youtube') videoControlsContainer.classList.remove('ui-hide');
                 }
             }
         });
 
-        // Top Hour
-        function updateTopHourLeft() {
-             const now = new Date();
-             const totalSecondsLeft = (59 - now.getMinutes()) * 60 + (60 - now.getSeconds());
-             const mins = Math.floor(totalSecondsLeft / 60);
-             if(topHourLeftTextEl) topHourLeftTextEl.textContent = `${mins}m ${String(totalSecondsLeft%60).padStart(2,'0')}s left this hour`;
-        }
-        setInterval(updateTopHourLeft, 1000);
+        // Top Hour (Removed logic as requested, keeping empty function to prevent errors if called)
+        function updateTopHourLeft() {}
 
         // BG Image Logic
         setImageBtn.addEventListener('click', () => imageFileInput.click());
@@ -1145,6 +1234,7 @@
         // Init
         loadDataFromLocalStorage();
         rewireControlsForLocalBg();
+        updateVisualMode(); // Set initial look
         resetTimer();
 
     </script>
