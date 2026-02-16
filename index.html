@@ -54,6 +54,7 @@
             justify-content: center;
             align-items: center;
             transition: background-color 0.3s ease;
+            touch-action: none; /* Critical for smooth touch dragging */
         }
         
         /* Ring Mode Specifics */
@@ -260,6 +261,7 @@
                         <span>Local Image</span>
                     </button>
                     <hr class="border-white/20 my-1">
+                    <div class="text-xs text-gray-400 mt-2 px-2 border-t border-white/10 pt-2"><span class="opacity-70">Current:</span> <span id="bg-current-title" class="text-white">None</span></div>
                     <button id="video-controls-toggle" class="w-full text-left p-2 hover:bg-white/10 rounded flex items-center space-x-2">
                          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
                         <span>Show Video Controls</span>
@@ -277,6 +279,7 @@
             <div class="relative">
                  <div id="music-menu-container" class="popup-menu" style="width: 320px;">
                     <div class="text-sm font-semibold text-gray-400 mb-2 uppercase tracking-wide">Music Player</div>
+                    <div id="music-current-display" class="text-xs text-blue-300 mb-2 font-medium truncate hidden">Now Playing: <span id="music-current-title"></span></div>
                     
                     <div class="flex items-center justify-between bg-white/5 p-2 rounded mb-2">
                          <button id="music-prev-btn" class="p-2 hover:text-blue-400"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg></button>
@@ -413,6 +416,7 @@
         const setVideoBtn = document.getElementById('set-video-btn');
         const setYoutubeBtn = document.getElementById('set-youtube-btn');
         const youtubeBgContainer = document.getElementById('youtube-bg');
+        const bgCurrentTitleEl = document.getElementById('bg-current-title');
         
         const videoControlsContainer = document.getElementById('video-controls-container');
         const videoControlsToggle = document.getElementById('video-controls-toggle');
@@ -453,6 +457,8 @@
         const musicFileInput = document.getElementById('music-file-input');
         const musicQueueList = document.getElementById('music-queue-list');
         const localMusicPlayer = document.getElementById('local-music-player');
+        const musicCurrentDisplay = document.getElementById('music-current-display');
+        const musicCurrentTitleEl = document.getElementById('music-current-title');
 
         // --- DRAG LOGIC ---
         let isDragging = false;
@@ -460,36 +466,56 @@
         let dragOffsetY = 0;
 
         timerWrapper.addEventListener('mousedown', (e) => {
-            // Don't drag if clicking buttons
             if (e.target.tagName === 'BUTTON' || e.target.closest('button')) return;
-            
             isDragging = true;
             const rect = timerWrapper.getBoundingClientRect();
-            // Calculate offset from center of element to mouse
             const centerX = rect.left + rect.width / 2;
             const centerY = rect.top + rect.height / 2;
             dragOffsetX = e.clientX - centerX;
             dragOffsetY = e.clientY - centerY;
-            
             timerWrapper.style.cursor = 'grabbing';
-            // Remove transform centering to allow free movement, use current computed pixel pos
             timerWrapper.style.transform = 'translate(-50%, -50%)'; 
         });
 
         document.addEventListener('mousemove', (e) => {
             if (!isDragging) return;
             e.preventDefault();
-            
-            // Move based on mouse pos minus offset
-            // We keep translate(-50%, -50%) to keep origin at center of element
             const x = e.clientX - dragOffsetX;
             const y = e.clientY - dragOffsetY;
-            
             timerWrapper.style.left = `${x}px`;
             timerWrapper.style.top = `${y}px`;
         });
 
         document.addEventListener('mouseup', () => {
+            isDragging = false;
+            timerWrapper.style.cursor = 'grab';
+        });
+
+        // Touch Events
+        timerWrapper.addEventListener('touchstart', (e) => {
+            if (e.target.tagName === 'BUTTON' || e.target.closest('button')) return;
+            isDragging = true;
+            const touch = e.touches[0];
+            const rect = timerWrapper.getBoundingClientRect();
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
+            dragOffsetX = touch.clientX - centerX;
+            dragOffsetY = touch.clientY - centerY;
+            timerWrapper.style.cursor = 'grabbing';
+            timerWrapper.style.transform = 'translate(-50%, -50%)'; 
+        }, {passive: false});
+
+        document.addEventListener('touchmove', (e) => {
+            if (!isDragging) return;
+            e.preventDefault();
+            const touch = e.touches[0];
+            const x = touch.clientX - dragOffsetX;
+            const y = touch.clientY - dragOffsetY;
+            timerWrapper.style.left = `${x}px`;
+            timerWrapper.style.top = `${y}px`;
+        }, {passive: false});
+
+        document.addEventListener('touchend', () => {
             isDragging = false;
             timerWrapper.style.cursor = 'grab';
         });
@@ -543,6 +569,7 @@
 
                 videoControlsContainer.classList.remove('hidden');
                 rewireControlsForLocalBg();
+                bgCurrentTitleEl.textContent = `Local: ${file.name}`;
             }
         });
 
@@ -570,6 +597,7 @@
                     bgVideoIdToLoad = videoId;
                  }
             }
+            bgCurrentTitleEl.textContent = `YouTube Video`;
         });
 
         // Helper: Format Time
@@ -718,6 +746,10 @@
             isMusicPlaying = true;
             updateMusicPlayPauseUI();
             renderMusicQueue();
+            
+            // Show Current Title
+            musicCurrentDisplay.classList.remove('hidden');
+            musicCurrentTitleEl.textContent = track.name;
 
             if (track.type === 'local') {
                 // Stop YT Music
@@ -1204,6 +1236,7 @@
                 if (ytBgPlayer) ytBgPlayer.pauseVideo();
                 bgVideoPlayer.pause();
                 videoControlsContainer.classList.add('hidden');
+                bgCurrentTitleEl.textContent = `Local: ${file.name}`;
             }
         });
 
