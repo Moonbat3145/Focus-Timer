@@ -34,48 +34,58 @@
 
         .text-shadow { text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5); }
 
-        /* Progress Bar (Linear) */
-        .progress-bar-container {
-            width: 100%; max-width: 400px; margin: 0 auto;
-            border-radius: 2px; overflow: hidden;
-            display: none; /* Hidden by default in Ring mode, toggled via JS */
-        }
-        .progress-bar {
-            height: 2px; background-color: rgba(255, 255, 255, 0.3);
-            width: 100%;
-        }
-        .progress-bar-inner {
-            height: 100%; background-color: white; width: 100%; transition: width 0.5s ease;
-        }
-
-        /* Timer Adjust Buttons */
+        /* Timer Wrapper (Draggable) 
+           Z-Index Strategy:
+           BG Video: -10
+           Canvas: 5
+           Timer: 10 (Below controls)
+           Controls: 40
+           Menus: 50
+           Modals: 100
+        */
         #timer-wrapper { 
             position: absolute; 
             top: 50%; left: 50%; 
             transform: translate(-50%, -50%); /* Default centered */
-            cursor: grab; /* Indicates draggable */
+            cursor: grab; 
             user-select: none;
-            z-index: 100;
-            padding: 2rem;
-            border-radius: 9999px;
+            z-index: 10; /* Lowered to sit behind modals/menus */
+            display: flex;
+            justify-content: center;
+            align-items: center;
             transition: background-color 0.3s ease;
         }
-        #timer-wrapper:active { cursor: grabbing; }
         
-        /* Only show background on hover to help visualize drag area */
+        /* Ring Mode Specifics */
+        #timer-wrapper.ring-mode {
+            aspect-ratio: 1 / 1; /* Force Square for Perfect Circle */
+            border-radius: 50%;
+            padding: 4rem; /* More padding so ring covers text comfortably */
+            background-color: rgba(0, 0, 0, 0.2); /* Slight darkening for readability */
+            backdrop-filter: blur(2px);
+        }
+        
+        /* Clean Mode Specifics */
+        #timer-wrapper.clean-mode {
+            padding: 1rem;
+            border-radius: 1rem;
+        }
+
+        #timer-wrapper:active { cursor: grabbing; }
         #timer-wrapper:hover { background-color: rgba(255,255,255,0.05); }
 
+        /* Timer Adjust Buttons */
         .time-adjust-btn {
             position: absolute; top: 50%; transform: translateY(-50%);
             font-size: 3rem; font-weight: 200; color: rgba(255, 255, 255, 0.4);
             cursor: pointer; padding: 1rem; opacity: 0;
             transition: opacity 0.2s ease-in-out, color 0.2s ease-in-out; user-select: none;
-            z-index: 102;
+            z-index: 12; /* Slightly above timer wrapper */
         }
         .time-adjust-btn:hover { color: rgba(255, 255, 255, 0.8); }
         #timer-wrapper:hover .time-adjust-btn { opacity: 1; }
-        #subtract-time-btn { left: -40px; }
-        #add-time-btn { right: -40px; }
+        #subtract-time-btn { left: -60px; }
+        #add-time-btn { right: -60px; }
 
         /* Ring Progress Styles */
         #timer-ring-svg {
@@ -83,7 +93,8 @@
             width: 100%; height: 100%;
             pointer-events: none;
             transform: rotate(-90deg);
-            display: block; /* Visible by default */
+            display: block; 
+            overflow: visible;
         }
         circle { transition: stroke-dashoffset 0.5s ease; }
 
@@ -102,7 +113,12 @@
         #video-seek-bar::-moz-progress-bar { background: white; border-radius: 3px; }
 
         /* Resizable Timer */
-        #timer-display { font-size: var(--timer-font-size, 8rem); line-height: 1; pointer-events: none; }
+        #timer-display { 
+            font-size: var(--timer-font-size, 8rem); 
+            line-height: 0.9; 
+            pointer-events: none; 
+            white-space: nowrap;
+        }
 
         /* UI Hide */
         .ui-hide { opacity: 0 !important; pointer-events: none !important; transition: opacity 0.3s ease-out; }
@@ -152,24 +168,20 @@
     </div>
 
     <!-- MAIN TIMER CONTAINER (Draggable) -->
-    <div id="timer-wrapper">
-        <!-- Ring SVG -->
+    <div id="timer-wrapper" class="ring-mode">
+        <!-- Ring SVG: Increased stroke-width for visibility -->
         <svg id="timer-ring-svg" viewBox="0 0 100 100">
-             <circle cx="50" cy="50" r="45" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="3" />
-             <circle id="timer-ring-progress" cx="50" cy="50" r="45" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-dasharray="283" stroke-dashoffset="0" />
+             <!-- Background Circle -->
+             <circle cx="50" cy="50" r="45" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="6" />
+             <!-- Progress Circle -->
+             <circle id="timer-ring-progress" cx="50" cy="50" r="45" fill="none" stroke="white" stroke-width="6" stroke-linecap="round" stroke-dasharray="283" stroke-dashoffset="0" />
         </svg>
 
-        <div id="timer-container" class="text-center relative z-10 p-10">
+        <div id="timer-container" class="text-center relative z-10">
             <div id="timer-display" class="font-bold text-shadow tracking-tight">25:00</div>
-            
-            <div id="linear-progress-container" class="progress-bar-container mt-4">
-                <div class="progress-bar">
-                    <div id="progress-bar-inner" class="progress-bar-inner"></div>
-                </div>
-            </div>
-            
-            <!-- Removed: custom-text-input & top-hour-left-text & current-mode-display -->
+            <!-- Removed linear progress bar completely -->
         </div>
+        
         <button id="subtract-time-btn" class="time-adjust-btn" title="Subtract 5 minutes">-</button>
         <button id="add-time-btn" class="time-adjust-btn" title="Add 5 minutes">+</button>
     </div>
@@ -189,7 +201,7 @@
         </div>
     </div>
 
-    <div id="controls-bar" class="fixed bottom-0 left-0 w-full flex justify-center p-6 z-20 transition-opacity duration-300">
+    <div id="controls-bar" class="fixed bottom-0 left-0 w-full flex justify-center p-6 z-40 transition-opacity duration-300">
         <div class="flex items-center space-x-2 bg-black/30 backdrop-blur-md p-3 rounded-full shadow-lg relative">
             
             <button id="minimize-btn" title="Minimize UI" class="p-3 text-white/80 hover:text-white hover:bg-white/20 rounded-full transition-all">
@@ -301,7 +313,7 @@
         </div>
     </div>
 
-    <div id="timer-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center z-30 hidden">
+    <div id="timer-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center z-50 hidden">
         <div class="bg-gray-900 text-white p-8 rounded-xl shadow-2xl w-full max-w-sm">
             <h2 class="text-2xl font-bold mb-6 text-center">Set Timers</h2>
             <p class="text-gray-400 mb-2">Study Duration (minutes):</p>
@@ -315,7 +327,7 @@
         </div>
     </div>
 
-    <div id="resize-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center z-30 hidden">
+    <div id="resize-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center z-50 hidden">
         <div class="bg-gray-900 text-white p-8 rounded-xl shadow-2xl w-full max-w-sm">
             <h2 class="text-2xl font-bold mb-6 text-center">Resize Timer</h2>
             <p class="text-gray-400 mb-2">Timer Size</p>
@@ -341,7 +353,7 @@
         let elapsedSeconds = 0;
         let pomodoroEndTime = 0;
         let lastTickTime = 0;
-        let visualMode = 'ring'; // 'ring' or 'line'
+        let visualMode = 'ring'; // 'ring' or 'clean'
 
         // Stats
         let studyTimeToday = 0;
@@ -371,8 +383,7 @@
 
         // --- UI Elements ---
         const timerDisplay = document.getElementById('timer-display');
-        const progressBarInner = document.getElementById('progress-bar-inner');
-        const linearProgressContainer = document.getElementById('linear-progress-container');
+        const timerWrapper = document.getElementById('timer-wrapper');
         const timerRingSvg = document.getElementById('timer-ring-svg');
         const timerRingProgress = document.getElementById('timer-ring-progress');
         const toggleVisualModeBtn = document.getElementById('toggle-visual-mode-btn');
@@ -444,7 +455,6 @@
         const localMusicPlayer = document.getElementById('local-music-player');
 
         // --- DRAG LOGIC ---
-        const timerWrapper = document.getElementById('timer-wrapper');
         let isDragging = false;
         let dragOffsetX = 0;
         let dragOffsetY = 0;
@@ -957,16 +967,16 @@
         function updateVisualMode() {
             if (visualMode === 'ring') {
                 timerRingSvg.style.display = 'block';
-                linearProgressContainer.style.display = 'none';
-                timerWrapper.classList.add('rounded-full'); // More rounded for ring
+                timerWrapper.classList.add('ring-mode');
+                timerWrapper.classList.remove('clean-mode');
             } else {
                 timerRingSvg.style.display = 'none';
-                linearProgressContainer.style.display = 'block';
-                timerWrapper.classList.remove('rounded-full');
+                timerWrapper.classList.remove('ring-mode');
+                timerWrapper.classList.add('clean-mode');
             }
         }
         toggleVisualModeBtn.addEventListener('click', () => {
-            visualMode = (visualMode === 'ring') ? 'line' : 'ring';
+            visualMode = (visualMode === 'ring') ? 'clean' : 'ring';
             updateVisualMode();
             updateTimerDisplay(); // Redraw progress
         });
@@ -988,12 +998,10 @@
                 const ss = displayTime % 60;
                 const hstr = hs > 0 ? `${String(hs).padStart(2, '0')}:` : '';
                 timerDisplay.textContent = `${hstr}${String(ms).padStart(2, '0')}:${String(ss).padStart(2, '0')}`;
-                progress = 0; // Stopwatch doesn't track progress normally, or maybe 100?
+                progress = 0; 
             }
 
-            if (visualMode === 'line') {
-                progressBarInner.style.width = `${Math.min(100, progress)}%`;
-            } else {
+            if (visualMode === 'ring') {
                 // Ring progress
                 // Circumference is 2 * PI * 45 ≈ 283
                 const circumference = 283;
