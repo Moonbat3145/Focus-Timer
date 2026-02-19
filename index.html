@@ -34,15 +34,7 @@
 
         .text-shadow { text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5); }
 
-        /* Timer Wrapper (Draggable) 
-           Z-Index Strategy:
-           BG Video: -10
-           Canvas: 5
-           Timer: 10 (Below controls)
-           Controls: 40
-           Menus: 50
-           Modals: 100
-        */
+        /* Timer Wrapper (Draggable) */
         #timer-wrapper { 
             position: absolute; 
             top: 50%; left: 50%; 
@@ -148,7 +140,7 @@
             display: flex; gap: 0.25rem; opacity: 0.5; transition: opacity 0.2s;
         }
         .queue-item:hover .queue-controls { opacity: 1; }
-        .queue-btn { padding: 2px; hover:text-white; cursor: pointer; }
+        .queue-btn { padding: 2px; cursor: pointer; }
         .queue-btn:hover { color: white; }
 
         /* Volume Slider */
@@ -171,7 +163,6 @@
     <video id="bg-video" muted loop playsinline autoplay></video>
     <div id="youtube-bg" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);min-width:100%;min-height:100%;z-index:-10;pointer-events:none;"></div>
     
-    <!-- Music Player: ensure opacity is not 0 for some browser policies -->
     <div id="music-youtube-player" style="position:fixed; top:0; left:0; opacity:0.01; pointer-events:none; z-index:-20; width:1px; height:1px;"></div>
     <audio id="local-music-player"></audio>
 
@@ -188,13 +179,9 @@
         </div>
     </div>
 
-    <!-- MAIN TIMER CONTAINER (Draggable) -->
     <div id="timer-wrapper" class="ring-mode">
-        <!-- Ring SVG: Increased stroke-width for visibility -->
         <svg id="timer-ring-svg" viewBox="0 0 100 100">
-             <!-- Background Circle -->
              <circle cx="50" cy="50" r="45" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="6" />
-             <!-- Progress Circle -->
              <circle id="timer-ring-progress" cx="50" cy="50" r="45" fill="none" stroke="white" stroke-width="6" stroke-linecap="round" stroke-dasharray="283" stroke-dashoffset="0" />
         </svg>
 
@@ -206,17 +193,26 @@
         <button id="add-time-btn" class="time-adjust-btn" title="Add 5 minutes">+</button>
     </div>
 
-    <div id="video-controls-container" class="fixed bottom-32 left-1/2 -translate-x-1/2 w-full max-w-xl z-20 hidden">
-        <div class="flex items-center space-x-4 bg-black/30 backdrop-blur-md p-3 rounded-full shadow-lg mx-auto w-full">
-            <button id="video-play-pause-btn" title="Play/Pause BG Video" class="p-1 text-white/80 hover:text-white rounded-full transition-all">
+    <div id="video-controls-container" class="fixed bottom-32 left-1/2 -translate-x-1/2 w-[95%] max-w-4xl z-20 hidden">
+        <div class="flex items-center space-x-4 bg-black/40 backdrop-blur-md p-4 rounded-2xl shadow-lg mx-auto w-full">
+            <button id="video-play-pause-btn" title="Play/Pause BG Video" class="flex-shrink-0 p-1 text-white/80 hover:text-white rounded-full transition-all">
                 <svg id="video-play-icon" class="w-6 h-6 hidden" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"></path></svg>
                 <svg id="video-pause-icon" class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8 7a1 1 0 00-1 1v4a1 1 0 001 1h1a1 1 0 001-1V8a1 1 0 00-1-1H8zm5 0a1 1 0 00-1 1v4a1 1 0 001 1h1a1 1 0 001-1V8a1 1 0 00-1-1h-1z" clip-rule="evenodd"></path></svg>
             </button>
-            <span id="video-time-display" class="text-sm text-white/80 font-mono w-28 text-center">00:00 / 00:00</span>
-            <progress id="video-seek-bar" value="0" max="100" class="flex-grow"></progress>
-            <button id="bg-mute-btn" class="p-1 text-white/80 hover:text-white rounded-full transition-all" title="Mute Background">
-                <svg id="bg-unmute-icon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path></svg>
-                <svg id="bg-mute-icon" class="w-5 h-5 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15zM17 14l4-4m0 4l-4-4"></path></svg>
+            <span id="video-time-display" class="flex-shrink-0 text-sm text-white/80 font-mono w-28 text-center">00:00 / 00:00</span>
+            <progress id="video-seek-bar" value="0" max="100" class="flex-grow w-full"></progress>
+            
+            <select id="bg-quality-select" class="flex-shrink-0 bg-white/10 text-white text-xs rounded border border-white/20 p-1.5 outline-none cursor-pointer hover:bg-white/20 hidden transition-all">
+                <option value="default" class="bg-gray-900">Auto</option>
+                <option value="hd1080" class="bg-gray-900">1080p</option>
+                <option value="hd720" class="bg-gray-900">720p</option>
+                <option value="large" class="bg-gray-900">480p</option>
+                <option value="medium" class="bg-gray-900">360p</option>
+            </select>
+
+            <button id="bg-mute-btn" class="flex-shrink-0 p-1 text-white/80 hover:text-white rounded-full transition-all" title="Mute Background">
+                <svg id="bg-unmute-icon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path></svg>
+                <svg id="bg-mute-icon" class="w-6 h-6 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15zM17 14l4-4m0 4l-4-4"></path></svg>
             </button>
         </div>
     </div>
@@ -233,7 +229,7 @@
             </button>
 
             <button id="fullscreen-btn" title="Toggle Fullscreen" class="control-btn p-3 text-white/80 hover:text-white hover:bg-white/20 rounded-full transition-all">
-                <svg id="fullscreen-enter-icon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 1v4m0 0h-4m4 0l-5-5"></path></svg>
+                <svg id="fullscreen-enter-icon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l-5-5m11 1v4m0 0h-4m4 0l-5-5"></path></svg>
                 <svg id="fullscreen-exit-icon" class="w-6 h-6 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 4H4m0 0v4M4 4l5 5m1-5h4m0 0v4m0-4l-5 5M8 20H4m0 0v-4m0 4l-5-5"></path></svg>
             </button>
 
@@ -285,7 +281,6 @@
                     <div class="mt-2 px-2">
                         <div class="text-xs text-gray-400 mb-1">Saved Backgrounds</div>
                         <div id="bg-playlist-list" class="flex flex-col gap-1 max-h-32 overflow-y-auto">
-                            <!-- JS will populate -->
                             <div class="text-xs text-white/30 italic">No saved backgrounds</div>
                         </div>
                     </div>
@@ -323,12 +318,12 @@
                              <button id="music-mute-btn" title="Mute Music" class="p-2 text-white/70 hover:text-white"><svg id="music-unmute-icon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path></svg><svg id="music-mute-icon" class="w-5 h-5 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15zM17 14l4-4m0 4l-4-4"></path></svg></button>
                              <input type="range" id="music-volume-slider" min="0" max="100" value="100" class="volume-slider w-20" title="Volume">
                          </div>
-                         <button id="music-autoplay-btn" title="Toggle Autoplay" class="text-xs px-2 py-1 rounded border border-white/30 text-white/70 hover:bg-white/10">Autoplay: OFF</button>
+                         <button id="music-loop-mode-btn" title="Playback Mode" class="text-xs px-2 py-1 rounded border border-white/30 text-white/70 hover:bg-white/10 w-24">Mode: Off</button>
                     </div>
 
                     <div class="grid grid-cols-2 gap-2 mb-3">
                         <button id="add-music-yt-btn" class="bg-red-600/80 hover:bg-red-600 p-2 rounded text-xs flex justify-center items-center">
-                            <span>+ YouTube Link</span>
+                            <span>+ YouTube Link(s)</span>
                         </button>
                         <button id="add-music-local-btn" class="bg-blue-600/80 hover:bg-blue-600 p-2 rounded text-xs flex justify-center items-center">
                             <span>+ Local File</span>
@@ -347,7 +342,6 @@
         </div>
     </div>
 
-    <!-- ... existing modals ... -->
     <div id="timer-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center z-50 hidden">
         <div class="bg-gray-900 text-white p-8 rounded-xl shadow-2xl w-full max-w-sm">
             <h2 class="text-2xl font-bold mb-6 text-center">Set Timers</h2>
@@ -376,47 +370,24 @@
     <audio id="alarm-sound" src="https://assets.mixkit.co/sfx/preview/mixkit-clear-announce-tones-2861.mp3" preload="auto"></audio>
 
     <script type="module">
-        // --- 0. App State & Config ---
-        // Timer
-        let timerInterval = null;
-        let studyDuration = 25 * 60;
-        let breakDuration = 5 * 60;
-        let remainingTime = studyDuration;
-        let isRunning = false;
-        let currentMode = 'study';
-        let timerType = 'pomodoro'; 
-        let elapsedSeconds = 0;
-        let pomodoroEndTime = 0;
-        let lastTickTime = 0;
-        let visualMode = 'ring'; // 'ring' or 'clean'
-
-        // Stats
-        let studyTimeToday = 0;
-        let breakTimeToday = 0;
-        let todayDateString = getTodayDateString();
-        let lastSaveTimestamp = 0;
-        let statsHistory = [];
-
-        // Question Counter
+        // --- App State & Config ---
+        let timerInterval = null, studyDuration = 25 * 60, breakDuration = 5 * 60;
+        let remainingTime = studyDuration, isRunning = false, currentMode = 'study';
+        let timerType = 'pomodoro', elapsedSeconds = 0, pomodoroEndTime = 0;
+        let lastTickTime = 0, visualMode = 'ring';
+        let studyTimeToday = 0, breakTimeToday = 0, todayDateString = getTodayDateString(), lastSaveTimestamp = 0;
         let questionCountToday = 0;
 
         // --- BACKGROUND MEDIA STATE ---
-        let activeBgPlayer = 'local'; // 'local' or 'youtube'
-        let bgVideoIdToLoad = null;
-        let ytBgPlayer = null;
-        let ytBgSeekBarInterval = null;
+        let activeBgPlayer = 'local', bgVideoIdToLoad = null, ytBgPlayer = null, ytBgSeekBarInterval = null;
         let isBgMuted = true;
-        let bgPlaylist = []; // { type: 'youtube'|'local', src: string, name: string }
+        let bgPlaylist = []; 
 
         // --- MUSIC PLAYER STATE ---
-        let musicPlaylist = []; // { type: 'youtube'|'local', src: string, name: string }
-        let currentMusicIndex = -1;
-        let isMusicPlaying = false;
-        let musicAutoplay = false;
-        let isMusicMuted = false;
-        let musicVolume = 100;
-        let ytMusicPlayer = null;
-        let musicVideoIdToLoad = null; // Buffer if API not ready
+        let musicPlaylist = [], currentMusicIndex = -1;
+        let isMusicPlaying = false, isMusicMuted = false, musicVolume = 100;
+        let ytMusicPlayer = null, musicVideoIdToLoad = null; 
+        let musicPlaybackMode = 'off'; // 'off', 'loop_all', 'loop_one'
 
         // --- UI Elements ---
         const timerDisplay = document.getElementById('timer-display');
@@ -425,155 +396,87 @@
         const timerRingProgress = document.getElementById('timer-ring-progress');
         const toggleVisualModeBtn = document.getElementById('toggle-visual-mode-btn');
 
-        const playBtn = document.getElementById('play-pause-btn');
-        const playIcon = document.getElementById('play-icon');
-        const pauseIcon = document.getElementById('pause-icon');
-        const resetBtn = document.getElementById('reset-btn');
-        const alarmSound = document.getElementById('alarm-sound');
-        const switchModeBtn = document.getElementById('switch-mode-btn');
-        const timerTypeBtn = document.getElementById('timer-type-btn');
-        const controlsBar = document.getElementById('controls-bar');
-        const minimizeBtn = document.getElementById('minimize-btn');
-        const addTimeBtn = document.getElementById('add-time-btn');
-        const subtractTimeBtn = document.getElementById('subtract-time-btn');
+        const playBtn = document.getElementById('play-pause-btn'), playIcon = document.getElementById('play-icon'), pauseIcon = document.getElementById('pause-icon');
+        const resetBtn = document.getElementById('reset-btn'), alarmSound = document.getElementById('alarm-sound');
+        const switchModeBtn = document.getElementById('switch-mode-btn'), timerTypeBtn = document.getElementById('timer-type-btn');
+        const controlsBar = document.getElementById('controls-bar'), minimizeBtn = document.getElementById('minimize-btn');
+        const addTimeBtn = document.getElementById('add-time-btn'), subtractTimeBtn = document.getElementById('subtract-time-btn');
         
-        // --- Question Counter UI ---
         const toggleQuestionCounterBtn = document.getElementById('toggle-question-counter-btn');
         const questionCounterDisplay = document.getElementById('question-counter-display');
         const questionCountEl = document.getElementById('question-count-el');
-        const questionAddBtn = document.getElementById('question-add-btn');
-        const questionSubtractBtn = document.getElementById('question-subtract-btn');
+        const questionAddBtn = document.getElementById('question-add-btn'), questionSubtractBtn = document.getElementById('question-subtract-btn');
 
-        // --- BACKGROUND VIDEO UI ---
-        const bgVideoPlayer = document.getElementById('bg-video');
-        const videoFileInput = document.getElementById('video-file-input');
-        const setVideoBtn = document.getElementById('set-video-btn');
-        const setYoutubeBtn = document.getElementById('set-youtube-btn');
-        const youtubeBgContainer = document.getElementById('youtube-bg');
-        const bgCurrentTitleEl = document.getElementById('bg-current-title');
+        // --- BACKGROUND UI ---
+        const bgVideoPlayer = document.getElementById('bg-video'), videoFileInput = document.getElementById('video-file-input');
+        const setVideoBtn = document.getElementById('set-video-btn'), setYoutubeBtn = document.getElementById('set-youtube-btn');
+        const youtubeBgContainer = document.getElementById('youtube-bg'), bgCurrentTitleEl = document.getElementById('bg-current-title');
         const bgPlaylistList = document.getElementById('bg-playlist-list');
         
-        const videoControlsContainer = document.getElementById('video-controls-container');
-        const videoControlsToggle = document.getElementById('video-controls-toggle');
-        const videoTimeDisplay = document.getElementById('video-time-display');
-        const videoSeekBar = document.getElementById('video-seek-bar');
-        const videoPlayPauseBtn = document.getElementById('video-play-pause-btn');
-        const videoPlayIcon = document.getElementById('video-play-icon');
-        const videoPauseIcon = document.getElementById('video-pause-icon');
-        const bgMuteBtn = document.getElementById('bg-mute-btn');
-        const bgMuteIcon = document.getElementById('bg-mute-icon');
-        const bgUnmuteIcon = document.getElementById('bg-unmute-icon');
+        const videoControlsContainer = document.getElementById('video-controls-container'), videoControlsToggle = document.getElementById('video-controls-toggle');
+        const videoTimeDisplay = document.getElementById('video-time-display'), videoSeekBar = document.getElementById('video-seek-bar');
+        const videoPlayPauseBtn = document.getElementById('video-play-pause-btn'), videoPlayIcon = document.getElementById('video-play-icon'), videoPauseIcon = document.getElementById('video-pause-icon');
+        const bgMuteBtn = document.getElementById('bg-mute-btn'), bgMuteIcon = document.getElementById('bg-mute-icon'), bgUnmuteIcon = document.getElementById('bg-unmute-icon');
+        const bgQualitySelect = document.getElementById('bg-quality-select');
 
-        // --- NEW IMAGE & FX UI ---
-        const imageFileInput = document.getElementById('image-file-input');
-        const bgImageEl = document.getElementById('bg-image');
-        const setImageBtn = document.getElementById('set-image-btn');
-        const toggleSnowBtn = document.getElementById('toggle-snow-btn');
-        const toggleRainBtn = document.getElementById('toggle-rain-btn');
+        // --- IMAGE & FX UI ---
+        const imageFileInput = document.getElementById('image-file-input'), bgImageEl = document.getElementById('bg-image');
+        const setImageBtn = document.getElementById('set-image-btn'), toggleSnowBtn = document.getElementById('toggle-snow-btn'), toggleRainBtn = document.getElementById('toggle-rain-btn');
 
         // --- MENU UI ---
-        const bgMenuBtn = document.getElementById('bg-menu-btn');
-        const bgMenuContainer = document.getElementById('bg-menu-container');
-        const musicMenuBtn = document.getElementById('music-menu-btn');
-        const musicMenuContainer = document.getElementById('music-menu-container');
+        const bgMenuBtn = document.getElementById('bg-menu-btn'), bgMenuContainer = document.getElementById('bg-menu-container');
+        const musicMenuBtn = document.getElementById('music-menu-btn'), musicMenuContainer = document.getElementById('music-menu-container');
 
         // --- MUSIC UI ---
-        const musicPlayBtn = document.getElementById('music-play-btn');
-        const musicPlayIcon = document.getElementById('music-play-icon');
-        const musicPauseIcon = document.getElementById('music-pause-icon');
-        const musicNextBtn = document.getElementById('music-next-btn');
-        const musicPrevBtn = document.getElementById('music-prev-btn');
-        const musicMuteBtn = document.getElementById('music-mute-btn');
-        const musicUnmuteIcon = document.getElementById('music-unmute-icon');
-        const musicMuteIcon = document.getElementById('music-mute-icon');
-        const musicAutoplayBtn = document.getElementById('music-autoplay-btn');
-        const addMusicYtBtn = document.getElementById('add-music-yt-btn');
-        const addMusicLocalBtn = document.getElementById('add-music-local-btn');
-        const musicFileInput = document.getElementById('music-file-input');
-        const musicQueueList = document.getElementById('music-queue-list');
-        const localMusicPlayer = document.getElementById('local-music-player');
-        const musicCurrentDisplay = document.getElementById('music-current-display');
-        const musicCurrentTitleEl = document.getElementById('music-current-title');
-        const musicVolumeSlider = document.getElementById('music-volume-slider');
+        const musicPlayBtn = document.getElementById('music-play-btn'), musicPlayIcon = document.getElementById('music-play-icon'), musicPauseIcon = document.getElementById('music-pause-icon');
+        const musicNextBtn = document.getElementById('music-next-btn'), musicPrevBtn = document.getElementById('music-prev-btn');
+        const musicMuteBtn = document.getElementById('music-mute-btn'), musicUnmuteIcon = document.getElementById('music-unmute-icon'), musicMuteIcon = document.getElementById('music-mute-icon');
+        const musicLoopModeBtn = document.getElementById('music-loop-mode-btn');
+        const addMusicYtBtn = document.getElementById('add-music-yt-btn'), addMusicLocalBtn = document.getElementById('add-music-local-btn'), musicFileInput = document.getElementById('music-file-input');
+        const musicQueueList = document.getElementById('music-queue-list'), localMusicPlayer = document.getElementById('local-music-player');
+        const musicCurrentDisplay = document.getElementById('music-current-display'), musicCurrentTitleEl = document.getElementById('music-current-title'), musicVolumeSlider = document.getElementById('music-volume-slider');
 
         // --- DRAG LOGIC ---
-        let isDragging = false;
-        let dragOffsetX = 0;
-        let dragOffsetY = 0;
-
+        let isDragging = false, dragOffsetX = 0, dragOffsetY = 0;
         timerWrapper.addEventListener('mousedown', (e) => {
             if (e.target.tagName === 'BUTTON' || e.target.closest('button')) return;
             isDragging = true;
             const rect = timerWrapper.getBoundingClientRect();
-            const centerX = rect.left + rect.width / 2;
-            const centerY = rect.top + rect.height / 2;
-            dragOffsetX = e.clientX - centerX;
-            dragOffsetY = e.clientY - centerY;
+            dragOffsetX = e.clientX - (rect.left + rect.width / 2);
+            dragOffsetY = e.clientY - (rect.top + rect.height / 2);
             timerWrapper.style.cursor = 'grabbing';
             timerWrapper.style.transform = 'translate(-50%, -50%)'; 
         });
-
         document.addEventListener('mousemove', (e) => {
-            if (!isDragging) return;
-            e.preventDefault();
-            const x = e.clientX - dragOffsetX;
-            const y = e.clientY - dragOffsetY;
-            timerWrapper.style.left = `${x}px`;
-            timerWrapper.style.top = `${y}px`;
+            if (!isDragging) return; e.preventDefault();
+            timerWrapper.style.left = `${e.clientX - dragOffsetX}px`; timerWrapper.style.top = `${e.clientY - dragOffsetY}px`;
         });
+        document.addEventListener('mouseup', () => { isDragging = false; timerWrapper.style.cursor = 'grab'; });
 
-        document.addEventListener('mouseup', () => {
-            isDragging = false;
-            timerWrapper.style.cursor = 'grab';
-        });
-
-        // Touch Events
+        // Touch Dragging
         timerWrapper.addEventListener('touchstart', (e) => {
             if (e.target.tagName === 'BUTTON' || e.target.closest('button')) return;
             isDragging = true;
             const touch = e.touches[0];
             const rect = timerWrapper.getBoundingClientRect();
-            const centerX = rect.left + rect.width / 2;
-            const centerY = rect.top + rect.height / 2;
-            dragOffsetX = touch.clientX - centerX;
-            dragOffsetY = touch.clientY - centerY;
+            dragOffsetX = touch.clientX - (rect.left + rect.width / 2);
+            dragOffsetY = touch.clientY - (rect.top + rect.height / 2);
             timerWrapper.style.cursor = 'grabbing';
             timerWrapper.style.transform = 'translate(-50%, -50%)'; 
         }, {passive: false});
-
         document.addEventListener('touchmove', (e) => {
-            if (!isDragging) return;
-            e.preventDefault();
+            if (!isDragging) return; e.preventDefault();
             const touch = e.touches[0];
-            const x = touch.clientX - dragOffsetX;
-            const y = touch.clientY - dragOffsetY;
-            timerWrapper.style.left = `${x}px`;
-            timerWrapper.style.top = `${y}px`;
+            timerWrapper.style.left = `${touch.clientX - dragOffsetX}px`; timerWrapper.style.top = `${touch.clientY - dragOffsetY}px`;
         }, {passive: false});
-
-        document.addEventListener('touchend', () => {
-            isDragging = false;
-            timerWrapper.style.cursor = 'grab';
-        });
+        document.addEventListener('touchend', () => { isDragging = false; timerWrapper.style.cursor = 'grab'; });
 
         // --- MENU TOGGLE LOGIC ---
-        bgMenuBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            bgMenuContainer.classList.toggle('active');
-            musicMenuContainer.classList.remove('active'); // Close other
-        });
-        musicMenuBtn.addEventListener('click', (e) => {
-             e.stopPropagation();
-            musicMenuContainer.classList.toggle('active');
-            bgMenuContainer.classList.remove('active'); // Close other
-        });
+        bgMenuBtn.addEventListener('click', (e) => { e.stopPropagation(); bgMenuContainer.classList.toggle('active'); musicMenuContainer.classList.remove('active'); });
+        musicMenuBtn.addEventListener('click', (e) => { e.stopPropagation(); musicMenuContainer.classList.toggle('active'); bgMenuContainer.classList.remove('active'); });
         document.addEventListener('click', (e) => {
-            if (!bgMenuContainer.contains(e.target) && e.target !== bgMenuBtn) {
-                bgMenuContainer.classList.remove('active');
-            }
-             if (!musicMenuContainer.contains(e.target) && e.target !== musicMenuBtn) {
-                musicMenuContainer.classList.remove('active');
-            }
+            if (!bgMenuContainer.contains(e.target) && e.target !== bgMenuBtn) bgMenuContainer.classList.remove('active');
+            if (!musicMenuContainer.contains(e.target) && e.target !== musicMenuBtn) musicMenuContainer.classList.remove('active');
         });
 
         // ==========================================
@@ -581,22 +484,13 @@
         // ==========================================
 
         setVideoBtn.addEventListener('click', () => videoFileInput.click());
+        videoControlsToggle.addEventListener('click', () => { videoControlsContainer.classList.toggle('hidden'); });
 
-        videoControlsToggle.addEventListener('click', () => {
-            videoControlsContainer.classList.toggle('hidden');
-        });
-
-        function addToBgPlaylist(item) {
-            bgPlaylist.push(item);
-            renderBgPlaylist();
-        }
+        function addToBgPlaylist(item) { bgPlaylist.push(item); renderBgPlaylist(); }
 
         function renderBgPlaylist() {
             bgPlaylistList.innerHTML = '';
-            if (bgPlaylist.length === 0) {
-                bgPlaylistList.innerHTML = '<div class="text-xs text-white/30 italic">No saved backgrounds</div>';
-                return;
-            }
+            if (bgPlaylist.length === 0) { bgPlaylistList.innerHTML = '<div class="text-xs text-white/30 italic">No saved backgrounds</div>'; return; }
             bgPlaylist.forEach((item, index) => {
                 const div = document.createElement('div');
                 div.className = "flex items-center justify-between p-1 hover:bg-white/10 rounded cursor-pointer group";
@@ -608,63 +502,42 @@
 
         function loadBackgroundFromPlaylist(index) {
             const item = bgPlaylist[index];
-            if (item.type === 'youtube') {
-                loadYouTubeBg(item.src);
-            } else if (item.type === 'local') {
-                loadLocalBg(item.src, item.name);
-            } else if (item.type === 'image') {
-                loadLocalImage(item.src, item.name);
-            }
+            if (item.type === 'youtube') loadYouTubeBg(item.src);
+            else if (item.type === 'local') loadLocalBg(item.src, item.name);
+            else if (item.type === 'image') loadLocalImage(item.src, item.name);
         }
 
         function loadLocalBg(url, name) {
-            bgVideoPlayer.src = url;
-            bgVideoPlayer.play();
-            bgVideoPlayer.muted = true;
-            isBgMuted = true;
-            updateBgMuteUI();
+            bgVideoPlayer.src = url; bgVideoPlayer.play();
+            bgVideoPlayer.muted = true; isBgMuted = true; updateBgMuteUI();
             
             activeBgPlayer = 'local';
-            bgVideoPlayer.style.display = 'block';
-            bgImageEl.style.display = 'none';
-            youtubeBgContainer.style.display = 'none';
+            bgVideoPlayer.style.display = 'block'; bgImageEl.style.display = 'none'; youtubeBgContainer.style.display = 'none';
             if (ytBgPlayer && ytBgPlayer.pauseVideo) ytBgPlayer.pauseVideo();
             
-            videoControlsContainer.classList.remove('hidden');
-            rewireControlsForLocalBg();
-            bgCurrentTitleEl.textContent = name;
+            videoControlsContainer.classList.remove('hidden'); bgQualitySelect.classList.add('hidden');
+            rewireControlsForLocalBg(); bgCurrentTitleEl.textContent = name;
         }
 
         function loadLocalImage(url, name) {
-            bgImageEl.src = url;
-            bgImageEl.style.display = 'block';
-            bgVideoPlayer.style.display = 'none';
-            youtubeBgContainer.style.display = 'none';
-            if (ytBgPlayer) ytBgPlayer.pauseVideo();
-            bgVideoPlayer.pause();
-            videoControlsContainer.classList.add('hidden');
-            bgCurrentTitleEl.textContent = name;
+            bgImageEl.src = url; bgImageEl.style.display = 'block';
+            bgVideoPlayer.style.display = 'none'; youtubeBgContainer.style.display = 'none';
+            if (ytBgPlayer) ytBgPlayer.pauseVideo(); bgVideoPlayer.pause();
+            videoControlsContainer.classList.add('hidden'); bgCurrentTitleEl.textContent = name;
         }
 
         function loadYouTubeBg(videoId) {
-            bgVideoPlayer.pause();
-            bgVideoPlayer.style.display = 'none';
-            bgImageEl.style.display = 'none';
-            youtubeBgContainer.style.display = 'block';
-            videoControlsContainer.classList.remove('hidden');
+            bgVideoPlayer.pause(); bgVideoPlayer.style.display = 'none'; bgImageEl.style.display = 'none';
+            youtubeBgContainer.style.display = 'block'; videoControlsContainer.classList.remove('hidden');
+            bgQualitySelect.classList.remove('hidden');
 
             if (ytBgPlayer) {
-                activeBgPlayer = 'youtube';
-                ytBgPlayer.loadVideoById(videoId);
-                rewireControlsForYouTubeBg();
+                activeBgPlayer = 'youtube'; ytBgPlayer.loadVideoById(videoId); rewireControlsForYouTubeBg();
             } else {
-                 if (window.YT && window.YT.Player) {
-                    createYouTubeBgPlayer(videoId);
-                 } else {
-                    bgVideoIdToLoad = videoId;
-                 }
+                 if (window.YT && window.YT.Player) createYouTubeBgPlayer(videoId);
+                 else bgVideoIdToLoad = videoId;
             }
-            bgCurrentTitleEl.textContent = `YouTube: ${videoId}`;
+            bgCurrentTitleEl.textContent = `Loading...`;
         }
 
         videoFileInput.addEventListener('change', (event) => {
@@ -672,19 +545,23 @@
             if (file) {
                 if (bgVideoPlayer.src) URL.revokeObjectURL(bgVideoPlayer.src);
                 const videoURL = URL.createObjectURL(file);
-                loadLocalBg(videoURL, file.name);
-                addToBgPlaylist({ type: 'local', src: videoURL, name: file.name });
+                loadLocalBg(videoURL, file.name); addToBgPlaylist({ type: 'local', src: videoURL, name: file.name });
             }
         });
 
+        // Parse Multiple YT URLs
         setYoutubeBtn.addEventListener('click', () => {
-             const url = prompt("Enter YouTube video URL for Background:");
-            if (!url) return;
-            const idMatch = url.match(/(?:youtube\.com.*(?:\?|&)v=|youtu\.be\/)([^&#]+)/);
-            if (!idMatch) return alert("Invalid YouTube URL");
-            const videoId = idMatch[1];
-            loadYouTubeBg(videoId);
-            addToBgPlaylist({ type: 'youtube', src: videoId, name: `YT: ${videoId}` });
+             const input = prompt("Enter YouTube video URL(s). Paste multiple URLs separated by commas or spaces for a playlist effect:");
+            if (!input) return;
+            const regex = /(?:v=|youtu\.be\/)([^&?\s,]+)/g;
+            let match, firstId = null, addedCount = 0;
+            while ((match = regex.exec(input)) !== null) {
+                if(!firstId) firstId = match[1];
+                addToBgPlaylist({ type: 'youtube', src: match[1], name: `Loading Title...` });
+                addedCount++;
+            }
+            if(addedCount === 0) return alert("Invalid YouTube URL");
+            loadYouTubeBg(firstId);
         });
 
         setImageBtn.addEventListener('click', () => imageFileInput.click());
@@ -692,54 +569,36 @@
             const file = e.target.files[0];
             if (file) {
                 const imgUrl = URL.createObjectURL(file);
-                loadLocalImage(imgUrl, file.name);
-                addToBgPlaylist({ type: 'image', src: imgUrl, name: file.name });
+                loadLocalImage(imgUrl, file.name); addToBgPlaylist({ type: 'image', src: imgUrl, name: file.name });
             }
         });
 
-        // Helper: Format Time
         function formatVideoTime(timeInSeconds) {
             if (isNaN(timeInSeconds)) return "00:00";
-            const totalSeconds = Math.floor(timeInSeconds);
-            const minutes = Math.floor(totalSeconds / 60);
-            const seconds = totalSeconds % 60;
+            const totalSeconds = Math.floor(timeInSeconds), minutes = Math.floor(totalSeconds / 60), seconds = totalSeconds % 60;
             return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
         }
 
         // --- Local BG Controls ---
         function localBgTimeUpdate() {
             if (isNaN(bgVideoPlayer.duration)) return;
-            videoSeekBar.value = bgVideoPlayer.currentTime;
-            videoSeekBar.max = bgVideoPlayer.duration;
+            videoSeekBar.value = bgVideoPlayer.currentTime; videoSeekBar.max = bgVideoPlayer.duration;
             videoTimeDisplay.textContent = `${formatVideoTime(bgVideoPlayer.currentTime)} / ${formatVideoTime(bgVideoPlayer.duration)}`;
         }
         function localBgSeekClick(e) {
-            const rect = videoSeekBar.getBoundingClientRect();
-            const clickX = e.clientX - rect.left;
-            const percentage = clickX / rect.width;
+            const rect = videoSeekBar.getBoundingClientRect(), percentage = (e.clientX - rect.left) / rect.width;
             bgVideoPlayer.currentTime = percentage * bgVideoPlayer.duration;
         }
-        function localBgPlayPause() {
-            if (bgVideoPlayer.paused) bgVideoPlayer.play(); else bgVideoPlayer.pause();
-        }
-        function onLocalBgPlay() {
-            videoPlayIcon.classList.add('hidden'); videoPauseIcon.classList.remove('hidden');
-        }
-        function onLocalBgPause() {
-            videoPlayIcon.classList.remove('hidden'); videoPauseIcon.classList.add('hidden');
-        }
+        function localBgPlayPause() { if (bgVideoPlayer.paused) bgVideoPlayer.play(); else bgVideoPlayer.pause(); }
+        function onLocalBgPlay() { videoPlayIcon.classList.add('hidden'); videoPauseIcon.classList.remove('hidden'); }
+        function onLocalBgPause() { videoPlayIcon.classList.remove('hidden'); videoPauseIcon.classList.add('hidden'); }
 
         function rewireControlsForLocalBg() {
             if (ytBgSeekBarInterval) clearInterval(ytBgSeekBarInterval);
-            videoSeekBar.removeEventListener('click', youtubeBgSeekClick);
-            videoPlayPauseBtn.removeEventListener('click', youtubeBgPlayPause);
-
-            bgVideoPlayer.addEventListener('timeupdate', localBgTimeUpdate);
-            videoSeekBar.addEventListener('click', localBgSeekClick);
-            videoPlayPauseBtn.addEventListener('click', localBgPlayPause);
-            bgVideoPlayer.addEventListener('play', onLocalBgPlay);
+            videoSeekBar.removeEventListener('click', youtubeBgSeekClick); videoPlayPauseBtn.removeEventListener('click', youtubeBgPlayPause);
+            bgVideoPlayer.addEventListener('timeupdate', localBgTimeUpdate); videoSeekBar.addEventListener('click', localBgSeekClick);
+            videoPlayPauseBtn.addEventListener('click', localBgPlayPause); bgVideoPlayer.addEventListener('play', onLocalBgPlay);
             bgVideoPlayer.addEventListener('pause', onLocalBgPause);
-
             if (bgVideoPlayer.paused) onLocalBgPause(); else onLocalBgPlay();
             localBgTimeUpdate();
         }
@@ -747,29 +606,30 @@
         // --- YouTube BG Controls ---
         function youtubeBgSeekUpdate() {
             if (ytBgPlayer && ytBgPlayer.getDuration) {
-                const duration = ytBgPlayer.getDuration();
-                const currentTime = ytBgPlayer.getCurrentTime();
-                videoSeekBar.max = duration;
-                videoSeekBar.value = currentTime;
+                const duration = ytBgPlayer.getDuration(), currentTime = ytBgPlayer.getCurrentTime();
+                videoSeekBar.max = duration; videoSeekBar.value = currentTime;
                 videoTimeDisplay.textContent = `${formatVideoTime(currentTime)} / ${formatVideoTime(duration)}`;
             }
         }
         function youtubeBgSeekClick(e) {
-            const rect = videoSeekBar.getBoundingClientRect();
-            const clickX = e.clientX - rect.left;
-            const percentage = clickX / rect.width;
-            const newTime = percentage * ytBgPlayer.getDuration();
-            ytBgPlayer.seekTo(newTime, true);
+            const rect = videoSeekBar.getBoundingClientRect(), percentage = (e.clientX - rect.left) / rect.width;
+            ytBgPlayer.seekTo(percentage * ytBgPlayer.getDuration(), true);
         }
         function youtubeBgPlayPause() {
             if (!ytBgPlayer || typeof ytBgPlayer.getPlayerState !== 'function') return;
             const state = ytBgPlayer.getPlayerState();
-            if (state === YT.PlayerState.PLAYING) ytBgPlayer.pauseVideo();
-            else ytBgPlayer.playVideo();
+            if (state === YT.PlayerState.PLAYING) ytBgPlayer.pauseVideo(); else ytBgPlayer.playVideo();
         }
         function youtubeBgStateChange(event) {
             if (event.data === YT.PlayerState.PLAYING) {
                 videoPlayIcon.classList.add('hidden'); videoPauseIcon.classList.remove('hidden');
+                // Fetch Original Title
+                let data = ytBgPlayer.getVideoData();
+                if(data && data.title) {
+                    bgCurrentTitleEl.textContent = data.title;
+                    let currentItem = bgPlaylist.find(i => i.src === data.video_id);
+                    if(currentItem) { currentItem.name = data.title; renderBgPlaylist(); }
+                }
             } else {
                 videoPlayIcon.classList.remove('hidden'); videoPauseIcon.classList.add('hidden');
             }
@@ -777,38 +637,29 @@
 
         function rewireControlsForYouTubeBg() {
             if (ytBgSeekBarInterval) clearInterval(ytBgSeekBarInterval);
-            bgVideoPlayer.removeEventListener('timeupdate', localBgTimeUpdate);
-            videoSeekBar.removeEventListener('click', localBgSeekClick);
-            videoPlayPauseBtn.removeEventListener('click', localBgPlayPause);
-            bgVideoPlayer.removeEventListener('play', onLocalBgPlay);
-            bgVideoPlayer.removeEventListener('pause', onLocalBgPause);
-
-            videoSeekBar.addEventListener('click', youtubeBgSeekClick);
-            videoPlayPauseBtn.addEventListener('click', youtubeBgPlayPause);
+            bgVideoPlayer.removeEventListener('timeupdate', localBgTimeUpdate); videoSeekBar.removeEventListener('click', localBgSeekClick);
+            videoPlayPauseBtn.removeEventListener('click', localBgPlayPause); bgVideoPlayer.removeEventListener('play', onLocalBgPlay); bgVideoPlayer.removeEventListener('pause', onLocalBgPause);
+            videoSeekBar.addEventListener('click', youtubeBgSeekClick); videoPlayPauseBtn.addEventListener('click', youtubeBgPlayPause);
             ytBgSeekBarInterval = setInterval(youtubeBgSeekUpdate, 500);
-
-            if (ytBgPlayer && typeof ytBgPlayer.getPlayerState === 'function') {
-                youtubeBgStateChange({ data: ytBgPlayer.getPlayerState() });
-            }
+            if (ytBgPlayer && typeof ytBgPlayer.getPlayerState === 'function') youtubeBgStateChange({ data: ytBgPlayer.getPlayerState() });
         }
+
+        // BG Quality Selector
+        bgQualitySelect.addEventListener('change', (e) => {
+             if (ytBgPlayer && typeof ytBgPlayer.setPlaybackQuality === 'function') {
+                 ytBgPlayer.setPlaybackQuality(e.target.value);
+             }
+        });
 
         // --- BG Mute Toggle ---
         function updateBgMuteUI() {
-             if (isBgMuted) {
-                bgUnmuteIcon.classList.remove('hidden');
-                bgMuteIcon.classList.add('hidden');
-            } else {
-                bgUnmuteIcon.classList.add('hidden');
-                bgMuteIcon.classList.remove('hidden');
-            }
+             if (isBgMuted) { bgUnmuteIcon.classList.remove('hidden'); bgMuteIcon.classList.add('hidden'); } 
+             else { bgUnmuteIcon.classList.add('hidden'); bgMuteIcon.classList.remove('hidden'); }
         }
         bgMuteBtn.addEventListener('click', () => {
-            if (activeBgPlayer === 'local') {
-                bgVideoPlayer.muted = !bgVideoPlayer.muted;
-                isBgMuted = bgVideoPlayer.muted;
-            } else if (activeBgPlayer === 'youtube' && ytBgPlayer) {
-                if (ytBgPlayer.isMuted()) { ytBgPlayer.unMute(); isBgMuted = false; }
-                else { ytBgPlayer.mute(); isBgMuted = true; }
+            if (activeBgPlayer === 'local') { bgVideoPlayer.muted = !bgVideoPlayer.muted; isBgMuted = bgVideoPlayer.muted; } 
+            else if (activeBgPlayer === 'youtube' && ytBgPlayer) {
+                if (ytBgPlayer.isMuted()) { ytBgPlayer.unMute(); isBgMuted = false; } else { ytBgPlayer.mute(); isBgMuted = true; }
             }
             updateBgMuteUI();
         });
@@ -821,16 +672,13 @@
         function renderMusicQueue() {
             musicQueueList.innerHTML = '';
             if(musicPlaylist.length === 0) {
-                 musicQueueList.innerHTML = '<div class="text-xs text-gray-500 text-center italic py-2">Queue is empty</div>';
-                 return;
+                 musicQueueList.innerHTML = '<div class="text-xs text-gray-500 text-center italic py-2">Queue is empty</div>'; return;
             }
             musicPlaylist.forEach((track, index) => {
                 const el = document.createElement('div');
                 el.className = `queue-item ${index === currentMusicIndex ? 'active-track' : ''}`;
-                
-                // Track Info + Controls
                 el.innerHTML = `
-                    <div class="flex items-center gap-2 overflow-hidden flex-1" onclick="window.playMusicTrack(${index})">
+                    <div class="flex items-center gap-2 overflow-hidden flex-1 cursor-pointer" onclick="window.playMusicTrack(${index})">
                         <span class="text-xs opacity-50">${index + 1}.</span>
                         <div class="truncate text-sm w-full">${track.name}</div>
                     </div>
@@ -844,44 +692,27 @@
             });
         }
 
-        // Global functions for inline HTML calls
         window.playMusicTrack = function(index) {
             if (index < 0 || index >= musicPlaylist.length) return;
-            currentMusicIndex = index;
-            const track = musicPlaylist[index];
-            isMusicPlaying = true;
-            updateMusicPlayPauseUI();
-            renderMusicQueue();
+            currentMusicIndex = index; isMusicPlaying = true;
+            updateMusicPlayPauseUI(); renderMusicQueue();
             
             musicCurrentDisplay.classList.remove('hidden');
+            const track = musicPlaylist[index];
             musicCurrentTitleEl.textContent = track.name;
 
             if (track.type === 'local') {
                 if (ytMusicPlayer && ytMusicPlayer.pauseVideo) ytMusicPlayer.pauseVideo();
-                localMusicPlayer.src = track.src;
-                // Important: Reset volume on load
-                localMusicPlayer.volume = musicVolume / 100;
-                localMusicPlayer.muted = isMusicMuted;
-                
+                localMusicPlayer.src = track.src; localMusicPlayer.volume = musicVolume / 100; localMusicPlayer.muted = isMusicMuted;
                 const playPromise = localMusicPlayer.play();
-                if (playPromise !== undefined) {
-                    playPromise.catch(error => {
-                        console.error("Playback failed:", error);
-                        alert("Could not play audio. Check file format.");
-                    });
-                }
+                if (playPromise !== undefined) playPromise.catch(error => console.error("Playback failed:", error));
             } else {
                 localMusicPlayer.pause();
                 if (ytMusicPlayer) {
-                    ytMusicPlayer.loadVideoById(track.src);
-                    ytMusicPlayer.setVolume(musicVolume);
+                    ytMusicPlayer.loadVideoById(track.src); ytMusicPlayer.setVolume(musicVolume);
                     if(isMusicMuted) ytMusicPlayer.mute(); else ytMusicPlayer.unMute();
                 } else {
-                     if (window.YT && window.YT.Player) {
-                        createYouTubeMusicPlayer(track.src);
-                     } else {
-                        musicVideoIdToLoad = track.src;
-                     }
+                     if (window.YT && window.YT.Player) createYouTubeMusicPlayer(track.src); else musicVideoIdToLoad = track.src;
                 }
             }
         };
@@ -889,170 +720,119 @@
         window.removeTrack = function(index) {
             musicPlaylist.splice(index, 1);
             if (currentMusicIndex === index) {
-                // If removing current, stop or play next
-                if (musicPlaylist.length > 0) {
-                    window.playMusicTrack(index < musicPlaylist.length ? index : index - 1);
-                } else {
-                    isMusicPlaying = false;
-                    localMusicPlayer.pause();
-                    if(ytMusicPlayer) ytMusicPlayer.pauseVideo();
-                    updateMusicPlayPauseUI();
-                    currentMusicIndex = -1;
-                    musicCurrentDisplay.classList.add('hidden');
+                if (musicPlaylist.length > 0) window.playMusicTrack(index < musicPlaylist.length ? index : index - 1);
+                else {
+                    isMusicPlaying = false; localMusicPlayer.pause(); if(ytMusicPlayer) ytMusicPlayer.pauseVideo();
+                    updateMusicPlayPauseUI(); currentMusicIndex = -1; musicCurrentDisplay.classList.add('hidden');
                 }
-            } else if (index < currentMusicIndex) {
-                currentMusicIndex--; // Shift index
-            }
+            } else if (index < currentMusicIndex) currentMusicIndex--;
             renderMusicQueue();
         };
-
         window.moveTrackUp = function(index) {
             if (index <= 0) return;
-            const temp = musicPlaylist[index];
-            musicPlaylist[index] = musicPlaylist[index - 1];
-            musicPlaylist[index - 1] = temp;
-            
-            if (currentMusicIndex === index) currentMusicIndex--;
-            else if (currentMusicIndex === index - 1) currentMusicIndex++;
-            
+            const temp = musicPlaylist[index]; musicPlaylist[index] = musicPlaylist[index - 1]; musicPlaylist[index - 1] = temp;
+            if (currentMusicIndex === index) currentMusicIndex--; else if (currentMusicIndex === index - 1) currentMusicIndex++;
             renderMusicQueue();
         };
-
         window.moveTrackDown = function(index) {
             if (index >= musicPlaylist.length - 1) return;
-            const temp = musicPlaylist[index];
-            musicPlaylist[index] = musicPlaylist[index + 1];
-            musicPlaylist[index + 1] = temp;
-            
-            if (currentMusicIndex === index) currentMusicIndex++;
-            else if (currentMusicIndex === index + 1) currentMusicIndex--;
-            
+            const temp = musicPlaylist[index]; musicPlaylist[index] = musicPlaylist[index + 1]; musicPlaylist[index + 1] = temp;
+            if (currentMusicIndex === index) currentMusicIndex++; else if (currentMusicIndex === index + 1) currentMusicIndex--;
             renderMusicQueue();
         };
 
         function updateMusicPlayPauseUI() {
-            if(isMusicPlaying) {
-                musicPlayIcon.classList.add('hidden');
-                musicPauseIcon.classList.remove('hidden');
-            } else {
-                musicPlayIcon.classList.remove('hidden');
-                musicPauseIcon.classList.add('hidden');
-            }
+            if(isMusicPlaying) { musicPlayIcon.classList.add('hidden'); musicPauseIcon.classList.remove('hidden'); } 
+            else { musicPlayIcon.classList.remove('hidden'); musicPauseIcon.classList.add('hidden'); }
         }
 
-        // Music Controls
         musicPlayBtn.addEventListener('click', () => {
             if(musicPlaylist.length === 0) return;
             if(isMusicPlaying) {
-                isMusicPlaying = false;
-                localMusicPlayer.pause();
-                if(ytMusicPlayer && ytMusicPlayer.pauseVideo) ytMusicPlayer.pauseVideo();
+                isMusicPlaying = false; localMusicPlayer.pause(); if(ytMusicPlayer && ytMusicPlayer.pauseVideo) ytMusicPlayer.pauseVideo();
             } else {
-                if (currentMusicIndex === -1) {
-                    window.playMusicTrack(0);
-                } else {
+                if (currentMusicIndex === -1) window.playMusicTrack(0);
+                else {
                     isMusicPlaying = true;
-                    if(musicPlaylist[currentMusicIndex].type === 'local') localMusicPlayer.play();
-                    else if (ytMusicPlayer) ytMusicPlayer.playVideo();
+                    if(musicPlaylist[currentMusicIndex].type === 'local') localMusicPlayer.play(); else if (ytMusicPlayer) ytMusicPlayer.playVideo();
                 }
             }
             updateMusicPlayPauseUI();
         });
 
-        musicNextBtn.addEventListener('click', () => {
-            if(currentMusicIndex < musicPlaylist.length - 1) window.playMusicTrack(currentMusicIndex + 1);
-        });
-        musicPrevBtn.addEventListener('click', () => {
-            if(currentMusicIndex > 0) window.playMusicTrack(currentMusicIndex - 1);
-        });
+        musicNextBtn.addEventListener('click', () => { if(currentMusicIndex < musicPlaylist.length - 1) window.playMusicTrack(currentMusicIndex + 1); });
+        musicPrevBtn.addEventListener('click', () => { if(currentMusicIndex > 0) window.playMusicTrack(currentMusicIndex - 1); });
 
         musicMuteBtn.addEventListener('click', () => {
-            isMusicMuted = !isMusicMuted;
-            localMusicPlayer.muted = isMusicMuted;
-            if(ytMusicPlayer) {
-                if(isMusicMuted) ytMusicPlayer.mute(); else ytMusicPlayer.unMute();
-            }
-            if(isMusicMuted) {
-                musicMuteIcon.classList.remove('hidden'); musicUnmuteIcon.classList.add('hidden');
-            } else {
-                musicMuteIcon.classList.add('hidden'); musicUnmuteIcon.classList.remove('hidden');
-            }
+            isMusicMuted = !isMusicMuted; localMusicPlayer.muted = isMusicMuted;
+            if(ytMusicPlayer) { if(isMusicMuted) ytMusicPlayer.mute(); else ytMusicPlayer.unMute(); }
+            if(isMusicMuted) { musicMuteIcon.classList.remove('hidden'); musicUnmuteIcon.classList.add('hidden'); } 
+            else { musicMuteIcon.classList.add('hidden'); musicUnmuteIcon.classList.remove('hidden'); }
         });
 
-        // Volume Slider Logic
         musicVolumeSlider.addEventListener('input', (e) => {
-            musicVolume = e.target.value;
-            localMusicPlayer.volume = musicVolume / 100;
-            if (ytMusicPlayer && ytMusicPlayer.setVolume) {
-                ytMusicPlayer.setVolume(musicVolume);
-            }
+            musicVolume = e.target.value; localMusicPlayer.volume = musicVolume / 100;
+            if (ytMusicPlayer && ytMusicPlayer.setVolume) ytMusicPlayer.setVolume(musicVolume);
         });
 
-        musicAutoplayBtn.addEventListener('click', () => {
-            musicAutoplay = !musicAutoplay;
-            musicAutoplayBtn.textContent = `Autoplay: ${musicAutoplay ? 'ON' : 'OFF'}`;
-            musicAutoplayBtn.classList.toggle('bg-blue-600', musicAutoplay);
+        // Loop Mode Controls
+        musicLoopModeBtn.addEventListener('click', () => {
+            if (musicPlaybackMode === 'off') { musicPlaybackMode = 'loop_all'; musicLoopModeBtn.textContent = 'Mode: Loop All'; musicLoopModeBtn.classList.add('bg-blue-600'); }
+            else if (musicPlaybackMode === 'loop_all') { musicPlaybackMode = 'loop_one'; musicLoopModeBtn.textContent = 'Mode: Loop One'; musicLoopModeBtn.classList.remove('bg-blue-600'); musicLoopModeBtn.classList.add('bg-purple-600'); }
+            else { musicPlaybackMode = 'off'; musicLoopModeBtn.textContent = 'Mode: Off'; musicLoopModeBtn.classList.remove('bg-purple-600'); }
         });
 
-        // Add Music
         addMusicYtBtn.addEventListener('click', () => {
-             const url = prompt("Enter YouTube Music URL:");
-            if (!url) return;
-            const idMatch = url.match(/(?:youtube\.com.*(?:\?|&)v=|youtu\.be\/)([^&#]+)/);
-            if (!idMatch) return alert("Invalid YouTube URL");
-            
-            musicPlaylist.push({
-                type: 'youtube',
-                src: idMatch[1],
-                name: `YouTube Track ${musicPlaylist.length + 1}`
-            });
+             const input = prompt("Enter YouTube URL(s). Paste multiple URLs separated by commas or spaces to load a playlist:");
+            if (!input) return;
+            const regex = /(?:v=|youtu\.be\/)([^&?\s,]+)/g;
+            let match, addedCount = 0;
+            while ((match = regex.exec(input)) !== null) {
+                musicPlaylist.push({ type: 'youtube', src: match[1], name: `Loading Title...` });
+                addedCount++;
+            }
+            if(addedCount === 0) return alert("No valid YouTube IDs found.");
             renderMusicQueue();
-            if(musicPlaylist.length === 1) window.playMusicTrack(0);
+            if(musicPlaylist.length === addedCount) window.playMusicTrack(0); // auto-play if it was empty
         });
 
         addMusicLocalBtn.addEventListener('click', () => musicFileInput.click());
-
         musicFileInput.addEventListener('change', (e) => {
              const file = e.target.files[0];
             if (file) {
                 const url = URL.createObjectURL(file);
-                musicPlaylist.push({
-                    type: 'local',
-                    src: url,
-                    name: file.name
-                });
+                musicPlaylist.push({ type: 'local', src: url, name: file.name });
                 renderMusicQueue();
                 if(musicPlaylist.length === 1) window.playMusicTrack(0);
             }
         });
 
-        // Autoplay Logic handles
-        localMusicPlayer.addEventListener('ended', () => {
-            if(musicAutoplay && currentMusicIndex < musicPlaylist.length - 1) {
-                window.playMusicTrack(currentMusicIndex + 1);
+        function handleMusicEnded() {
+             if (musicPlaybackMode === 'loop_one') {
+                window.playMusicTrack(currentMusicIndex);
+            } else if (musicPlaybackMode === 'loop_all') {
+                window.playMusicTrack((currentMusicIndex + 1) % musicPlaylist.length);
             } else {
-                isMusicPlaying = false;
-                updateMusicPlayPauseUI();
+                if (currentMusicIndex < musicPlaylist.length - 1) {
+                     window.playMusicTrack(currentMusicIndex + 1);
+                } else {
+                     isMusicPlaying = false; updateMusicPlayPauseUI();
+                }
             }
-        });
+        }
+        localMusicPlayer.addEventListener('ended', handleMusicEnded);
 
 
         // ==========================================
-        //  YOUTUBE API SETUP (Handles both players)
+        //  YOUTUBE API SETUP
         // ==========================================
         const ytScript = document.createElement('script');
         ytScript.src = "https://www.youtube.com/iframe_api";
         document.body.appendChild(ytScript);
 
         window.onYouTubeIframeAPIReady = () => {
-            if (bgVideoIdToLoad) {
-                createYouTubeBgPlayer(bgVideoIdToLoad);
-                bgVideoIdToLoad = null;
-            }
-            if (musicVideoIdToLoad) {
-                createYouTubeMusicPlayer(musicVideoIdToLoad);
-                musicVideoIdToLoad = null;
-            }
+            if (bgVideoIdToLoad) { createYouTubeBgPlayer(bgVideoIdToLoad); bgVideoIdToLoad = null; }
+            if (musicVideoIdToLoad) { createYouTubeMusicPlayer(musicVideoIdToLoad); musicVideoIdToLoad = null; }
         };
 
         function createYouTubeBgPlayer(videoId) {
@@ -1061,11 +841,8 @@
                 playerVars: { autoplay: 1, loop: 1, playlist: videoId, controls: 0, modestbranding: 1, mute: 1, origin: window.location.href },
                 events: {
                     onReady: (e) => {
-                        activeBgPlayer = 'youtube';
-                        e.target.playVideo();
-                        rewireControlsForYouTubeBg();
-                        isBgMuted = true;
-                        updateBgMuteUI();
+                        activeBgPlayer = 'youtube'; e.target.playVideo(); rewireControlsForYouTubeBg();
+                        isBgMuted = true; updateBgMuteUI();
                     },
                     onStateChange: (e) => youtubeBgStateChange(e)
                 }
@@ -1074,24 +851,23 @@
 
         function createYouTubeMusicPlayer(videoId) {
             ytMusicPlayer = new YT.Player('music-youtube-player', {
-                height: '1', width: '1', // Tiny player to ensure it runs
+                height: '1', width: '1', 
                 videoId: videoId,
                 playerVars: { autoplay: 1, controls: 0, modestbranding: 1, origin: window.location.href },
                 events: {
                     onReady: (e) => {
-                        e.target.playVideo();
-                        e.target.setVolume(musicVolume);
+                        e.target.playVideo(); e.target.setVolume(musicVolume);
                         if(isMusicMuted) e.target.mute(); else e.target.unMute();
                     },
                     onStateChange: (e) => {
-                        if (e.data === YT.PlayerState.ENDED) {
-                            if(musicAutoplay && currentMusicIndex < musicPlaylist.length - 1) {
-                                window.playMusicTrack(currentMusicIndex + 1);
-                            } else {
-                                isMusicPlaying = false;
-                                updateMusicPlayPauseUI();
-                            }
-                        }
+                         if (e.data === YT.PlayerState.PLAYING) {
+                             let data = e.target.getVideoData();
+                             if(data && data.title) {
+                                 musicCurrentTitleEl.textContent = data.title;
+                                 if(musicPlaylist[currentMusicIndex]) { musicPlaylist[currentMusicIndex].name = data.title; renderMusicQueue(); }
+                             }
+                         }
+                        if (e.data === YT.PlayerState.ENDED) handleMusicEnded();
                     }
                 }
             });
@@ -1099,7 +875,7 @@
 
 
         // ==========================================
-        //  CORE TIMER & APP LOGIC (Existing)
+        //  CORE TIMER & APP LOGIC
         // ==========================================
 
         function getTodayDateString(date = new Date()) {
@@ -1109,26 +885,17 @@
         }
 
         function loadDataFromLocalStorage() {
-            // Stats
             const savedStatsJSON = localStorage.getItem('studyStats');
             todayDateString = getTodayDateString();
             if (savedStatsJSON) {
                 try {
                     const savedStats = JSON.parse(savedStatsJSON);
-                    if (savedStats[todayDateString]) {
-                        studyTimeToday = savedStats[todayDateString].totalStudy || 0;
-                        breakTimeToday = savedStats[todayDateString].totalBreak || 0;
-                    }
+                    if (savedStats[todayDateString]) { studyTimeToday = savedStats[todayDateString].totalStudy || 0; breakTimeToday = savedStats[todayDateString].totalBreak || 0; }
                 } catch (e) {}
             }
-            // Size
             const savedTimerSize = localStorage.getItem('timerSize');
-            if (savedTimerSize) {
-                document.documentElement.style.setProperty('--timer-font-size', `${savedTimerSize}rem`);
-                document.getElementById('timer-size-slider').value = savedTimerSize;
-            }
-
-            // Questions
+            if (savedTimerSize) { document.documentElement.style.setProperty('--timer-font-size', `${savedTimerSize}rem`); document.getElementById('timer-size-slider').value = savedTimerSize; }
+            
             const savedQuestionCountJSON = localStorage.getItem('questionCount');
             if (savedQuestionCountJSON) {
                 try {
@@ -1141,101 +908,53 @@
 
         function saveAllDataToLocalStorage() {
             const newToday = getTodayDateString();
-            if (newToday !== todayDateString) {
-                todayDateString = newToday;
-                studyTimeToday = 0;
-                breakTimeToday = 0;
-                questionCountToday = 0;
-            }
-            const statsData = { [todayDateString]: { totalStudy: Math.round(studyTimeToday), totalBreak: Math.round(breakTimeToday) } };
-            localStorage.setItem('studyStats', JSON.stringify(statsData));
-            const questionData = { [todayDateString]: questionCountToday };
-            localStorage.setItem('questionCount', JSON.stringify(questionData));
+            if (newToday !== todayDateString) { todayDateString = newToday; studyTimeToday = 0; breakTimeToday = 0; questionCountToday = 0; }
+            localStorage.setItem('studyStats', JSON.stringify({ [todayDateString]: { totalStudy: Math.round(studyTimeToday), totalBreak: Math.round(breakTimeToday) } }));
+            localStorage.setItem('questionCount', JSON.stringify({ [todayDateString]: questionCountToday }));
             questionCountEl.textContent = questionCountToday;
         }
 
-        // --- Visual Mode Logic ---
         function updateVisualMode() {
-            if (visualMode === 'ring') {
-                timerRingSvg.style.display = 'block';
-                timerWrapper.classList.add('ring-mode');
-                timerWrapper.classList.remove('clean-mode');
-            } else {
-                timerRingSvg.style.display = 'none';
-                timerWrapper.classList.remove('ring-mode');
-                timerWrapper.classList.add('clean-mode');
-            }
+            if (visualMode === 'ring') { timerRingSvg.style.display = 'block'; timerWrapper.classList.add('ring-mode'); timerWrapper.classList.remove('clean-mode'); } 
+            else { timerRingSvg.style.display = 'none'; timerWrapper.classList.remove('ring-mode'); timerWrapper.classList.add('clean-mode'); }
         }
-        toggleVisualModeBtn.addEventListener('click', () => {
-            visualMode = (visualMode === 'ring') ? 'clean' : 'ring';
-            updateVisualMode();
-            updateTimerDisplay(); // Redraw progress
-        });
+        toggleVisualModeBtn.addEventListener('click', () => { visualMode = (visualMode === 'ring') ? 'clean' : 'ring'; updateVisualMode(); updateTimerDisplay(); });
 
         function updateTimerDisplay() {
             let progress = 0;
-            
             if (timerType === 'pomodoro') {
                 const duration = (currentMode === 'study') ? studyDuration : breakDuration;
                 const displayTime = Math.round(remainingTime);
-                const minutes = Math.floor(displayTime / 60);
-                const seconds = displayTime % 60;
-                timerDisplay.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+                timerDisplay.textContent = `${String(Math.floor(displayTime / 60)).padStart(2, '0')}:${String(displayTime % 60).padStart(2, '0')}`;
                 progress = (displayTime / duration) * 100;
             } else {
-                const displayTime = Math.round(elapsedSeconds);
-                const hs = Math.floor(displayTime / 3600);
-                const ms = Math.floor((displayTime % 3600) / 60);
-                const ss = displayTime % 60;
-                const hstr = hs > 0 ? `${String(hs).padStart(2, '0')}:` : '';
-                timerDisplay.textContent = `${hstr}${String(ms).padStart(2, '0')}:${String(ss).padStart(2, '0')}`;
+                const displayTime = Math.round(elapsedSeconds), hs = Math.floor(displayTime / 3600), ms = Math.floor((displayTime % 3600) / 60), ss = displayTime % 60;
+                timerDisplay.textContent = `${hs > 0 ? String(hs).padStart(2, '0')+':' : ''}${String(ms).padStart(2, '0')}:${String(ss).padStart(2, '0')}`;
                 progress = 0; 
             }
-
-            if (visualMode === 'ring') {
-                // Ring progress
-                // Circumference is 2 * PI * 45 ≈ 283
-                const circumference = 283;
-                const offset = circumference - (progress / 100) * circumference;
-                timerRingProgress.style.strokeDashoffset = offset;
-            }
+            if (visualMode === 'ring') timerRingProgress.style.strokeDashoffset = 283 - (progress / 100) * 283;
         }
 
         function startTimer() {
-            if (isRunning) return;
-            isRunning = true;
-            playIcon.classList.add('hidden');
-            pauseIcon.classList.remove('hidden');
-            lastTickTime = Date.now();
-
+            if (isRunning) return; isRunning = true;
+            playIcon.classList.add('hidden'); pauseIcon.classList.remove('hidden'); lastTickTime = Date.now();
             if (timerType === 'pomodoro') {
                 pomodoroEndTime = Date.now() + (remainingTime * 1000);
                 timerInterval = setInterval(() => {
-                    const now = Date.now();
-                    const deltaSeconds = (now - lastTickTime) / 1000.0;
-                    lastTickTime = now;
+                    const now = Date.now(); const deltaSeconds = (now - lastTickTime) / 1000.0; lastTickTime = now;
                     if (currentMode === 'study') studyTimeToday += deltaSeconds; else breakTimeToday += deltaSeconds;
-                    remainingTime = (pomodoroEndTime - now) / 1000.0;
-                    if (remainingTime < 0) remainingTime = 0;
+                    remainingTime = Math.max((pomodoroEndTime - now) / 1000.0, 0);
                     updateTimerDisplay();
                     if (now - lastSaveTimestamp > 5000) { saveAllDataToLocalStorage(); lastSaveTimestamp = now; }
-
                     if (remainingTime <= 0) {
-                        clearInterval(timerInterval);
-                        isRunning = false;
-                        alarmSound.play();
-                        studyTimeToday = Math.round(studyTimeToday);
-                        breakTimeToday = Math.round(breakTimeToday);
-                        saveAllDataToLocalStorage();
-                        toggleMode();
-                        setTimeout(startTimer, 1000);
+                        clearInterval(timerInterval); isRunning = false; alarmSound.play();
+                        studyTimeToday = Math.round(studyTimeToday); breakTimeToday = Math.round(breakTimeToday);
+                        saveAllDataToLocalStorage(); toggleMode(); setTimeout(startTimer, 1000);
                     }
                 }, 1000);
             } else {
                 timerInterval = setInterval(() => {
-                    const now = Date.now();
-                    const deltaSeconds = (now - lastTickTime) / 1000.0;
-                    lastTickTime = now;
+                    const now = Date.now(); const deltaSeconds = (now - lastTickTime) / 1000.0; lastTickTime = now;
                     elapsedSeconds += deltaSeconds;
                     if (currentMode === 'study') studyTimeToday += deltaSeconds; else breakTimeToday += deltaSeconds;
                     if (now - lastSaveTimestamp > 5000) { saveAllDataToLocalStorage(); lastSaveTimestamp = now; }
@@ -1245,43 +964,29 @@
         }
 
         function pauseTimer() {
-            if (!isRunning) return;
-            isRunning = false;
-            playIcon.classList.remove('hidden');
-            pauseIcon.classList.add('hidden');
-            clearInterval(timerInterval);
-            const now = Date.now();
-            const deltaSeconds = (now - lastTickTime) / 1000.0;
+            if (!isRunning) return; isRunning = false;
+            playIcon.classList.remove('hidden'); pauseIcon.classList.add('hidden'); clearInterval(timerInterval);
+            const now = Date.now(), deltaSeconds = (now - lastTickTime) / 1000.0;
              if (timerType === 'pomodoro') {
                 if (currentMode === 'study') studyTimeToday += deltaSeconds; else breakTimeToday += deltaSeconds;
-                remainingTime = (pomodoroEndTime - now) / 1000.0;
-                if (remainingTime < 0) remainingTime = 0;
+                remainingTime = Math.max((pomodoroEndTime - now) / 1000.0, 0);
             } else {
                 elapsedSeconds += deltaSeconds;
                  if (currentMode === 'study') studyTimeToday += deltaSeconds; else breakTimeToday += deltaSeconds;
             }
-            saveAllDataToLocalStorage();
-            updateTimerDisplay();
+            saveAllDataToLocalStorage(); updateTimerDisplay();
         }
 
         function resetTimer() {
             pauseTimer();
-            if (timerType === 'pomodoro') remainingTime = (currentMode === 'study') ? studyDuration : breakDuration;
-            else elapsedSeconds = 0;
+            if (timerType === 'pomodoro') remainingTime = (currentMode === 'study') ? studyDuration : breakDuration; else elapsedSeconds = 0;
             updateTimerDisplay();
         }
 
         function toggleMode() {
             pauseTimer();
-            if (currentMode === 'study') {
-                currentMode = 'break';
-                remainingTime = breakDuration;
-                switchModeBtn.textContent = 'Break';
-            } else {
-                currentMode = 'study';
-                remainingTime = studyDuration;
-                switchModeBtn.textContent = 'Study';
-            }
+            if (currentMode === 'study') { currentMode = 'break'; remainingTime = breakDuration; switchModeBtn.textContent = 'Break'; } 
+            else { currentMode = 'study'; remainingTime = studyDuration; switchModeBtn.textContent = 'Study'; }
             resetTimer();
         }
 
@@ -1290,36 +995,24 @@
         resetBtn.addEventListener('click', resetTimer);
 
         // Timer Modals
-        const timerModal = document.getElementById('timer-modal');
-        const setTimerBtn = document.getElementById('set-timer-btn');
-        const studyTimerInput = document.getElementById('study-timer-input');
-        const breakTimerInput = document.getElementById('break-timer-input');
-        const timerModalOk = document.getElementById('timer-modal-ok');
-        const timerModalCancel = document.getElementById('timer-modal-cancel');
-
+        const timerModal = document.getElementById('timer-modal'), setTimerBtn = document.getElementById('set-timer-btn');
+        const studyTimerInput = document.getElementById('study-timer-input'), breakTimerInput = document.getElementById('break-timer-input');
+        const timerModalOk = document.getElementById('timer-modal-ok'), timerModalCancel = document.getElementById('timer-modal-cancel');
         setTimerBtn.addEventListener('click', () => timerModal.classList.remove('hidden'));
         timerModalCancel.addEventListener('click', () => timerModal.classList.add('hidden'));
         timerModalOk.addEventListener('click', () => {
-            const studyMinutes = parseInt(studyTimerInput.value);
-            const breakMinutes = parseInt(breakTimerInput.value);
-            if (studyMinutes > 0) studyDuration = studyMinutes * 60;
-            if (breakMinutes > 0) breakDuration = breakMinutes * 60;
-            if (currentMode === 'study') remainingTime = studyDuration; else remainingTime = breakDuration;
-            resetTimer();
-            timerModal.classList.add('hidden');
+            const studyMinutes = parseInt(studyTimerInput.value), breakMinutes = parseInt(breakTimerInput.value);
+            if (studyMinutes > 0) studyDuration = studyMinutes * 60; if (breakMinutes > 0) breakDuration = breakMinutes * 60;
+            remainingTime = (currentMode === 'study') ? studyDuration : breakDuration;
+            resetTimer(); timerModal.classList.add('hidden');
         });
 
         // Resize
-        const resizeTimerBtn = document.getElementById('resize-timer-btn');
-        const resizeModal = document.getElementById('resize-modal');
-        const resizeModalOk = document.getElementById('resize-modal-ok');
-        const timerSizeSlider = document.getElementById('timer-size-slider');
+        const resizeTimerBtn = document.getElementById('resize-timer-btn'), resizeModal = document.getElementById('resize-modal'), resizeModalOk = document.getElementById('resize-modal-ok'), timerSizeSlider = document.getElementById('timer-size-slider');
         resizeTimerBtn.addEventListener('click', () => resizeModal.classList.remove('hidden'));
         resizeModalOk.addEventListener('click', () => resizeModal.classList.add('hidden'));
         timerSizeSlider.addEventListener('input', (e) => {
-            const newSize = e.target.value;
-            document.documentElement.style.setProperty('--timer-font-size', `${newSize}rem`);
-            localStorage.setItem('timerSize', newSize);
+            const newSize = e.target.value; document.documentElement.style.setProperty('--timer-font-size', `${newSize}rem`); localStorage.setItem('timerSize', newSize);
         });
 
         // Question Counter
@@ -1335,76 +1028,36 @@
         });
 
         // Adjust Time
-        addTimeBtn.addEventListener('click', () => {
-            if (timerType === 'pomodoro') { remainingTime += 300; if (isRunning) pomodoroEndTime += 300000; }
-            else elapsedSeconds += 300;
-            updateTimerDisplay();
-        });
-        subtractTimeBtn.addEventListener('click', () => {
-            if (timerType === 'pomodoro') { remainingTime -= 300; if (remainingTime < 0) remainingTime = 0; if (isRunning) pomodoroEndTime -= 300000; }
-            else { elapsedSeconds -= 300; if (elapsedSeconds < 0) elapsedSeconds = 0; }
-            updateTimerDisplay();
-        });
+        addTimeBtn.addEventListener('click', () => { if (timerType === 'pomodoro') { remainingTime += 300; if (isRunning) pomodoroEndTime += 300000; } else elapsedSeconds += 300; updateTimerDisplay(); });
+        subtractTimeBtn.addEventListener('click', () => { if (timerType === 'pomodoro') { remainingTime = Math.max(0, remainingTime - 300); if (isRunning) pomodoroEndTime -= 300000; } else elapsedSeconds = Math.max(0, elapsedSeconds - 300); updateTimerDisplay(); });
 
-        // Fullscreen
+        // Fullscreen & UI Hiding
         const fullscreenBtn = document.getElementById('fullscreen-btn');
-        fullscreenBtn.addEventListener('click', () => {
-            if (!document.fullscreenElement) document.documentElement.requestFullscreen();
-            else if (document.exitFullscreen) document.exitFullscreen();
-        });
+        fullscreenBtn.addEventListener('click', () => { if (!document.fullscreenElement) document.documentElement.requestFullscreen(); else if (document.exitFullscreen) document.exitFullscreen(); });
         document.addEventListener('fullscreenchange', () => {
-             if (document.fullscreenElement) {
-                document.getElementById('fullscreen-enter-icon').classList.add('hidden');
-                document.getElementById('fullscreen-exit-icon').classList.remove('hidden');
-            } else {
-                document.getElementById('fullscreen-enter-icon').classList.remove('hidden');
-                document.getElementById('fullscreen-exit-icon').classList.add('hidden');
-            }
+             if (document.fullscreenElement) { document.getElementById('fullscreen-enter-icon').classList.add('hidden'); document.getElementById('fullscreen-exit-icon').classList.remove('hidden'); } 
+             else { document.getElementById('fullscreen-enter-icon').classList.remove('hidden'); document.getElementById('fullscreen-exit-icon').classList.add('hidden'); }
         });
 
-        // Minimize / Cinema
         minimizeBtn.addEventListener('click', () => controlsBar.classList.toggle('ui-hide'));
         const cinemaModeBtn = document.getElementById('cinema-mode-btn');
-        const timerContainerEl = document.getElementById('timer-container'); // Part of wrapper now
-        cinemaModeBtn.addEventListener('click', () => {
-            [controlsBar, timerWrapper, videoControlsContainer, questionCounterDisplay].forEach(el => el.classList.add('ui-hide'));
-        });
+        cinemaModeBtn.addEventListener('click', () => { [controlsBar, timerWrapper, videoControlsContainer, questionCounterDisplay].forEach(el => el.classList.add('ui-hide')); });
         document.documentElement.addEventListener('click', (e) => {
-            if (controlsBar.classList.contains('ui-hide')) {
-                // If clicking background (not a button)
-                if(e.target.tagName !== 'BUTTON' && !e.target.closest('button')) {
-                    [controlsBar, timerWrapper, questionCounterDisplay].forEach(el => el.classList.remove('ui-hide'));
-                    if(activeBgPlayer === 'local' || activeBgPlayer === 'youtube') videoControlsContainer.classList.remove('ui-hide');
-                }
+            if (controlsBar.classList.contains('ui-hide') && e.target.tagName !== 'BUTTON' && !e.target.closest('button')) {
+                [controlsBar, timerWrapper, questionCounterDisplay].forEach(el => el.classList.remove('ui-hide'));
+                if(activeBgPlayer === 'local' || activeBgPlayer === 'youtube') videoControlsContainer.classList.remove('ui-hide');
             }
         });
 
-        // Top Hour (Removed logic as requested, keeping empty function to prevent errors if called)
-        function updateTopHourLeft() {}
-
-        // BG Image Logic
-        setImageBtn.addEventListener('click', () => imageFileInput.click());
-        imageFileInput.addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if (file) {
-                const imgUrl = URL.createObjectURL(file);
-                loadLocalImage(imgUrl, file.name);
-                addToBgPlaylist({ type: 'image', src: imgUrl, name: file.name });
-            }
-        });
-
-        // Snow/Rain
-        const canvas = document.getElementById('effect-canvas');
-        const ctx = canvas.getContext('2d');
+        // Snow/Rain Animation
+        const canvas = document.getElementById('effect-canvas'), ctx = canvas.getContext('2d');
         let particles = [], animationId = null, currentEffect = 'none';
         function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
-        window.addEventListener('resize', resizeCanvas);
-        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas); resizeCanvas();
         class Particle {
             constructor(type) { this.type = type; this.reset(true); }
             reset(initial = false) {
-                this.x = Math.random() * canvas.width;
-                this.y = initial ? Math.random() * canvas.height : -10;
+                this.x = Math.random() * canvas.width; this.y = initial ? Math.random() * canvas.height : -10;
                 if (this.type === 'snow') { this.vy = 1 + Math.random() * 2; this.vx = (Math.random() - 0.5) * 0.5; this.size = Math.random() * 2 + 1; } 
                 else { this.vy = 15 + Math.random() * 10; this.vx = 0; this.size = Math.random() * 15 + 10; }
             }
@@ -1426,10 +1079,7 @@
         toggleRainBtn.addEventListener('click', () => { if(currentEffect === 'rain'){ cancelAnimationFrame(animationId); ctx.clearRect(0,0,canvas.width,canvas.height); currentEffect='none'; toggleRainBtn.classList.remove('text-blue-400'); } else { startAnimation('rain'); toggleRainBtn.classList.add('text-blue-400'); toggleSnowBtn.classList.remove('text-blue-400'); } });
 
         // Init
-        loadDataFromLocalStorage();
-        rewireControlsForLocalBg();
-        updateVisualMode(); // Set initial look
-        resetTimer();
+        loadDataFromLocalStorage(); rewireControlsForLocalBg(); updateVisualMode(); resetTimer();
 
     </script>
 </body>
